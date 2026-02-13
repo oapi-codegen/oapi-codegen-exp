@@ -223,6 +223,53 @@ func (e *TooManyValuesForParamError) Error() string {
 	return fmt.Sprintf("Expected one value for %s, got %d", e.ParamName, e.Count)
 }
 
+const DateFormat = "2006-01-02"
+
+type Date struct {
+	time.Time
+}
+
+func (d Date) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.Format(DateFormat))
+}
+
+func (d *Date) UnmarshalJSON(data []byte) error {
+	var dateStr string
+	err := json.Unmarshal(data, &dateStr)
+	if err != nil {
+		return err
+	}
+	parsed, err := time.Parse(DateFormat, dateStr)
+	if err != nil {
+		return err
+	}
+	d.Time = parsed
+	return nil
+}
+
+func (d Date) String() string {
+	return d.Format(DateFormat)
+}
+
+func (d *Date) UnmarshalText(data []byte) error {
+	parsed, err := time.Parse(DateFormat, string(data))
+	if err != nil {
+		return err
+	}
+	d.Time = parsed
+	return nil
+}
+
+// MarshalText implements encoding.TextMarshaler for Date.
+func (d Date) MarshalText() ([]byte, error) {
+	return []byte(d.Format(DateFormat)), nil
+}
+
+// Format returns the date formatted according to layout.
+func (d Date) Format(layout string) string {
+	return d.Time.Format(layout)
+}
+
 // ParamLocation indicates where a parameter is located in an HTTP request.
 type ParamLocation int
 
@@ -237,34 +284,6 @@ const (
 // Binder is an interface for types that can bind themselves from a string value.
 type Binder interface {
 	Bind(value string) error
-}
-
-// DateFormat is the format used for date (without time) parameters.
-const DateFormat = "2006-01-02"
-
-// Date represents a date (without time) for OpenAPI date format.
-type Date struct {
-	time.Time
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler for Date.
-func (d *Date) UnmarshalText(data []byte) error {
-	t, err := time.Parse(DateFormat, string(data))
-	if err != nil {
-		return err
-	}
-	d.Time = t
-	return nil
-}
-
-// MarshalText implements encoding.TextMarshaler for Date.
-func (d Date) MarshalText() ([]byte, error) {
-	return []byte(d.Format(DateFormat)), nil
-}
-
-// Format returns the date formatted according to layout.
-func (d Date) Format(layout string) string {
-	return d.Time.Format(layout)
 }
 
 // primitiveToString converts a primitive value to a string representation.
