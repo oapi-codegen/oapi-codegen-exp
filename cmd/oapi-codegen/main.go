@@ -15,13 +15,14 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/internal/codegen"
+	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen"
 )
 
 func main() {
 	configPath := flag.String("config", "", "path to configuration file")
 	flagPackage := flag.String("package", "", "Go package name for generated code")
 	flagOutput := flag.String("output", "", "output file path (default: <spec-basename>.gen.go)")
+	flagGenerateRuntime := flag.String("generate-runtime", "", "generate runtime sub-packages (types, params, helpers) under the output directory; value is the base import path (no spec required)")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options] <spec-path-or-url>\n\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "Arguments:\n")
@@ -30,6 +31,42 @@ func main() {
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+
+	// --generate-runtime mode: produce three runtime sub-packages and exit.
+	if *flagGenerateRuntime != "" {
+		rt, err := codegen.GenerateRuntime(*flagGenerateRuntime)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error generating runtime: %v\n", err)
+			os.Exit(1)
+		}
+		// Output directory defaults to current directory.
+		outputDir := *flagOutput
+		if outputDir == "" {
+			outputDir = "."
+		}
+		// Write each sub-package into its own subdirectory.
+		subPkgs := []struct {
+			dir, file, code string
+		}{
+			{"types", "types.gen.go", rt.Types},
+			{"params", "params.gen.go", rt.Params},
+			{"helpers", "helpers.gen.go", rt.Helpers},
+		}
+		for _, sp := range subPkgs {
+			dir := filepath.Join(outputDir, sp.dir)
+			if err := os.MkdirAll(dir, 0755); err != nil {
+				fmt.Fprintf(os.Stderr, "error creating directory %s: %v\n", dir, err)
+				os.Exit(1)
+			}
+			path := filepath.Join(dir, sp.file)
+			if err := os.WriteFile(path, []byte(sp.code), 0644); err != nil {
+				fmt.Fprintf(os.Stderr, "error writing %s: %v\n", path, err)
+				os.Exit(1)
+			}
+			fmt.Printf("Generated %s\n", path)
+		}
+		return
+	}
 
 	if flag.NArg() != 1 {
 		flag.Usage()

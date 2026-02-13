@@ -30,12 +30,46 @@ generation:
   # Default: false
   simple-client: true
 
+  # Generate webhook initiator code (sends webhook requests to target URLs).
+  # Generates a framework-agnostic client that takes the full target URL per-call.
+  # Default: false
+  webhook-initiator: true
+
+  # Generate webhook receiver code (receives webhook requests).
+  # Generates framework-specific handler functions. Requires server to be set.
+  # Default: false
+  webhook-receiver: true
+
+  # Generate callback initiator code (sends callback requests to target URLs).
+  # Default: false
+  callback-initiator: true
+
+  # Generate callback receiver code (receives callback requests).
+  # Generates framework-specific handler functions. Requires server to be set.
+  # Default: false
+  callback-receiver: true
+
   # Use model types from an external package instead of generating them locally.
   # When set, models are imported rather than generated.
   # Default: not set (models are generated locally)
   models-package:
     path: github.com/org/project/models
     alias: models  # optional, defaults to last segment of path
+
+  # Use a shared runtime package instead of embedding helpers in each generated file.
+  # When set, custom types (Date, Email, UUID, File, Nullable), parameter
+  # serialization functions, and helper functions (MarshalForm) are NOT embedded
+  # in the output. Instead, the generated code imports them from three sub-packages:
+  #   <path>/types   — custom types (Date, Email, UUID, File, Nullable)
+  #   <path>/params  — parameter style/bind functions (StyleSimpleParam, BindFormParam, etc.)
+  #   <path>/helpers — utility functions (MarshalForm)
+  #
+  # Generate the runtime package once with:
+  #   oapi-codegen --generate-runtime <base-import-path>
+  #
+  # Default: not set (all helpers are embedded in each generated file)
+  runtime-package:
+    path: github.com/org/project/runtime
 
 # Output options: control which operations and schemas are included.
 output-options:

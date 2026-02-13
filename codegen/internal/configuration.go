@@ -1,0 +1,396 @@
+package codegen
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"regexp"
+	"sort"
+	"strings"
+)
+
+type Configuration struct {
+	// PackageName which will be used in all generated files
+	PackageName string `yaml:"package"`
+	// Output specifies the output file path
+	Output string `yaml:"output"`
+	// Generation controls which parts of the code are generated
+	Generation GenerationOptions `yaml:"generation,omitempty"`
+	// OutputOptions controls filtering of operations and schemas
+	OutputOptions OutputOptions `yaml:"output-options,omitempty"`
+	// TypeMapping allows customizing OpenAPI type/format to Go type mappings
+	TypeMapping TypeMapping `yaml:"type-mapping,omitempty"`
+	// NameMangling configures how OpenAPI names are converted to Go identifiers
+	NameMangling NameMangling `yaml:"name-mangling,omitempty"`
+	// NameSubstitutions allows direct overrides of generated names
+	NameSubstitutions NameSubstitutions `yaml:"name-substitutions,omitempty"`
+	// ImportMapping maps external spec file paths to Go package import paths.
+	// The value is either a bare import path or "alias importpath".
+	// Examples:
+	//   "../common/api.yaml": "github.com/org/project/common"         # alias auto-generated via hash
+	//   "../common/api.yaml": "common github.com/org/project/common"  # explicit alias "common"
+	// Use "-" as the value to indicate types should be in the current package.
+	ImportMapping map[string]string `yaml:"import-mapping,omitempty"`
+	// ContentTypes is a list of regexp patterns for media types to generate models for.
+	// Only request/response bodies with matching content types will have types generated.
+	// Defaults to common JSON and YAML types if not specified.
+	ContentTypes []string `yaml:"content-types,omitempty"`
+	// ContentTypeShortNames maps short names to lists of content type regex patterns.
+	// Example: {"JSON": ["^application/json$", "^application/.*\\+json$"]}
+	// These are used when generating response/request type names like "FindPetsJSONResponse".
+	ContentTypeShortNames map[string][]string `yaml:"content-type-short-names,omitempty"`
+	// StructTags configures how struct tags are generated for fields.
+	// By default, only json tags are generated.
+	StructTags StructTagsConfig `yaml:"struct-tags,omitempty"`
+}
+
+// OutputOptions controls filtering of which operations and schemas are included in generation.
+type OutputOptions struct {
+	// IncludeTags only includes operations tagged with one of these tags. Ignored when empty.
+	IncludeTags []string `yaml:"include-tags,omitempty"`
+	// ExcludeTags excludes operations tagged with one of these tags. Ignored when empty.
+	ExcludeTags []string `yaml:"exclude-tags,omitempty"`
+	// IncludeOperationIDs only includes operations with one of these operation IDs. Ignored when empty.
+	IncludeOperationIDs []string `yaml:"include-operation-ids,omitempty"`
+	// ExcludeOperationIDs excludes operations with one of these operation IDs. Ignored when empty.
+	ExcludeOperationIDs []string `yaml:"exclude-operation-ids,omitempty"`
+	// ExcludeSchemas excludes schemas with the given names from generation. Ignored when empty.
+	ExcludeSchemas []string `yaml:"exclude-schemas,omitempty"`
+	// PruneUnreferencedSchemas removes component schemas that are not $ref'd by any other
+	// gathered schema. When combined with tag/operation filtering, this effectively removes
+	// schemas that are only used by excluded operations.
+	PruneUnreferencedSchemas bool `yaml:"prune-unreferenced-schemas,omitempty"`
+	// AlwaysPrefixEnumValues forces all enum constants to be prefixed with the type name,
+	// regardless of whether cross-enum collisions are detected.
+	// When false (default), enum constants are only prefixed when needed to avoid collisions.
+	AlwaysPrefixEnumValues bool `yaml:"always-prefix-enum-values,omitempty"`
+}
+
+// ModelsPackage specifies an external package containing the model types.
+type ModelsPackage struct {
+	// Path is the import path for the models package (e.g., "github.com/org/project/models")
+	Path string `yaml:"path"`
+	// Alias is an optional import alias. If empty, the last segment of the path is used.
+	Alias string `yaml:"alias,omitempty"`
+}
+
+// Name returns the package name/alias to use for qualifying types.
+// Returns the Alias if set, otherwise derives from the Path.
+func (m *ModelsPackage) Name() string {
+	if m == nil || m.Path == "" {
+		return ""
+	}
+	if m.Alias != "" {
+		return m.Alias
+	}
+	// Derive from path - take last segment
+	parts := strings.Split(m.Path, "/")
+	return parts[len(parts)-1]
+}
+
+// Prefix returns the package prefix for qualifying types (e.g., "models.").
+// Returns empty string if models are in the same package.
+func (m *ModelsPackage) Prefix() string {
+	name := m.Name()
+	if name == "" {
+		return ""
+	}
+	return name + "."
+}
+
+// GenerationOptions controls which parts of the code are generated.
+type GenerationOptions struct {
+	// Server specifies which server framework to generate code for.
+	// Supported values: "std-http"
+	// Empty string (default) means no server code is generated.
+	Server string `yaml:"server,omitempty"`
+
+	// Client enables generation of the HTTP client.
+	// When true, generates a base Client that returns *http.Response.
+	Client bool `yaml:"client,omitempty"`
+
+	// SimpleClient enables generation of the SimpleClient wrapper.
+	// SimpleClient wraps the base Client with typed responses for
+	// operations that have unambiguous response types.
+	// Requires Client to also be enabled.
+	SimpleClient bool `yaml:"simple-client,omitempty"`
+
+	// WebhookInitiator enables generation of webhook initiator code (sends webhook requests).
+	// Generates a framework-agnostic client that takes the full target URL per-call.
+	WebhookInitiator bool `yaml:"webhook-initiator,omitempty"`
+
+	// WebhookReceiver enables generation of webhook receiver code (receives webhook requests).
+	// Generates framework-specific handler functions. Requires Server to be set.
+	WebhookReceiver bool `yaml:"webhook-receiver,omitempty"`
+
+	// CallbackInitiator enables generation of callback initiator code (sends callback requests).
+	// Generates a framework-agnostic client that takes the full target URL per-call.
+	CallbackInitiator bool `yaml:"callback-initiator,omitempty"`
+
+	// CallbackReceiver enables generation of callback receiver code (receives callback requests).
+	// Generates framework-specific handler functions. Requires Server to be set.
+	CallbackReceiver bool `yaml:"callback-receiver,omitempty"`
+
+	// ModelsPackage specifies an external package containing the model types.
+	// When set, models are NOT generated locally - instead, generated code
+	// imports and references types from this package.
+	// Example: {path: "github.com/org/project/models"}
+	ModelsPackage *ModelsPackage `yaml:"models-package,omitempty"`
+
+	// RuntimePackage specifies an external package containing runtime helpers
+	// (Date, Nullable, param style/bind functions, marshalForm, etc.).
+	// When set, these helpers are NOT embedded in the generated output —
+	// instead, generated code imports and references them from this package.
+	// Generate the runtime package with --generate-runtime or GenerateRuntime().
+	RuntimePackage *RuntimePackageConfig `yaml:"runtime-package,omitempty"`
+}
+
+// ServerType constants for supported server frameworks.
+const (
+	ServerTypeStdHTTP  = "std-http"
+	ServerTypeChi      = "chi"
+	ServerTypeEcho     = "echo"
+	ServerTypeEchoV4   = "echo/v4"
+	ServerTypeGin      = "gin"
+	ServerTypeGorilla  = "gorilla"
+	ServerTypeFiber    = "fiber"
+	ServerTypeIris     = "iris"
+)
+
+// DefaultContentTypes returns the default list of content type patterns.
+// These match common JSON and YAML media types.
+func DefaultContentTypes() []string {
+	return []string{
+		`^application/json$`,
+		`^application/.*\+json$`,
+		`^application/x-www-form-urlencoded$`,
+	}
+}
+
+// DefaultContentTypeShortNames returns the default content type to short name mappings.
+// The defaults match the patterns in DefaultContentTypes().
+func DefaultContentTypeShortNames() map[string][]string {
+	return map[string][]string{
+		"JSON": {`^application/json$`, `^application/.*\+json$`},
+		"Form": {`^application/x-www-form-urlencoded$`},
+	}
+}
+
+// ApplyDefaults merges user configuration on top of default values.
+func (c *Configuration) ApplyDefaults() {
+	c.TypeMapping = DefaultTypeMapping.Merge(c.TypeMapping)
+	c.NameMangling = DefaultNameMangling().Merge(c.NameMangling)
+	if len(c.ContentTypes) == 0 {
+		c.ContentTypes = DefaultContentTypes()
+	}
+	if c.ContentTypeShortNames == nil {
+		c.ContentTypeShortNames = DefaultContentTypeShortNames()
+	}
+	c.StructTags = DefaultStructTagsConfig().Merge(c.StructTags)
+}
+
+// ContentTypeMatcher checks if content types match configured patterns.
+type ContentTypeMatcher struct {
+	patterns []*regexp.Regexp
+}
+
+// NewContentTypeMatcher creates a matcher from a list of regexp patterns.
+// Invalid patterns are silently ignored.
+func NewContentTypeMatcher(patterns []string) *ContentTypeMatcher {
+	m := &ContentTypeMatcher{
+		patterns: make([]*regexp.Regexp, 0, len(patterns)),
+	}
+	for _, p := range patterns {
+		if re, err := regexp.Compile(p); err == nil {
+			m.patterns = append(m.patterns, re)
+		}
+	}
+	return m
+}
+
+// Matches returns true if the content type matches any of the configured patterns.
+func (m *ContentTypeMatcher) Matches(contentType string) bool {
+	for _, re := range m.patterns {
+		if re.MatchString(contentType) {
+			return true
+		}
+	}
+	return false
+}
+
+// ContentTypeShortNamer resolves content types to short names for use in type names.
+type ContentTypeShortNamer struct {
+	patterns   []*regexp.Regexp
+	shortNames []string
+}
+
+// NewContentTypeShortNamer creates a short namer from configuration.
+// The mappings map short names (e.g., "JSON") to lists of regexp patterns.
+func NewContentTypeShortNamer(mappings map[string][]string) *ContentTypeShortNamer {
+	n := &ContentTypeShortNamer{}
+
+	// Sort keys for deterministic matching order
+	keys := make([]string, 0, len(mappings))
+	for k := range mappings {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, shortName := range keys {
+		for _, pattern := range mappings[shortName] {
+			if re, err := regexp.Compile(pattern); err == nil {
+				n.patterns = append(n.patterns, re)
+				n.shortNames = append(n.shortNames, shortName)
+			}
+		}
+	}
+	return n
+}
+
+// ShortName returns the short name for a content type, or a fallback derived from the content type.
+func (n *ContentTypeShortNamer) ShortName(contentType string) string {
+	for i, re := range n.patterns {
+		if re.MatchString(contentType) {
+			return n.shortNames[i]
+		}
+	}
+	// Fallback: derive from content type (e.g., "application/vnd.api+json" -> "VndApiJson")
+	return deriveContentTypeShortName(contentType)
+}
+
+// deriveContentTypeShortName creates a short name from an unmatched content type.
+func deriveContentTypeShortName(contentType string) string {
+	// Remove "application/", "text/", etc. prefix
+	if idx := strings.Index(contentType, "/"); idx >= 0 {
+		contentType = contentType[idx+1:]
+	}
+	// Replace non-alphanumeric with spaces for word splitting
+	var result strings.Builder
+	capitalizeNext := true
+	for _, r := range contentType {
+		if r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' {
+			if capitalizeNext {
+				if r >= 'a' && r <= 'z' {
+					r = r - 'a' + 'A'
+				}
+				capitalizeNext = false
+			}
+			result.WriteRune(r)
+		} else {
+			capitalizeNext = true
+		}
+	}
+	return result.String()
+}
+
+// RuntimePackageConfig specifies an external package containing runtime helpers
+// (Date, Nullable, param style/bind functions, MarshalForm, etc.).
+// The runtime is split into three sub-packages: types, params, and helpers.
+type RuntimePackageConfig struct {
+	// Path is the base import path for the runtime package
+	// (e.g., "github.com/org/project/runtime").
+	// Sub-packages are at Path/types, Path/params, and Path/helpers.
+	Path string `yaml:"path"`
+}
+
+// ParamsImport returns the import path for the params sub-package.
+func (r *RuntimePackageConfig) ParamsImport() string {
+	if r == nil || r.Path == "" {
+		return ""
+	}
+	return r.Path + "/params"
+}
+
+// TypesImport returns the import path for the types sub-package.
+func (r *RuntimePackageConfig) TypesImport() string {
+	if r == nil || r.Path == "" {
+		return ""
+	}
+	return r.Path + "/types"
+}
+
+// HelpersImport returns the import path for the helpers sub-package.
+func (r *RuntimePackageConfig) HelpersImport() string {
+	if r == nil || r.Path == "" {
+		return ""
+	}
+	return r.Path + "/helpers"
+}
+
+// ExternalImport represents an external package import with its alias.
+type ExternalImport struct {
+	Alias string // Short alias for use in generated code (e.g., "ext_a1b2c3")
+	Path  string // Full import path (e.g., "github.com/org/project/common")
+}
+
+// ImportResolver resolves external references to Go package imports.
+type ImportResolver struct {
+	mapping map[string]ExternalImport // spec file path -> import info
+}
+
+// NewImportResolver creates an ImportResolver from the configuration's import mapping.
+// Each mapping value is either a bare import path (alias is auto-generated via hash)
+// or "alias importpath" (explicit alias). The special value "-" means current package.
+func NewImportResolver(importMapping map[string]string) (*ImportResolver, error) {
+	resolver := &ImportResolver{
+		mapping: make(map[string]ExternalImport),
+	}
+
+	for specPath, value := range importMapping {
+		if value == "-" {
+			// "-" means current package, no import needed
+			resolver.mapping[specPath] = ExternalImport{Alias: "", Path: ""}
+			continue
+		}
+
+		parts := strings.Fields(value)
+		switch len(parts) {
+		case 1:
+			// Bare import path — auto-generate alias via hash
+			resolver.mapping[specPath] = ExternalImport{
+				Alias: hashImportAlias(parts[0]),
+				Path:  parts[0],
+			}
+		case 2:
+			// "alias importpath"
+			resolver.mapping[specPath] = ExternalImport{
+				Alias: parts[0],
+				Path:  parts[1],
+			}
+		default:
+			return nil, fmt.Errorf("invalid import-mapping value for %q: expected \"importpath\" or \"alias importpath\", got %q", specPath, value)
+		}
+	}
+
+	return resolver, nil
+}
+
+// Resolve looks up an external spec file path and returns its import info.
+// Returns nil if the path is not in the mapping.
+func (r *ImportResolver) Resolve(specPath string) *ExternalImport {
+	if imp, ok := r.mapping[specPath]; ok {
+		return &imp
+	}
+	return nil
+}
+
+// AllImports returns all external imports sorted by alias.
+func (r *ImportResolver) AllImports() []ExternalImport {
+	var imports []ExternalImport
+	for _, imp := range r.mapping {
+		if imp.Path != "" { // Skip current package markers
+			imports = append(imports, imp)
+		}
+	}
+	sort.Slice(imports, func(i, j int) bool {
+		return imports[i].Alias < imports[j].Alias
+	})
+	return imports
+}
+
+// hashImportAlias generates a short, deterministic alias from an import path.
+// Uses first 8 characters of SHA256 hash prefixed with "ext_".
+func hashImportAlias(importPath string) string {
+	h := sha256.Sum256([]byte(importPath))
+	return "ext_" + hex.EncodeToString(h[:])[:8]
+}
