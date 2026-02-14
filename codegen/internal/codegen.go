@@ -641,6 +641,7 @@ type allOfMemberInfo struct {
 	unionType string        // non-empty if this member is a oneOf/anyOf union
 	unionDesc *SchemaDescriptor
 	required  []string // required fields from this allOf member
+	refType   string   // non-empty if this member is a $ref (the JSON pointer)
 }
 
 // generateAllOfType generates a struct with flattened properties from all allOf members.
@@ -651,6 +652,10 @@ func generateAllOfType(gen *TypeGenerator, desc *SchemaDescriptor) string {
 	if schema == nil {
 		return ""
 	}
+
+	// Merge extensions from all allOf members into a composite.
+	// This mirrors V2's MergeSchemas which merges extensions before type generation.
+	mergedExt := mergeAllOfExtensions(desc, gen.schemaIndex)
 
 	// Merge all fields, checking for conflicts
 	mergedFields := make(map[string]StructField) // keyed by JSONName
@@ -687,6 +692,7 @@ func generateAllOfType(gen *TypeGenerator, desc *SchemaDescriptor) string {
 		} else if proxy.IsReference() {
 			// Reference to another schema - get its fields
 			ref := proxy.GetReference()
+			info.refType = ref
 			if target, ok := gen.schemaIndex[ref]; ok {
 				info.fields = gen.collectFieldsRecursive(target)
 			}
@@ -701,6 +707,15 @@ func generateAllOfType(gen *TypeGenerator, desc *SchemaDescriptor) string {
 		info.required = memberSchema.Required
 
 		members = append(members, info)
+	}
+
+	// After field collection: if no fields were found, check if the composite
+	// should be a type alias (TypeOverride from a $ref target, no struct properties).
+	if len(mergedFields) == 0 && !hasAnyFields(members) {
+		if mergedExt != nil && mergedExt.TypeOverride != nil {
+			desc.Extensions = mergedExt
+			return generateTypeOverrideAlias(gen, desc)
+		}
 	}
 
 	// Merge fields from allOf members
@@ -776,6 +791,67 @@ func generateAllOfType(gen *TypeGenerator, desc *SchemaDescriptor) string {
 	}
 
 	return code
+}
+
+// mergeAllOfExtensions merges extensions from all allOf member descriptors into a
+// single composite. For $ref members, the target schema's extensions are merged first,
+// then the allOf member descriptor's own extensions (so inline overrides win).
+func mergeAllOfExtensions(desc *SchemaDescriptor, schemaIndex map[string]*SchemaDescriptor) *Extensions {
+	if desc == nil || len(desc.AllOf) == 0 {
+		return nil
+	}
+
+	merged := &Extensions{}
+	hasAny := false
+
+	for i, memberDesc := range desc.AllOf {
+		if memberDesc == nil {
+			continue
+		}
+
+		// For $ref members, merge the target schema's extensions
+		if memberDesc.IsReference() {
+			if target, ok := schemaIndex[memberDesc.Ref]; ok && target.Extensions != nil {
+				mergeExtensions(merged, target.Extensions)
+				hasAny = true
+			}
+		}
+
+		// Merge the member descriptor's own extensions (inline extensions override $ref target)
+		if memberDesc.Extensions != nil {
+			mergeExtensions(merged, memberDesc.Extensions)
+			hasAny = true
+		}
+
+		// Also check if the allOf proxy in the schema has extensions that were parsed
+		// on the descriptor at this index
+		if desc.Schema != nil && i < len(desc.Schema.AllOf) {
+			proxy := desc.Schema.AllOf[i]
+			memberSchema := proxy.Schema()
+			if memberSchema != nil && memberSchema.Extensions != nil {
+				ext, err := ParseExtensions(memberSchema.Extensions, desc.Path.Append("allOf", fmt.Sprintf("%d", i)).String())
+				if err == nil && ext != nil {
+					mergeExtensions(merged, ext)
+					hasAny = true
+				}
+			}
+		}
+	}
+
+	if !hasAny {
+		return nil
+	}
+	return merged
+}
+
+// hasAnyFields returns true if any allOf member contributed struct fields or union types.
+func hasAnyFields(members []allOfMemberInfo) bool {
+	for _, m := range members {
+		if len(m.fields) > 0 || m.unionType != "" {
+			return true
+		}
+	}
+	return false
 }
 
 // generateAllOfStructWithUnions generates an allOf struct that contains union fields.

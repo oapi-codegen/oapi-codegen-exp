@@ -277,6 +277,44 @@ func buildLegacyTypeOverride(typeName string, importVal any) *TypeOverride {
 	return override
 }
 
+// mergeExtensions copies non-zero/non-nil fields from src into dst.
+// Later values win (src overrides dst where set).
+func mergeExtensions(dst, src *Extensions) {
+	if src == nil || dst == nil {
+		return
+	}
+	if src.TypeOverride != nil {
+		dst.TypeOverride = src.TypeOverride
+	}
+	if src.NameOverride != "" {
+		dst.NameOverride = src.NameOverride
+	}
+	if src.TypeNameOverride != "" {
+		dst.TypeNameOverride = src.TypeNameOverride
+	}
+	if src.SkipOptionalPointer != nil {
+		dst.SkipOptionalPointer = src.SkipOptionalPointer
+	}
+	if src.JSONIgnore != nil {
+		dst.JSONIgnore = src.JSONIgnore
+	}
+	if src.OmitEmpty != nil {
+		dst.OmitEmpty = src.OmitEmpty
+	}
+	if src.OmitZero != nil {
+		dst.OmitZero = src.OmitZero
+	}
+	if len(src.EnumVarNames) > 0 {
+		dst.EnumVarNames = src.EnumVarNames
+	}
+	if src.DeprecatedReason != "" {
+		dst.DeprecatedReason = src.DeprecatedReason
+	}
+	if src.Order != nil {
+		dst.Order = src.Order
+	}
+}
+
 // Type conversion helpers that include the extension name in error messages
 
 func asString(val any, extName string) (string, error) {
