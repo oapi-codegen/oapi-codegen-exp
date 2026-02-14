@@ -6,14 +6,22 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"encoding"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
+	"sort"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 // #/components/schemas/Bar
@@ -89,6 +97,40 @@ func (s *Pet) ApplyDefaults() {
 type Widget = string
 
 type Metadata = string
+
+// #/components/schemas/Resource_MVO
+type ResourceMVO struct {
+	Name   *string `json:"name,omitempty" form:"name,omitempty"`
+	Status *string `json:"status,omitempty" form:"status,omitempty"`
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (s *ResourceMVO) ApplyDefaults() {
+}
+
+// #/components/schemas/Resource
+type Resource struct {
+	ID     *string `json:"id,omitempty" form:"id,omitempty"`
+	Name   *string `json:"name,omitempty" form:"name,omitempty"`
+	Status *string `json:"status,omitempty" form:"status,omitempty"`
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (s *Resource) ApplyDefaults() {
+}
+
+// #/components/schemas/JsonPatch
+type JSONPatch = []JSONPatchItem
+
+// #/components/schemas/JsonPatch/items
+type JSONPatchItem struct {
+	Op   *string `json:"op,omitempty" form:"op,omitempty"`
+	Path *string `json:"path,omitempty" form:"path,omitempty"`
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (s *JSONPatchItem) ApplyDefaults() {
+}
 
 // #/components/schemas/Qux
 type CustomQux struct {
@@ -208,6 +250,170 @@ func (s *ListEntitiesJSONResponse) ApplyDefaults() {
 // #/paths//entities/get/responses/200/content/application/json/schema/properties/data
 type GetEntities200Response = []Widget
 
+// #/paths//resources/{id}/patch/responses/200/content/application/json-patch+json/schema
+type PatchResourceJSONResponse2001 struct {
+	Resource                               *Resource
+	PatchResourcesID200ResponseJSONOneOf11 *PatchResourcesID200ResponseJSONOneOf11
+	PatchResourcesID200ResponseJSONOneOf21 *PatchResourcesID200ResponseJSONOneOf21
+}
+
+func (u PatchResourceJSONResponse2001) MarshalJSON() ([]byte, error) {
+	var count int
+	var data []byte
+	var err error
+
+	if u.Resource != nil {
+		count++
+		data, err = json.Marshal(u.Resource)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if u.PatchResourcesID200ResponseJSONOneOf11 != nil {
+		count++
+		data, err = json.Marshal(u.PatchResourcesID200ResponseJSONOneOf11)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if u.PatchResourcesID200ResponseJSONOneOf21 != nil {
+		count++
+		data, err = json.Marshal(u.PatchResourcesID200ResponseJSONOneOf21)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if count != 1 {
+		return nil, fmt.Errorf("PatchResourceJSONResponse2001: exactly one member must be set, got %d", count)
+	}
+
+	return data, nil
+}
+
+func (u *PatchResourceJSONResponse2001) UnmarshalJSON(data []byte) error {
+	var successCount int
+
+	var v0 Resource
+	if err := json.Unmarshal(data, &v0); err == nil {
+		u.Resource = &v0
+		successCount++
+	}
+
+	var v1 PatchResourcesID200ResponseJSONOneOf11
+	if err := json.Unmarshal(data, &v1); err == nil {
+		u.PatchResourcesID200ResponseJSONOneOf11 = &v1
+		successCount++
+	}
+
+	var v2 PatchResourcesID200ResponseJSONOneOf21
+	if err := json.Unmarshal(data, &v2); err == nil {
+		u.PatchResourcesID200ResponseJSONOneOf21 = &v2
+		successCount++
+	}
+
+	if successCount != 1 {
+		return fmt.Errorf("PatchResourceJSONResponse2001: expected exactly one type to match, got %d", successCount)
+	}
+
+	return nil
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (u *PatchResourceJSONResponse2001) ApplyDefaults() {
+	if u.Resource != nil {
+		u.Resource.ApplyDefaults()
+	}
+}
+
+// #/paths//resources/{id}/patch/responses/200/content/application/json-patch+json/schema/oneOf/1
+type PatchResourcesID200ResponseJSONOneOf11 = []Resource
+
+// #/paths//resources/{id}/patch/responses/200/content/application/json-patch+json/schema/oneOf/2
+type PatchResourcesID200ResponseJSONOneOf21 = Nullable[string]
+
+// #/paths//resources/{id}/patch/responses/200/content/application/json-patch-query+json/schema
+type PatchResourceJSONResponse2002 struct {
+	Resource                               *Resource
+	PatchResourcesID200ResponseJSONOneOf12 *PatchResourcesID200ResponseJSONOneOf12
+	PatchResourcesID200ResponseJSONOneOf22 *PatchResourcesID200ResponseJSONOneOf22
+}
+
+func (u PatchResourceJSONResponse2002) MarshalJSON() ([]byte, error) {
+	var count int
+	var data []byte
+	var err error
+
+	if u.Resource != nil {
+		count++
+		data, err = json.Marshal(u.Resource)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if u.PatchResourcesID200ResponseJSONOneOf12 != nil {
+		count++
+		data, err = json.Marshal(u.PatchResourcesID200ResponseJSONOneOf12)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if u.PatchResourcesID200ResponseJSONOneOf22 != nil {
+		count++
+		data, err = json.Marshal(u.PatchResourcesID200ResponseJSONOneOf22)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if count != 1 {
+		return nil, fmt.Errorf("PatchResourceJSONResponse2002: exactly one member must be set, got %d", count)
+	}
+
+	return data, nil
+}
+
+func (u *PatchResourceJSONResponse2002) UnmarshalJSON(data []byte) error {
+	var successCount int
+
+	var v0 Resource
+	if err := json.Unmarshal(data, &v0); err == nil {
+		u.Resource = &v0
+		successCount++
+	}
+
+	var v1 PatchResourcesID200ResponseJSONOneOf12
+	if err := json.Unmarshal(data, &v1); err == nil {
+		u.PatchResourcesID200ResponseJSONOneOf12 = &v1
+		successCount++
+	}
+
+	var v2 PatchResourcesID200ResponseJSONOneOf22
+	if err := json.Unmarshal(data, &v2); err == nil {
+		u.PatchResourcesID200ResponseJSONOneOf22 = &v2
+		successCount++
+	}
+
+	if successCount != 1 {
+		return fmt.Errorf("PatchResourceJSONResponse2002: expected exactly one type to match, got %d", successCount)
+	}
+
+	return nil
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (u *PatchResourceJSONResponse2002) ApplyDefaults() {
+	if u.Resource != nil {
+		u.Resource.ApplyDefaults()
+	}
+}
+
+// #/paths//resources/{id}/patch/responses/200/content/application/json-patch-query+json/schema/oneOf/1
+type PatchResourcesID200ResponseJSONOneOf12 = []Resource
+
+// #/paths//resources/{id}/patch/responses/200/content/application/json-patch-query+json/schema/oneOf/2
+type PatchResourcesID200ResponseJSONOneOf22 = Nullable[string]
+
 // #/paths//pets/post/requestBody/content/application/json/schema
 type CreatePetJSONRequest struct {
 	Name    *string `json:"name,omitempty" form:"name,omitempty"`
@@ -220,37 +426,46 @@ func (s *CreatePetJSONRequest) ApplyDefaults() {
 
 // Base64-encoded, gzip-compressed OpenAPI spec.
 var openAPISpecJSON = []string{
-	"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",
-	"CwAA//+Vvjq1LyUAAA==",
+	"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",
 }
 
 // decodeOpenAPISpec decodes and decompresses the embedded spec.
@@ -307,6 +522,12 @@ type createPetJSONRequestBody = any
 type queryJSONRequestBody = any
 
 type postQuxJSONRequestBody = CustomQux
+
+type patchResourceJSONRequestBody = ResourceMVO
+
+type patchResourceApplicationJsonPatchJsonRequestBody = JSONPatch
+
+type patchResourceApplicationMergePatchJsonRequestBody = ResourceMVO
 
 type postZapJSONRequestBody = Zap
 
@@ -409,8 +630,8 @@ type ClientInterface interface {
 	// ListEntities makes a GET request to /entities
 	ListEntities(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// PostFooWithBody makes a POST request to /foo
-	PostFooWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-	PostFoo(ctx context.Context, body postFooJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostFooWithBody(ctx context.Context, params *PostFooParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostFoo(ctx context.Context, params *PostFooParams, body postFooJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// ListItems makes a GET request to /items
 	ListItems(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// CreateItemWithBody makes a POST request to /items
@@ -432,6 +653,11 @@ type ClientInterface interface {
 	// PostQuxWithBody makes a POST request to /qux
 	PostQuxWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 	PostQux(ctx context.Context, body postQuxJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PatchResourceWithBody makes a PATCH request to /resources/{id}
+	PatchResourceWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PatchResource(ctx context.Context, id string, body patchResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PatchResourceWithApplicationJsonPatchJsonBody(ctx context.Context, id string, body patchResourceApplicationJsonPatchJsonRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PatchResourceWithApplicationMergePatchJsonBody(ctx context.Context, id string, body patchResourceApplicationMergePatchJsonRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetStatus makes a GET request to /status
 	GetStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetZap makes a GET request to /zap
@@ -439,6 +665,12 @@ type ClientInterface interface {
 	// PostZapWithBody makes a POST request to /zap
 	PostZapWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 	PostZap(ctx context.Context, body postZapJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+// PostFooParams defines parameters for PostFoo.
+type PostFooParams struct {
+	// bar (optional)
+	Bar *string `form:"bar" json:"bar"`
 }
 
 // ListEntities makes a GET request to /entities
@@ -457,8 +689,8 @@ func (c *Client) ListEntities(ctx context.Context, reqEditors ...RequestEditorFn
 
 // PostFooWithBody makes a POST request to /foo
 
-func (c *Client) PostFooWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostFooRequestWithBody(c.Server, contentType, body)
+func (c *Client) PostFooWithBody(ctx context.Context, params *PostFooParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostFooRequestWithBody(c.Server, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -470,8 +702,8 @@ func (c *Client) PostFooWithBody(ctx context.Context, contentType string, body i
 }
 
 // PostFoo makes a POST request to /foo with application/json body
-func (c *Client) PostFoo(ctx context.Context, body postFooJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostFooRequest(c.Server, body)
+func (c *Client) PostFoo(ctx context.Context, params *PostFooParams, body postFooJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostFooRequest(c.Server, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -671,6 +903,59 @@ func (c *Client) PostQux(ctx context.Context, body postQuxJSONRequestBody, reqEd
 	return c.Client.Do(req)
 }
 
+// PatchResourceWithBody makes a PATCH request to /resources/{id}
+
+func (c *Client) PatchResourceWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchResourceRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// PatchResource makes a PATCH request to /resources/{id} with application/json body
+func (c *Client) PatchResource(ctx context.Context, id string, body patchResourceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchResourceRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// PatchResourceWithApplicationJsonPatchJsonBody makes a PATCH request to /resources/{id} with application/json-patch+json body
+func (c *Client) PatchResourceWithApplicationJsonPatchJsonBody(ctx context.Context, id string, body patchResourceApplicationJsonPatchJsonRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchResourceRequestWithApplicationJsonPatchJsonBody(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// PatchResourceWithApplicationMergePatchJsonBody makes a PATCH request to /resources/{id} with application/merge-patch+json body
+func (c *Client) PatchResourceWithApplicationMergePatchJsonBody(ctx context.Context, id string, body patchResourceApplicationMergePatchJsonRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchResourceRequestWithApplicationMergePatchJsonBody(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 // GetStatus makes a GET request to /status
 
 func (c *Client) GetStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -754,18 +1039,18 @@ func NewListEntitiesRequest(server string) (*http.Request, error) {
 }
 
 // NewPostFooRequest creates a POST request for /foo with application/json body
-func NewPostFooRequest(server string, body postFooJSONRequestBody) (*http.Request, error) {
+func NewPostFooRequest(server string, params *PostFooParams, body postFooJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostFooRequestWithBody(server, "application/json", bodyReader)
+	return NewPostFooRequestWithBody(server, params, "application/json", bodyReader)
 }
 
 // NewPostFooRequestWithBody creates a POST request for /foo with any body
-func NewPostFooRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+func NewPostFooRequestWithBody(server string, params *PostFooParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -781,6 +1066,24 @@ func NewPostFooRequestWithBody(server string, contentType string, body io.Reader
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+		if params.Bar != nil {
+			if queryFrag, err := StyleFormExplodeParam("bar", ParamLocationQuery, *params.Bar); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+		}
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -1069,6 +1372,74 @@ func NewPostQuxRequestWithBody(server string, contentType string, body io.Reader
 	return req, nil
 }
 
+// NewPatchResourceRequest creates a PATCH request for /resources/{id} with application/json body
+func NewPatchResourceRequest(server string, id string, body patchResourceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPatchResourceRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewPatchResourceRequestWithApplicationJsonPatchJsonBody creates a PATCH request for /resources/{id} with application/json-patch+json body
+func NewPatchResourceRequestWithApplicationJsonPatchJsonBody(server string, id string, body patchResourceApplicationJsonPatchJsonRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPatchResourceRequestWithBody(server, id, "application/json-patch+json", bodyReader)
+}
+
+// NewPatchResourceRequestWithApplicationMergePatchJsonBody creates a PATCH request for /resources/{id} with application/merge-patch+json body
+func NewPatchResourceRequestWithApplicationMergePatchJsonBody(server string, id string, body patchResourceApplicationMergePatchJsonRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPatchResourceRequestWithBody(server, id, "application/merge-patch+json", bodyReader)
+}
+
+// NewPatchResourceRequestWithBody creates a PATCH request for /resources/{id} with any body
+func NewPatchResourceRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleSimpleParam("id", ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/resources/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetStatusRequest creates a GET request for /status
 func NewGetStatusRequest(server string) (*http.Request, error) {
 	var err error
@@ -1224,9 +1595,9 @@ func (c *SimpleClient) ListEntities(ctx context.Context, reqEditors ...RequestEd
 // PostFoo makes a POST request to /foo and returns the parsed response.
 
 // On success, returns the response body. On HTTP error, returns *ClientHttpError[struct{}].
-func (c *SimpleClient) PostFoo(ctx context.Context, body postFooJSONRequestBody, reqEditors ...RequestEditorFn) (map[string]any, error) {
+func (c *SimpleClient) PostFoo(ctx context.Context, params *PostFooParams, body postFooJSONRequestBody, reqEditors ...RequestEditorFn) (map[string]any, error) {
 	var result map[string]any
-	resp, err := c.Client.PostFoo(ctx, body, reqEditors...)
+	resp, err := c.Client.PostFoo(ctx, params, body, reqEditors...)
 	if err != nil {
 		return result, err
 	}
@@ -1489,4 +1860,852 @@ func (c *SimpleClient) GetZap(ctx context.Context, reqEditors ...RequestEditorFn
 		StatusCode: resp.StatusCode,
 		RawBody:    rawBody,
 	}
+}
+
+const DateFormat = "2006-01-02"
+
+type Date struct {
+	time.Time
+}
+
+func (d Date) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.Format(DateFormat))
+}
+
+func (d *Date) UnmarshalJSON(data []byte) error {
+	var dateStr string
+	err := json.Unmarshal(data, &dateStr)
+	if err != nil {
+		return err
+	}
+	parsed, err := time.Parse(DateFormat, dateStr)
+	if err != nil {
+		return err
+	}
+	d.Time = parsed
+	return nil
+}
+
+func (d Date) String() string {
+	return d.Format(DateFormat)
+}
+
+func (d *Date) UnmarshalText(data []byte) error {
+	parsed, err := time.Parse(DateFormat, string(data))
+	if err != nil {
+		return err
+	}
+	d.Time = parsed
+	return nil
+}
+
+// MarshalText implements encoding.TextMarshaler for Date.
+func (d Date) MarshalText() ([]byte, error) {
+	return []byte(d.Format(DateFormat)), nil
+}
+
+// Format returns the date formatted according to layout.
+func (d Date) Format(layout string) string {
+	return d.Time.Format(layout)
+}
+
+// Nullable is a generic type that can distinguish between:
+// - Field not provided (unspecified)
+// - Field explicitly set to null
+// - Field has a value
+//
+// This is implemented as a map[bool]T where:
+// - Empty map: unspecified
+// - map[false]T: explicitly null
+// - map[true]T: has a value
+type Nullable[T any] map[bool]T
+
+// NewNullableWithValue creates a Nullable with the given value.
+func NewNullableWithValue[T any](value T) Nullable[T] {
+	return Nullable[T]{true: value}
+}
+
+// NewNullNullable creates a Nullable that is explicitly null.
+func NewNullNullable[T any]() Nullable[T] {
+	return Nullable[T]{false: *new(T)}
+}
+
+// Get returns the value if set, or an error if null or unspecified.
+func (n Nullable[T]) Get() (T, error) {
+	if v, ok := n[true]; ok {
+		return v, nil
+	}
+	var zero T
+	if n.IsNull() {
+		return zero, ErrNullableIsNull
+	}
+	return zero, ErrNullableNotSpecified
+}
+
+// MustGet returns the value or panics if null or unspecified.
+func (n Nullable[T]) MustGet() T {
+	v, err := n.Get()
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Set assigns a value.
+func (n *Nullable[T]) Set(value T) {
+	*n = Nullable[T]{true: value}
+}
+
+// SetNull marks the field as explicitly null.
+func (n *Nullable[T]) SetNull() {
+	*n = Nullable[T]{false: *new(T)}
+}
+
+// SetUnspecified clears the field (as if it was never set).
+func (n *Nullable[T]) SetUnspecified() {
+	*n = nil
+}
+
+// IsNull returns true if the field is explicitly null.
+func (n Nullable[T]) IsNull() bool {
+	if n == nil {
+		return false
+	}
+	_, ok := n[false]
+	return ok
+}
+
+// IsSpecified returns true if the field was provided (either null or a value).
+func (n Nullable[T]) IsSpecified() bool {
+	return len(n) > 0
+}
+
+// MarshalJSON implements json.Marshaler.
+func (n Nullable[T]) MarshalJSON() ([]byte, error) {
+	if n.IsNull() {
+		return []byte("null"), nil
+	}
+	if v, ok := n[true]; ok {
+		return json.Marshal(v)
+	}
+	// Unspecified - this shouldn't be called if omitempty is used correctly
+	return []byte("null"), nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (n *Nullable[T]) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		n.SetNull()
+		return nil
+	}
+	var v T
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	n.Set(v)
+	return nil
+}
+
+// ErrNullableIsNull is returned when trying to get a value from a null Nullable.
+var ErrNullableIsNull = errors.New("nullable value is null")
+
+// ErrNullableNotSpecified is returned when trying to get a value from an unspecified Nullable.
+var ErrNullableNotSpecified = errors.New("nullable value is not specified")
+
+// ParamLocation indicates where a parameter is located in an HTTP request.
+type ParamLocation int
+
+const (
+	ParamLocationUndefined ParamLocation = iota
+	ParamLocationQuery
+	ParamLocationPath
+	ParamLocationHeader
+	ParamLocationCookie
+)
+
+// Binder is an interface for types that can bind themselves from a string value.
+type Binder interface {
+	Bind(value string) error
+}
+
+// primitiveToString converts a primitive value to a string representation.
+// It handles basic Go types, time.Time, types.Date, and types that implement
+// json.Marshaler or fmt.Stringer.
+func primitiveToString(value any) (string, error) {
+	// Check for known types first (time, date, uuid)
+	if res, ok := marshalKnownTypes(value); ok {
+		return res, nil
+	}
+
+	// Dereference pointers for optional values
+	v := reflect.Indirect(reflect.ValueOf(value))
+	t := v.Type()
+	kind := t.Kind()
+
+	switch kind {
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int:
+		return strconv.FormatInt(v.Int(), 10), nil
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint:
+		return strconv.FormatUint(v.Uint(), 10), nil
+	case reflect.Float64:
+		return strconv.FormatFloat(v.Float(), 'f', -1, 64), nil
+	case reflect.Float32:
+		return strconv.FormatFloat(v.Float(), 'f', -1, 32), nil
+	case reflect.Bool:
+		if v.Bool() {
+			return "true", nil
+		}
+		return "false", nil
+	case reflect.String:
+		return v.String(), nil
+	case reflect.Struct:
+		// Check if it's a UUID
+		if u, ok := value.(uuid.UUID); ok {
+			return u.String(), nil
+		}
+		// Check if it implements json.Marshaler
+		if m, ok := value.(json.Marshaler); ok {
+			buf, err := m.MarshalJSON()
+			if err != nil {
+				return "", fmt.Errorf("failed to marshal to JSON: %w", err)
+			}
+			e := json.NewDecoder(bytes.NewReader(buf))
+			e.UseNumber()
+			var i2 any
+			if err = e.Decode(&i2); err != nil {
+				return "", fmt.Errorf("failed to decode JSON: %w", err)
+			}
+			return primitiveToString(i2)
+		}
+		fallthrough
+	default:
+		if s, ok := value.(fmt.Stringer); ok {
+			return s.String(), nil
+		}
+		return "", fmt.Errorf("unsupported type %s", reflect.TypeOf(value).String())
+	}
+}
+
+// marshalKnownTypes checks for special types (time.Time, Date, UUID) and marshals them.
+func marshalKnownTypes(value any) (string, bool) {
+	v := reflect.Indirect(reflect.ValueOf(value))
+	t := v.Type()
+
+	if t.ConvertibleTo(reflect.TypeOf(time.Time{})) {
+		tt := v.Convert(reflect.TypeOf(time.Time{}))
+		timeVal := tt.Interface().(time.Time)
+		return timeVal.Format(time.RFC3339Nano), true
+	}
+
+	if t.ConvertibleTo(reflect.TypeOf(Date{})) {
+		d := v.Convert(reflect.TypeOf(Date{}))
+		dateVal := d.Interface().(Date)
+		return dateVal.Format(DateFormat), true
+	}
+
+	if t.ConvertibleTo(reflect.TypeOf(uuid.UUID{})) {
+		u := v.Convert(reflect.TypeOf(uuid.UUID{}))
+		uuidVal := u.Interface().(uuid.UUID)
+		return uuidVal.String(), true
+	}
+
+	return "", false
+}
+
+// escapeParameterString escapes a parameter value based on its location.
+// Query and path parameters need URL escaping; headers and cookies do not.
+func escapeParameterString(value string, paramLocation ParamLocation) string {
+	switch paramLocation {
+	case ParamLocationQuery:
+		return url.QueryEscape(value)
+	case ParamLocationPath:
+		return url.PathEscape(value)
+	default:
+		return value
+	}
+}
+
+// unescapeParameterString unescapes a parameter value based on its location.
+func unescapeParameterString(value string, paramLocation ParamLocation) (string, error) {
+	switch paramLocation {
+	case ParamLocationQuery, ParamLocationUndefined:
+		return url.QueryUnescape(value)
+	case ParamLocationPath:
+		return url.PathUnescape(value)
+	default:
+		return value, nil
+	}
+}
+
+// sortedKeys returns the keys of a map in sorted order.
+func sortedKeys(m map[string]string) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+// BindStringToObject binds a string value to a destination object.
+// It handles primitives, encoding.TextUnmarshaler, and the Binder interface.
+func BindStringToObject(src string, dst any) error {
+	// Check for TextUnmarshaler
+	if tu, ok := dst.(encoding.TextUnmarshaler); ok {
+		return tu.UnmarshalText([]byte(src))
+	}
+
+	// Check for Binder interface
+	if b, ok := dst.(Binder); ok {
+		return b.Bind(src)
+	}
+
+	v := reflect.ValueOf(dst)
+	if v.Kind() != reflect.Ptr {
+		return fmt.Errorf("dst must be a pointer, got %T", dst)
+	}
+	v = v.Elem()
+
+	switch v.Kind() {
+	case reflect.String:
+		v.SetString(src)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		i, err := strconv.ParseInt(src, 10, 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse int: %w", err)
+		}
+		v.SetInt(i)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		u, err := strconv.ParseUint(src, 10, 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse uint: %w", err)
+		}
+		v.SetUint(u)
+	case reflect.Float32, reflect.Float64:
+		f, err := strconv.ParseFloat(src, 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse float: %w", err)
+		}
+		v.SetFloat(f)
+	case reflect.Bool:
+		b, err := strconv.ParseBool(src)
+		if err != nil {
+			return fmt.Errorf("failed to parse bool: %w", err)
+		}
+		v.SetBool(b)
+	default:
+		// Try JSON unmarshal as a fallback
+		return json.Unmarshal([]byte(src), dst)
+	}
+	return nil
+}
+
+// bindSplitPartsToDestinationArray binds a slice of string parts to a destination slice.
+func bindSplitPartsToDestinationArray(parts []string, dest any) error {
+	v := reflect.Indirect(reflect.ValueOf(dest))
+	t := v.Type()
+
+	newArray := reflect.MakeSlice(t, len(parts), len(parts))
+	for i, p := range parts {
+		err := BindStringToObject(p, newArray.Index(i).Addr().Interface())
+		if err != nil {
+			return fmt.Errorf("error setting array element: %w", err)
+		}
+	}
+	v.Set(newArray)
+	return nil
+}
+
+// bindSplitPartsToDestinationStruct binds string parts to a destination struct via JSON.
+func bindSplitPartsToDestinationStruct(paramName string, parts []string, explode bool, dest any) error {
+	var fields []string
+	if explode {
+		fields = make([]string, len(parts))
+		for i, property := range parts {
+			propertyParts := strings.Split(property, "=")
+			if len(propertyParts) != 2 {
+				return fmt.Errorf("parameter '%s' has invalid exploded format", paramName)
+			}
+			fields[i] = "\"" + propertyParts[0] + "\":\"" + propertyParts[1] + "\""
+		}
+	} else {
+		if len(parts)%2 != 0 {
+			return fmt.Errorf("parameter '%s' has invalid format, property/values need to be pairs", paramName)
+		}
+		fields = make([]string, len(parts)/2)
+		for i := 0; i < len(parts); i += 2 {
+			key := parts[i]
+			value := parts[i+1]
+			fields[i/2] = "\"" + key + "\":\"" + value + "\""
+		}
+	}
+	jsonParam := "{" + strings.Join(fields, ",") + "}"
+	return json.Unmarshal([]byte(jsonParam), dest)
+}
+
+// BindFormExplodeParam binds a form-style parameter with explode to a destination.
+// Form style is the default for query and cookie parameters.
+// This handles the exploded case where arrays come as multiple query params.
+// Arrays: ?param=a&param=b -> []string{"a", "b"} (values passed as slice)
+// Objects: ?key1=value1&key2=value2 -> struct{Key1, Key2} (queryParams passed)
+func BindFormExplodeParam(paramName string, required bool, queryParams url.Values, dest any) error {
+	dv := reflect.Indirect(reflect.ValueOf(dest))
+	v := dv
+	var output any
+
+	if required {
+		output = dest
+	} else {
+		// For optional parameters, allocate if nil
+		if v.IsNil() {
+			t := v.Type()
+			newValue := reflect.New(t.Elem())
+			output = newValue.Interface()
+		} else {
+			output = v.Interface()
+		}
+		v = reflect.Indirect(reflect.ValueOf(output))
+	}
+
+	t := v.Type()
+	k := t.Kind()
+
+	values, found := queryParams[paramName]
+
+	switch k {
+	case reflect.Slice:
+		if !found {
+			if required {
+				return fmt.Errorf("query parameter '%s' is required", paramName)
+			}
+			return nil
+		}
+		err := bindSplitPartsToDestinationArray(values, output)
+		if err != nil {
+			return err
+		}
+	case reflect.Struct:
+		// For exploded objects, fields are spread across query params
+		fieldsPresent, err := bindParamsToExplodedObject(paramName, queryParams, output)
+		if err != nil {
+			return err
+		}
+		if !fieldsPresent {
+			return nil
+		}
+	default:
+		// Primitive
+		if len(values) == 0 {
+			if required {
+				return fmt.Errorf("query parameter '%s' is required", paramName)
+			}
+			return nil
+		}
+		if len(values) != 1 {
+			return fmt.Errorf("multiple values for single value parameter '%s'", paramName)
+		}
+		if !found {
+			if required {
+				return fmt.Errorf("query parameter '%s' is required", paramName)
+			}
+			return nil
+		}
+		err := BindStringToObject(values[0], output)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !required {
+		dv.Set(reflect.ValueOf(output))
+	}
+	return nil
+}
+
+// bindParamsToExplodedObject binds query params to struct fields for exploded objects.
+func bindParamsToExplodedObject(paramName string, values url.Values, dest any) (bool, error) {
+	binder, v, t := indirectBinder(dest)
+	if binder != nil {
+		_, found := values[paramName]
+		if !found {
+			return false, nil
+		}
+		return true, BindStringToObject(values.Get(paramName), dest)
+	}
+	if t.Kind() != reflect.Struct {
+		return false, fmt.Errorf("unmarshaling query arg '%s' into wrong type", paramName)
+	}
+
+	fieldsPresent := false
+	for i := 0; i < t.NumField(); i++ {
+		fieldT := t.Field(i)
+		if !v.Field(i).CanSet() {
+			continue
+		}
+
+		tag := fieldT.Tag.Get("json")
+		fieldName := fieldT.Name
+		if tag != "" {
+			tagParts := strings.Split(tag, ",")
+			if tagParts[0] != "" {
+				fieldName = tagParts[0]
+			}
+		}
+
+		fieldVal, found := values[fieldName]
+		if found {
+			if len(fieldVal) != 1 {
+				return false, fmt.Errorf("field '%s' specified multiple times for param '%s'", fieldName, paramName)
+			}
+			err := BindStringToObject(fieldVal[0], v.Field(i).Addr().Interface())
+			if err != nil {
+				return false, fmt.Errorf("could not bind query arg '%s': %w", paramName, err)
+			}
+			fieldsPresent = true
+		}
+	}
+	return fieldsPresent, nil
+}
+
+// indirectBinder checks if dest implements Binder and returns reflect values.
+func indirectBinder(dest any) (any, reflect.Value, reflect.Type) {
+	v := reflect.ValueOf(dest)
+	if v.Type().NumMethod() > 0 && v.CanInterface() {
+		if u, ok := v.Interface().(Binder); ok {
+			return u, reflect.Value{}, nil
+		}
+	}
+	v = reflect.Indirect(v)
+	t := v.Type()
+	// Handle special types like time.Time and Date
+	if t.ConvertibleTo(reflect.TypeOf(time.Time{})) {
+		return dest, reflect.Value{}, nil
+	}
+	if t.ConvertibleTo(reflect.TypeOf(Date{})) {
+		return dest, reflect.Value{}, nil
+	}
+	return nil, v, t
+}
+
+// BindSimpleParam binds a simple-style parameter without explode to a destination.
+// Simple style is the default for path and header parameters.
+// Arrays: a,b,c -> []string{"a", "b", "c"}
+// Objects: key1,value1,key2,value2 -> struct{Key1, Key2}
+func BindSimpleParam(paramName string, paramLocation ParamLocation, value string, dest any) error {
+	if value == "" {
+		return fmt.Errorf("parameter '%s' is empty, can't bind its value", paramName)
+	}
+
+	// Unescape based on location
+	var err error
+	value, err = unescapeParameterString(value, paramLocation)
+	if err != nil {
+		return fmt.Errorf("error unescaping parameter '%s': %w", paramName, err)
+	}
+
+	// Check for TextUnmarshaler
+	if tu, ok := dest.(encoding.TextUnmarshaler); ok {
+		return tu.UnmarshalText([]byte(value))
+	}
+
+	v := reflect.Indirect(reflect.ValueOf(dest))
+	t := v.Type()
+
+	switch t.Kind() {
+	case reflect.Struct:
+		// Split on comma and bind as key,value pairs
+		parts := strings.Split(value, ",")
+		return bindSplitPartsToDestinationStruct(paramName, parts, false, dest)
+	case reflect.Slice:
+		parts := strings.Split(value, ",")
+		return bindSplitPartsToDestinationArray(parts, dest)
+	default:
+		return BindStringToObject(value, dest)
+	}
+}
+
+// StyleFormExplodeParam serializes a value using form style (RFC 6570) with exploding.
+// Form style is the default for query and cookie parameters.
+// Primitives: paramName=value
+// Arrays: paramName=a&paramName=b&paramName=c
+// Objects: key1=value1&key2=value2
+func StyleFormExplodeParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+	t := reflect.TypeOf(value)
+	v := reflect.ValueOf(value)
+
+	// Dereference pointers
+	if t.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return "", fmt.Errorf("value is a nil pointer")
+		}
+		v = reflect.Indirect(v)
+		t = v.Type()
+	}
+
+	// Check for TextMarshaler (but not time.Time or Date)
+	if tu, ok := value.(encoding.TextMarshaler); ok {
+		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
+		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(Date{})) {
+			b, err := tu.MarshalText()
+			if err != nil {
+				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
+			}
+			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), paramLocation)), nil
+		}
+	}
+
+	switch t.Kind() {
+	case reflect.Slice:
+		n := v.Len()
+		sliceVal := make([]any, n)
+		for i := 0; i < n; i++ {
+			sliceVal[i] = v.Index(i).Interface()
+		}
+		return styleFormExplodeSlice(paramName, paramLocation, sliceVal)
+	case reflect.Struct:
+		return styleFormExplodeStruct(paramName, paramLocation, value)
+	case reflect.Map:
+		return styleFormExplodeMap(paramName, paramLocation, value)
+	default:
+		return styleFormExplodePrimitive(paramName, paramLocation, value)
+	}
+}
+
+func styleFormExplodePrimitive(paramName string, paramLocation ParamLocation, value any) (string, error) {
+	strVal, err := primitiveToString(value)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, paramLocation)), nil
+}
+
+func styleFormExplodeSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
+	// Form with explode: paramName=a&paramName=b&paramName=c
+	prefix := fmt.Sprintf("%s=", paramName)
+	parts := make([]string, len(values))
+	for i, v := range values {
+		part, err := primitiveToString(v)
+		if err != nil {
+			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
+		}
+		parts[i] = escapeParameterString(part, paramLocation)
+	}
+	return prefix + strings.Join(parts, "&"+prefix), nil
+}
+
+func styleFormExplodeStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
+	// Check for known types first
+	if timeVal, ok := marshalKnownTypes(value); ok {
+		return fmt.Sprintf("%s=%s", paramName, escapeParameterString(timeVal, paramLocation)), nil
+	}
+
+	// Check for json.Marshaler
+	if m, ok := value.(json.Marshaler); ok {
+		buf, err := m.MarshalJSON()
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal to JSON: %w", err)
+		}
+		var i2 any
+		e := json.NewDecoder(bytes.NewReader(buf))
+		e.UseNumber()
+		if err = e.Decode(&i2); err != nil {
+			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
+		}
+		return StyleFormExplodeParam(paramName, paramLocation, i2)
+	}
+
+	// Build field dictionary
+	fieldDict, err := structToFieldDict(value)
+	if err != nil {
+		return "", err
+	}
+
+	// Form style with explode: key1=value1&key2=value2
+	var parts []string
+	for _, k := range sortedKeys(fieldDict) {
+		v := escapeParameterString(fieldDict[k], paramLocation)
+		parts = append(parts, k+"="+v)
+	}
+	return strings.Join(parts, "&"), nil
+}
+
+func styleFormExplodeMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
+	dict, ok := value.(map[string]any)
+	if !ok {
+		return "", errors.New("map not of type map[string]any")
+	}
+
+	fieldDict := make(map[string]string)
+	for fieldName, val := range dict {
+		str, err := primitiveToString(val)
+		if err != nil {
+			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
+		}
+		fieldDict[fieldName] = str
+	}
+
+	// Form style with explode: key1=value1&key2=value2
+	var parts []string
+	for _, k := range sortedKeys(fieldDict) {
+		v := escapeParameterString(fieldDict[k], paramLocation)
+		parts = append(parts, k+"="+v)
+	}
+	return strings.Join(parts, "&"), nil
+}
+
+// StyleSimpleParam serializes a value using simple style (RFC 6570) without exploding.
+// Simple style is the default for path and header parameters.
+// Arrays are comma-separated: a,b,c
+// Objects are key,value pairs: key1,value1,key2,value2
+func StyleSimpleParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+	t := reflect.TypeOf(value)
+	v := reflect.ValueOf(value)
+
+	// Dereference pointers
+	if t.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return "", fmt.Errorf("value is a nil pointer")
+		}
+		v = reflect.Indirect(v)
+		t = v.Type()
+	}
+
+	// Check for TextMarshaler (but not time.Time or Date)
+	if tu, ok := value.(encoding.TextMarshaler); ok {
+		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
+		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(Date{})) {
+			b, err := tu.MarshalText()
+			if err != nil {
+				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
+			}
+			return escapeParameterString(string(b), paramLocation), nil
+		}
+	}
+
+	switch t.Kind() {
+	case reflect.Slice:
+		n := v.Len()
+		sliceVal := make([]any, n)
+		for i := 0; i < n; i++ {
+			sliceVal[i] = v.Index(i).Interface()
+		}
+		return styleSimpleSlice(paramName, paramLocation, sliceVal)
+	case reflect.Struct:
+		return styleSimpleStruct(paramName, paramLocation, value)
+	case reflect.Map:
+		return styleSimpleMap(paramName, paramLocation, value)
+	default:
+		return styleSimplePrimitive(paramLocation, value)
+	}
+}
+
+func styleSimplePrimitive(paramLocation ParamLocation, value any) (string, error) {
+	strVal, err := primitiveToString(value)
+	if err != nil {
+		return "", err
+	}
+	return escapeParameterString(strVal, paramLocation), nil
+}
+
+func styleSimpleSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
+	parts := make([]string, len(values))
+	for i, v := range values {
+		part, err := primitiveToString(v)
+		if err != nil {
+			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
+		}
+		parts[i] = escapeParameterString(part, paramLocation)
+	}
+	return strings.Join(parts, ","), nil
+}
+
+func styleSimpleStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
+	// Check for known types first
+	if timeVal, ok := marshalKnownTypes(value); ok {
+		return escapeParameterString(timeVal, paramLocation), nil
+	}
+
+	// Check for json.Marshaler
+	if m, ok := value.(json.Marshaler); ok {
+		buf, err := m.MarshalJSON()
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal to JSON: %w", err)
+		}
+		var i2 any
+		e := json.NewDecoder(bytes.NewReader(buf))
+		e.UseNumber()
+		if err = e.Decode(&i2); err != nil {
+			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
+		}
+		return StyleSimpleParam(paramName, paramLocation, i2)
+	}
+
+	// Build field dictionary
+	fieldDict, err := structToFieldDict(value)
+	if err != nil {
+		return "", err
+	}
+
+	// Simple style without explode: key1,value1,key2,value2
+	var parts []string
+	for _, k := range sortedKeys(fieldDict) {
+		v := escapeParameterString(fieldDict[k], paramLocation)
+		parts = append(parts, k, v)
+	}
+	return strings.Join(parts, ","), nil
+}
+
+func styleSimpleMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
+	dict, ok := value.(map[string]any)
+	if !ok {
+		return "", errors.New("map not of type map[string]any")
+	}
+
+	fieldDict := make(map[string]string)
+	for fieldName, val := range dict {
+		str, err := primitiveToString(val)
+		if err != nil {
+			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
+		}
+		fieldDict[fieldName] = str
+	}
+
+	// Simple style without explode: key1,value1,key2,value2
+	var parts []string
+	for _, k := range sortedKeys(fieldDict) {
+		v := escapeParameterString(fieldDict[k], paramLocation)
+		parts = append(parts, k, v)
+	}
+	return strings.Join(parts, ","), nil
+}
+
+// structToFieldDict converts a struct to a map of field names to string values.
+func structToFieldDict(value any) (map[string]string, error) {
+	v := reflect.ValueOf(value)
+	t := reflect.TypeOf(value)
+	fieldDict := make(map[string]string)
+
+	for i := 0; i < t.NumField(); i++ {
+		fieldT := t.Field(i)
+		tag := fieldT.Tag.Get("json")
+		fieldName := fieldT.Name
+		if tag != "" {
+			tagParts := strings.Split(tag, ",")
+			if tagParts[0] != "" {
+				fieldName = tagParts[0]
+			}
+		}
+		f := v.Field(i)
+
+		// Skip nil optional fields
+		if f.Type().Kind() == reflect.Ptr && f.IsNil() {
+			continue
+		}
+		str, err := primitiveToString(f.Interface())
+		if err != nil {
+			return nil, fmt.Errorf("error formatting field '%s': %w", fieldName, err)
+		}
+		fieldDict[fieldName] = str
+	}
+	return fieldDict, nil
 }
