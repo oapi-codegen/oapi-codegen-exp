@@ -184,7 +184,7 @@ type RequestBodyDescriptor struct {
 	FuncSuffix    string // "", "WithJSONBody", "WithFormBody" (empty for default)
 	IsDefault     bool   // Is this the default body type?
 	IsFormEncoded bool   // Is this application/x-www-form-urlencoded?
-	IsSequential  bool   // True for streaming content types (SSE, NDJSON, etc.)
+	IsSequential  bool   // Is this a streaming content types (SSE, NDJSON, etc.)?
 	GenerateTyped bool   // Generate typed methods for this body (based on content-types config)
 
 	// Encoding options for form data
