@@ -570,6 +570,32 @@ func (g *TypeGenerator) GenerateStructFields(desc *SchemaDescriptor) []StructFie
 			}
 		}
 
+		// Merge extensions from allOf member descriptors for this property.
+		// Mirrors V2's MergeSchemas: allOf member extensions apply to the field.
+		if propDesc, ok := desc.Properties[propName]; ok && len(propDesc.AllOf) > 0 {
+			for _, member := range propDesc.AllOf {
+				if member == nil {
+					continue
+				}
+				// For $ref allOf members, merge the target's extensions
+				if member.IsReference() {
+					if target, ok := g.schemaIndex[member.Ref]; ok && target.Extensions != nil {
+						if propExtensions == nil {
+							propExtensions = &Extensions{}
+						}
+						mergeExtensions(propExtensions, target.Extensions)
+					}
+				}
+				// Merge the member descriptor's own extensions
+				if member.Extensions != nil {
+					if propExtensions == nil {
+						propExtensions = &Extensions{}
+					}
+					mergeExtensions(propExtensions, member.Extensions)
+				}
+			}
+		}
+
 		// Apply extensions to the field
 		if propExtensions != nil {
 			// Name override

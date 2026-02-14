@@ -52,22 +52,25 @@ func TestTypeWithOptionalFieldJSONRoundTrip(t *testing.T) {
 	}
 }
 
-// TestTypeWithAllOfInstantiation verifies TypeWithAllOf with its nested ID field.
+// TestTypeWithAllOfInstantiation verifies TypeWithAllOf with its ID field.
+// After the allOf extension merge fix, ID should be googleuuid.UUID (value type, non-pointer)
+// because x-go-type-skip-optional-pointer is merged from the allOf member.
 func TestTypeWithAllOfInstantiation(t *testing.T) {
-	idField := &TypeWithAllOfID{}
+	id := uuid.MustParse("550e8400-e29b-41d4-a716-446655440000")
 	tw := TypeWithAllOf{
-		ID: idField,
+		ID: id,
 	}
 
-	if tw.ID == nil {
-		t.Fatal("ID should not be nil")
+	if tw.ID != id {
+		t.Errorf("ID = %v, want %v", tw.ID, id)
 	}
 }
 
 // TestTypeWithAllOfJSONRoundTrip verifies JSON round-trip for TypeWithAllOf.
 func TestTypeWithAllOfJSONRoundTrip(t *testing.T) {
+	id := uuid.MustParse("550e8400-e29b-41d4-a716-446655440000")
 	original := TypeWithAllOf{
-		ID: &TypeWithAllOfID{},
+		ID: id,
 	}
 
 	data, err := json.Marshal(original)
@@ -80,8 +83,8 @@ func TestTypeWithAllOfJSONRoundTrip(t *testing.T) {
 		t.Fatalf("Unmarshal failed: %v", err)
 	}
 
-	if decoded.ID == nil {
-		t.Fatal("ID should not be nil after round trip")
+	if decoded.ID != id {
+		t.Errorf("ID = %v, want %v", decoded.ID, id)
 	}
 }
 
@@ -113,10 +116,10 @@ func TestTypeAliases(t *testing.T) {
 		t.Errorf("TypeWithOptionalFieldAtRequired alias = %v, want %v", atReq, id)
 	}
 
-	// TypeWithAllOfIDAllOf0 is an alias for googleuuid.UUID
-	var allOf0 TypeWithAllOfIDAllOf0 = id
-	if allOf0 != id {
-		t.Errorf("TypeWithAllOfIDAllOf0 alias = %v, want %v", allOf0, id)
+	// TypeWithAllOfID is now an alias for googleuuid.UUID (after allOf extension merge fix)
+	var allOfID TypeWithAllOfID = id
+	if allOfID != id {
+		t.Errorf("TypeWithAllOfID alias = %v, want %v", allOfID, id)
 	}
 }
 
@@ -124,7 +127,8 @@ func TestTypeAliases(t *testing.T) {
 func TestApplyDefaults(t *testing.T) {
 	(&TypeWithOptionalField{}).ApplyDefaults()
 	(&TypeWithAllOf{}).ApplyDefaults()
-	(&TypeWithAllOfID{}).ApplyDefaults()
+	// TypeWithAllOfID is now a type alias (= googleuuid.UUID), not a struct,
+	// so it does not have ApplyDefaults.
 }
 
 // TestGetOpenAPISpecJSON verifies the embedded spec can be decoded.

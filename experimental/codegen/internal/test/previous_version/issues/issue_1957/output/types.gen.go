@@ -31,7 +31,7 @@ type ID = googleuuid.UUID
 
 // #/components/schemas/TypeWithAllOf
 type TypeWithAllOf struct {
-	ID *TypeWithAllOfID `json:"id,omitempty" form:"id,omitempty"`
+	ID googleuuid.UUID `json:"id,omitempty" form:"id,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -39,12 +39,7 @@ func (s *TypeWithAllOf) ApplyDefaults() {
 }
 
 // #/components/schemas/TypeWithAllOf/properties/id
-type TypeWithAllOfID struct {
-}
-
-// ApplyDefaults sets default values for fields that are nil.
-func (s *TypeWithAllOfID) ApplyDefaults() {
-}
+type TypeWithAllOfID = googleuuid.UUID
 
 type GetRootParameter = googleuuid.UUID
 
