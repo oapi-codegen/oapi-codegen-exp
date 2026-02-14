@@ -1,6 +1,7 @@
 // Package name_conflict_resolution tests comprehensive type name collision resolution.
 // Exercises patterns from issues #200, #254, #255, #292, #407, #899, #1357, #1450,
 // #1474, #1713, #1881, #2097, #2213.
+// Also covers oapi-codegen-exp#14 (inline response with $ref to x-oapi-codegen-type-override schemas).
 package name_conflict_resolution
 
 //go:generate go run ../../../../cmd/oapi-codegen -config config.yaml spec.yaml
