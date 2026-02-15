@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/pb33f/libopenapi"
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 )
@@ -18,7 +17,7 @@ type GatherResult struct {
 // GatherSchemas traverses an OpenAPI document and collects all schemas into a list.
 // When outputOpts contains operation filters (include/exclude tags or operation IDs),
 // schemas from excluded operations are not gathered.
-func GatherSchemas(doc libopenapi.Document, contentTypeMatcher *ContentTypeMatcher, outputOpts OutputOptions) ([]*SchemaDescriptor, error) {
+func GatherSchemas(doc *v3.Document, contentTypeMatcher *ContentTypeMatcher, outputOpts OutputOptions) ([]*SchemaDescriptor, error) {
 	result, err := GatherAll(doc, contentTypeMatcher, outputOpts)
 	if err != nil {
 		return nil, err
@@ -28,13 +27,9 @@ func GatherSchemas(doc libopenapi.Document, contentTypeMatcher *ContentTypeMatch
 
 // GatherAll traverses an OpenAPI document and collects all schemas and parameter usage.
 // When outputOpts contains operation filters, schemas from excluded operations are skipped.
-func GatherAll(doc libopenapi.Document, contentTypeMatcher *ContentTypeMatcher, outputOpts OutputOptions) (*GatherResult, error) {
-	model, err := doc.BuildV3Model()
-	if err != nil {
-		return nil, fmt.Errorf("building v3 model: %w", err)
-	}
-	if model == nil {
-		return nil, fmt.Errorf("failed to build v3 model")
+func GatherAll(doc *v3.Document, contentTypeMatcher *ContentTypeMatcher, outputOpts OutputOptions) (*GatherResult, error) {
+	if doc == nil {
+		return nil, fmt.Errorf("nil v3 document")
 	}
 
 	g := &gatherer{
@@ -44,7 +39,7 @@ func GatherAll(doc libopenapi.Document, contentTypeMatcher *ContentTypeMatcher, 
 		outputOpts:         outputOpts,
 	}
 
-	g.gatherFromDocument(&model.Model)
+	g.gatherFromDocument(doc)
 	return &GatherResult{
 		Schemas: g.schemas,
 		Ctx:     g.ctx,

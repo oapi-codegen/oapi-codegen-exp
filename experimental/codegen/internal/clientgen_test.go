@@ -14,13 +14,16 @@ func TestClientGenerator(t *testing.T) {
 	specData, err := os.ReadFile(specPath)
 	require.NoError(t, err, "Failed to read petstore spec")
 
-	// Parse the spec
+	// Parse the spec and build model once
 	doc, err := libopenapi.NewDocument(specData)
 	require.NoError(t, err, "Failed to parse petstore spec")
+	model, err := doc.BuildV3Model()
+	require.NoError(t, err, "Failed to build v3 model")
+	v3Doc := &model.Model
 
 	// Gather schemas to build schema index
 	contentTypeMatcher := NewContentTypeMatcher(DefaultContentTypes())
-	schemas, err := GatherSchemas(doc, contentTypeMatcher, OutputOptions{})
+	schemas, err := GatherSchemas(v3Doc, contentTypeMatcher, OutputOptions{})
 	require.NoError(t, err, "Failed to gather schemas")
 
 	// Compute names for schemas
@@ -38,7 +41,7 @@ func TestClientGenerator(t *testing.T) {
 	ctx := NewCodegenContext()
 
 	// Gather operations
-	ops, err := GatherOperations(doc, ctx, NewContentTypeMatcher(DefaultContentTypes()))
+	ops, err := GatherOperations(v3Doc, ctx, NewContentTypeMatcher(DefaultContentTypes()), DefaultTypeMapping)
 	require.NoError(t, err, "Failed to gather operations")
 	require.Len(t, ops, 4, "Expected 4 operations")
 
@@ -51,7 +54,7 @@ func TestClientGenerator(t *testing.T) {
 	t.Logf("Operations: %v", operationIDs)
 
 	// Generate client code
-	gen, err := NewClientGenerator(schemaIndex, true, nil, RuntimePrefixes{})
+	gen, err := NewClientGenerator(schemaIndex, true, nil, RuntimePrefixes{}, DefaultTypeMapping)
 	require.NoError(t, err, "Failed to create client generator")
 
 	clientCode, err := gen.GenerateClient(ops)
@@ -88,9 +91,12 @@ func TestClientGenerator_FormEncoded(t *testing.T) {
 
 	doc, err := libopenapi.NewDocument(specData)
 	require.NoError(t, err, "Failed to parse comprehensive spec")
+	model, err := doc.BuildV3Model()
+	require.NoError(t, err, "Failed to build v3 model")
+	v3Doc := &model.Model
 
 	contentTypeMatcher := NewContentTypeMatcher(DefaultContentTypes())
-	schemas, err := GatherSchemas(doc, contentTypeMatcher, OutputOptions{})
+	schemas, err := GatherSchemas(v3Doc, contentTypeMatcher, OutputOptions{})
 	require.NoError(t, err, "Failed to gather schemas")
 
 	converter := NewNameConverter(NameMangling{}, NameSubstitutions{})
@@ -103,7 +109,7 @@ func TestClientGenerator_FormEncoded(t *testing.T) {
 	}
 
 	ctx := NewCodegenContext()
-	ops, err := GatherOperations(doc, ctx, contentTypeMatcher)
+	ops, err := GatherOperations(v3Doc, ctx, contentTypeMatcher, DefaultTypeMapping)
 	require.NoError(t, err, "Failed to gather operations")
 
 	// Verify we have an operation with a form-encoded body
@@ -119,7 +125,7 @@ func TestClientGenerator_FormEncoded(t *testing.T) {
 	require.True(t, hasFormBody, "Expected at least one operation with a form-encoded typed body")
 
 	// Generate client code
-	gen, err := NewClientGenerator(schemaIndex, true, nil, RuntimePrefixes{})
+	gen, err := NewClientGenerator(schemaIndex, true, nil, RuntimePrefixes{}, DefaultTypeMapping)
 	require.NoError(t, err, "Failed to create client generator")
 
 	clientCode, err := gen.GenerateClient(ops)

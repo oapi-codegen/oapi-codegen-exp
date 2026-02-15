@@ -83,9 +83,11 @@ func gatherTestOps(t *testing.T) []*OperationDescriptor {
 	t.Helper()
 	doc, err := libopenapi.NewDocument([]byte(filterTestSpec))
 	require.NoError(t, err)
+	model, err := doc.BuildV3Model()
+	require.NoError(t, err)
 
 	ctx := NewCodegenContext()
-	ops, err := GatherOperations(doc, ctx, NewContentTypeMatcher(DefaultContentTypes()))
+	ops, err := GatherOperations(&model.Model, ctx, NewContentTypeMatcher(DefaultContentTypes()), DefaultTypeMapping)
 	require.NoError(t, err)
 	return ops
 }
@@ -193,9 +195,11 @@ func TestFilterOperations_Combined(t *testing.T) {
 func TestFilterSchemasByName(t *testing.T) {
 	doc, err := libopenapi.NewDocument([]byte(filterTestSpec))
 	require.NoError(t, err)
+	model, err := doc.BuildV3Model()
+	require.NoError(t, err)
 
 	matcher := NewContentTypeMatcher(DefaultContentTypes())
-	schemas, err := GatherSchemas(doc, matcher, OutputOptions{})
+	schemas, err := GatherSchemas(&model.Model, matcher, OutputOptions{})
 	require.NoError(t, err)
 
 	// Count component schemas
@@ -226,9 +230,11 @@ func TestFilterSchemasByName(t *testing.T) {
 func TestFilterSchemasByName_Empty(t *testing.T) {
 	doc, err := libopenapi.NewDocument([]byte(filterTestSpec))
 	require.NoError(t, err)
+	model, err := doc.BuildV3Model()
+	require.NoError(t, err)
 
 	matcher := NewContentTypeMatcher(DefaultContentTypes())
-	schemas, err := GatherSchemas(doc, matcher, OutputOptions{})
+	schemas, err := GatherSchemas(&model.Model, matcher, OutputOptions{})
 	require.NoError(t, err)
 
 	filtered := FilterSchemasByName(schemas, nil)

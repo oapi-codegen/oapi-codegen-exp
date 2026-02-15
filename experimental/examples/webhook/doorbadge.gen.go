@@ -15,7 +15,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/google/uuid"
 	oapiCodegenParamsPkg "github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/params"
 	oapiCodegenTypesPkg "github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/types"
 )
@@ -133,7 +132,7 @@ func GetOpenAPISpecJSON() ([]byte, error) {
 type ServerInterface interface {
 	// Deregister a webhook
 	// (DELETE /api/webhook/{id})
-	DeregisterWebhook(w http.ResponseWriter, r *http.Request, id uuid.UUID)
+	DeregisterWebhook(w http.ResponseWriter, r *http.Request, id oapiCodegenTypesPkg.UUID)
 	// Register a webhook
 	// (POST /api/webhook/{kind})
 	RegisterWebhook(w http.ResponseWriter, r *http.Request, kind string)
@@ -154,7 +153,7 @@ func (siw *ServerInterfaceWrapper) DeregisterWebhook(w http.ResponseWriter, r *h
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id uuid.UUID
+	var id oapiCodegenTypesPkg.UUID
 
 	err = oapiCodegenParamsPkg.BindSimpleParam("id", oapiCodegenParamsPkg.ParamLocationPath, r.PathValue("id"), &id)
 	if err != nil {
