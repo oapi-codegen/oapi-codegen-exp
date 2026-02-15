@@ -308,14 +308,14 @@ func TestDuplicateOneOfAcrossContentTypes(t *testing.T) {
 	assertEqual(t, "r-3", *union2.Resource.ID)
 
 	// Array-of-Resource oneOf members
-	var arrMember1 PatchResourcesID200ResponseJSONOneOf11 = []Resource{
+	arrMember1 := PatchResourcesID200ResponseJSONOneOf11([]Resource{
 		{ID: ptr("r-4")},
-	}
+	})
 	assertEqual(t, "r-4", *arrMember1[0].ID)
 
-	var arrMember2 PatchResourcesID200ResponseJSONOneOf12 = []Resource{
+	arrMember2 := PatchResourcesID200ResponseJSONOneOf12([]Resource{
 		{ID: ptr("r-5")},
-	}
+	})
 	assertEqual(t, "r-5", *arrMember2[0].ID)
 
 	// Nullable string oneOf members
@@ -332,20 +332,20 @@ func TestDuplicateOneOfAcrossContentTypes(t *testing.T) {
 // produces correctly typed request body aliases that reference the component schema.
 func TestResourceMVORequestBodyTypes(t *testing.T) {
 	// patchResourceJSONRequestBody = ResourceMVO (application/json)
-	var jsonReq patchResourceJSONRequestBody = ResourceMVO{
+	jsonReq := patchResourceJSONRequestBody{
 		Name:   ptr("updated"),
 		Status: ptr("active"),
 	}
 	assertEqual(t, "updated", *jsonReq.Name)
 
 	// patchResourceApplicationJsonPatchJsonRequestBody = JSONPatch (application/json-patch+json)
-	var patchReq patchResourceApplicationJsonPatchJsonRequestBody = JSONPatch{
+	patchReq := patchResourceApplicationJsonPatchJsonRequestBody{
 		{Op: ptr("replace"), Path: ptr("/status")},
 	}
 	assertEqual(t, "replace", *patchReq[0].Op)
 
 	// patchResourceApplicationMergePatchJsonRequestBody = ResourceMVO (application/merge-patch+json)
-	var mergeReq patchResourceApplicationMergePatchJsonRequestBody = ResourceMVO{
+	mergeReq := patchResourceApplicationMergePatchJsonRequestBody{
 		Name: ptr("merge-updated"),
 	}
 	assertEqual(t, "merge-updated", *mergeReq.Name)

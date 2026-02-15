@@ -17,6 +17,16 @@ import (
 func Generate(doc libopenapi.Document, specData []byte, cfg Configuration) (string, error) {
 	cfg.ApplyDefaults()
 
+	// Build the V3 model once — all gather functions share this single build.
+	model, err := doc.BuildV3Model()
+	if err != nil {
+		return "", fmt.Errorf("building v3 model: %w", err)
+	}
+	if model == nil {
+		return "", fmt.Errorf("failed to build v3 model")
+	}
+	v3Doc := &model.Model
+
 	// Create a single CodegenContext that all generators share.
 	ctx := NewCodegenContext()
 
@@ -40,7 +50,7 @@ func Generate(doc libopenapi.Document, specData []byte, cfg Configuration) (stri
 	// Pass 1: Gather all schemas that need types.
 	// Operation filters (include/exclude tags, operation IDs) are applied during
 	// gathering so that schemas from excluded operations are never collected.
-	schemas, err := GatherSchemas(doc, contentTypeMatcher, cfg.OutputOptions)
+	schemas, err := GatherSchemas(v3Doc, contentTypeMatcher, cfg.OutputOptions)
 	if err != nil {
 		return "", fmt.Errorf("gathering schemas: %w", err)
 	}
@@ -104,16 +114,19 @@ func Generate(doc libopenapi.Document, specData []byte, cfg Configuration) (stri
 		}
 	}
 
-	// Generate client code if requested
-	if cfg.Generation.Client {
-		ops, err := GatherOperations(doc, ctx, contentTypeMatcher)
+	// Gather operations once — reused by client and server.
+	var ops []*OperationDescriptor
+	if cfg.Generation.Client || cfg.Generation.Server != "" {
+		ops, err = GatherOperations(v3Doc, ctx, contentTypeMatcher, cfg.TypeMapping)
 		if err != nil {
 			return "", fmt.Errorf("gathering operations: %w", err)
 		}
-
 		ops = FilterOperations(ops, cfg.OutputOptions)
+	}
 
-		clientGen, err := NewClientGenerator(schemaIndex, cfg.Generation.SimpleClient, cfg.Generation.ModelsPackage, runtimePrefixes)
+	// Generate client code if requested
+	if cfg.Generation.Client {
+		clientGen, err := NewClientGenerator(schemaIndex, cfg.Generation.SimpleClient, cfg.Generation.ModelsPackage, runtimePrefixes, cfg.TypeMapping)
 		if err != nil {
 			return "", fmt.Errorf("creating client generator: %w", err)
 		}
@@ -143,12 +156,6 @@ func Generate(doc libopenapi.Document, specData []byte, cfg Configuration) (stri
 
 	// Generate server code for path operations if a server framework is set.
 	if cfg.Generation.Server != "" {
-		ops, err := GatherOperations(doc, ctx, contentTypeMatcher)
-		if err != nil {
-			return "", fmt.Errorf("gathering operations: %w", err)
-		}
-
-		ops = FilterOperations(ops, cfg.OutputOptions)
 
 		if len(ops) > 0 {
 			serverGen, err := NewServerGenerator(cfg.Generation.Server, runtimePrefixes)
@@ -174,15 +181,28 @@ func Generate(doc libopenapi.Document, specData []byte, cfg Configuration) (stri
 		}
 	}
 
-	// Generate webhook initiator code if requested
-	if cfg.Generation.WebhookInitiator {
-		webhookOps, err := GatherWebhookOperations(doc, ctx, contentTypeMatcher)
+	// Gather webhook operations once — reused by initiator and receiver.
+	var webhookOps []*OperationDescriptor
+	if cfg.Generation.WebhookInitiator || cfg.Generation.WebhookReceiver {
+		webhookOps, err = GatherWebhookOperations(v3Doc, ctx, contentTypeMatcher, cfg.TypeMapping)
 		if err != nil {
 			return "", fmt.Errorf("gathering webhook operations: %w", err)
 		}
+	}
 
+	// Gather callback operations once — reused by initiator and receiver.
+	var callbackOps []*OperationDescriptor
+	if cfg.Generation.CallbackInitiator || cfg.Generation.CallbackReceiver {
+		callbackOps, err = GatherCallbackOperations(v3Doc, ctx, contentTypeMatcher, cfg.TypeMapping)
+		if err != nil {
+			return "", fmt.Errorf("gathering callback operations: %w", err)
+		}
+	}
+
+	// Generate webhook initiator code if requested
+	if cfg.Generation.WebhookInitiator {
 		if len(webhookOps) > 0 {
-			initiatorGen, err := NewInitiatorGenerator("Webhook", schemaIndex, true, cfg.Generation.ModelsPackage, runtimePrefixes)
+			initiatorGen, err := NewInitiatorGenerator("Webhook", schemaIndex, true, cfg.Generation.ModelsPackage, runtimePrefixes, cfg.TypeMapping)
 			if err != nil {
 				return "", fmt.Errorf("creating webhook initiator generator: %w", err)
 			}
@@ -207,13 +227,8 @@ func Generate(doc libopenapi.Document, specData []byte, cfg Configuration) (stri
 
 	// Generate callback initiator code if requested
 	if cfg.Generation.CallbackInitiator {
-		callbackOps, err := GatherCallbackOperations(doc, ctx, contentTypeMatcher)
-		if err != nil {
-			return "", fmt.Errorf("gathering callback operations: %w", err)
-		}
-
 		if len(callbackOps) > 0 {
-			initiatorGen, err := NewInitiatorGenerator("Callback", schemaIndex, true, cfg.Generation.ModelsPackage, runtimePrefixes)
+			initiatorGen, err := NewInitiatorGenerator("Callback", schemaIndex, true, cfg.Generation.ModelsPackage, runtimePrefixes, cfg.TypeMapping)
 			if err != nil {
 				return "", fmt.Errorf("creating callback initiator generator: %w", err)
 			}
@@ -240,11 +255,6 @@ func Generate(doc libopenapi.Document, specData []byte, cfg Configuration) (stri
 	if cfg.Generation.WebhookReceiver {
 		if cfg.Generation.Server == "" {
 			return "", fmt.Errorf("webhook-receiver requires server to be set")
-		}
-
-		webhookOps, err := GatherWebhookOperations(doc, ctx, contentTypeMatcher)
-		if err != nil {
-			return "", fmt.Errorf("gathering webhook operations: %w", err)
 		}
 
 		if len(webhookOps) > 0 {
@@ -291,11 +301,6 @@ func Generate(doc libopenapi.Document, specData []byte, cfg Configuration) (stri
 	if cfg.Generation.CallbackReceiver {
 		if cfg.Generation.Server == "" {
 			return "", fmt.Errorf("callback-receiver requires server to be set")
-		}
-
-		callbackOps, err := GatherCallbackOperations(doc, ctx, contentTypeMatcher)
-		if err != nil {
-			return "", fmt.Errorf("gathering callback operations: %w", err)
 		}
 
 		if len(callbackOps) > 0 {

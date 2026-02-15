@@ -22,11 +22,7 @@ func NewServerGenerator(serverType string, rp RuntimePrefixes) (*ServerGenerator
 		return &ServerGenerator{serverType: ""}, nil
 	}
 
-	tmpl := template.New("server").Funcs(templates.Funcs()).Funcs(template.FuncMap{
-		"runtimeParamsPrefix":  func() string { return rp.Params },
-		"runtimeTypesPrefix":   func() string { return rp.Types },
-		"runtimeHelpersPrefix": func() string { return rp.Helpers },
-	})
+	tmpl := template.New("server").Funcs(templates.Funcs()).Funcs(rp.FuncMap())
 
 	// Get templates for the specified server type
 	serverTemplates, err := getServerTemplates(serverType)
@@ -34,28 +30,14 @@ func NewServerGenerator(serverType string, rp RuntimePrefixes) (*ServerGenerator
 		return nil, err
 	}
 
-	// Parse server-specific templates
+	// Convert server-specific templates to entries
+	serverEntries := make([]templateEntry, 0, len(serverTemplates))
 	for _, st := range serverTemplates {
-		content, err := templates.TemplateFS.ReadFile("files/" + st.Template)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read template %s: %w", st.Template, err)
-		}
-		_, err = tmpl.New(st.Name).Parse(string(content))
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse template %s: %w", st.Template, err)
-		}
+		serverEntries = append(serverEntries, templateEntry{Name: st.Name, Template: st.Template})
 	}
 
-	// Parse shared templates
-	for _, st := range templates.SharedServerTemplates {
-		content, err := templates.TemplateFS.ReadFile("files/" + st.Template)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read shared template %s: %w", st.Template, err)
-		}
-		_, err = tmpl.New(st.Name).Parse(string(content))
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse shared template %s: %w", st.Template, err)
-		}
+	if err := loadTemplates(tmpl, serverEntries, sharedServerTemplateEntries()); err != nil {
+		return nil, err
 	}
 
 	return &ServerGenerator{tmpl: tmpl, serverType: serverType}, nil

@@ -6,8 +6,60 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/pb33f/libopenapi/datamodel/high/base"
+
 	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/templates"
 )
+
+// templateEntry describes a single template to load.
+type templateEntry struct {
+	Name     string // Template name for ExecuteTemplate
+	Template string // Path within the templates FS (relative to "files/")
+}
+
+// loadTemplates parses one or more sets of template entries into the given template.
+// Each set is a slice of templateEntry. All entries are loaded in order.
+func loadTemplates(tmpl *template.Template, sets ...[]templateEntry) error {
+	for _, set := range sets {
+		for _, entry := range set {
+			content, err := templates.TemplateFS.ReadFile("files/" + entry.Template)
+			if err != nil {
+				return fmt.Errorf("reading template %s: %w", entry.Template, err)
+			}
+			if _, err := tmpl.New(entry.Name).Parse(string(content)); err != nil {
+				return fmt.Errorf("parsing template %s: %w", entry.Template, err)
+			}
+		}
+	}
+	return nil
+}
+
+// clientTemplateEntries converts ClientTemplates map to a slice of templateEntry.
+func clientTemplateEntries() []templateEntry {
+	entries := make([]templateEntry, 0, len(templates.ClientTemplates))
+	for _, ct := range templates.ClientTemplates {
+		entries = append(entries, templateEntry{Name: ct.Name, Template: ct.Template})
+	}
+	return entries
+}
+
+// initiatorTemplateEntries converts InitiatorTemplates map to a slice of templateEntry.
+func initiatorTemplateEntries() []templateEntry {
+	entries := make([]templateEntry, 0, len(templates.InitiatorTemplates))
+	for _, it := range templates.InitiatorTemplates {
+		entries = append(entries, templateEntry{Name: it.Name, Template: it.Template})
+	}
+	return entries
+}
+
+// sharedServerTemplateEntries converts SharedServerTemplates map to a slice of templateEntry.
+func sharedServerTemplateEntries() []templateEntry {
+	entries := make([]templateEntry, 0, len(templates.SharedServerTemplates))
+	for _, st := range templates.SharedServerTemplates {
+		entries = append(entries, templateEntry{Name: st.Name, Template: st.Template})
+	}
+	return entries
+}
 
 // ClientGenerator generates client code from operation descriptors.
 type ClientGenerator struct {
@@ -20,35 +72,11 @@ type ClientGenerator struct {
 // NewClientGenerator creates a new client generator.
 // modelsPackage can be nil if models are in the same package.
 // rp holds the package prefixes for runtime sub-packages; all empty when embedded.
-func NewClientGenerator(schemaIndex map[string]*SchemaDescriptor, generateSimple bool, modelsPackage *ModelsPackage, rp RuntimePrefixes) (*ClientGenerator, error) {
-	tmpl := template.New("client").Funcs(templates.Funcs()).Funcs(clientFuncs(schemaIndex, modelsPackage)).Funcs(template.FuncMap{
-		"runtimeParamsPrefix":  func() string { return rp.Params },
-		"runtimeTypesPrefix":   func() string { return rp.Types },
-		"runtimeHelpersPrefix": func() string { return rp.Helpers },
-	})
+func NewClientGenerator(schemaIndex map[string]*SchemaDescriptor, generateSimple bool, modelsPackage *ModelsPackage, rp RuntimePrefixes, typeMapping TypeMapping) (*ClientGenerator, error) {
+	tmpl := template.New("client").Funcs(templates.Funcs()).Funcs(clientFuncs(schemaIndex, modelsPackage, typeMapping)).Funcs(rp.FuncMap())
 
-	// Parse client templates
-	for _, ct := range templates.ClientTemplates {
-		content, err := templates.TemplateFS.ReadFile("files/" + ct.Template)
-		if err != nil {
-			return nil, err
-		}
-		_, err = tmpl.New(ct.Name).Parse(string(content))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// Parse shared templates (param_types is shared with server)
-	for _, st := range templates.SharedServerTemplates {
-		content, err := templates.TemplateFS.ReadFile("files/" + st.Template)
-		if err != nil {
-			return nil, err
-		}
-		_, err = tmpl.New(st.Name).Parse(string(content))
-		if err != nil {
-			return nil, err
-		}
+	if err := loadTemplates(tmpl, clientTemplateEntries(), sharedServerTemplateEntries()); err != nil {
+		return nil, err
 	}
 
 	return &ClientGenerator{
@@ -60,7 +88,7 @@ func NewClientGenerator(schemaIndex map[string]*SchemaDescriptor, generateSimple
 }
 
 // clientFuncs returns template functions specific to client generation.
-func clientFuncs(schemaIndex map[string]*SchemaDescriptor, modelsPackage *ModelsPackage) template.FuncMap {
+func clientFuncs(schemaIndex map[string]*SchemaDescriptor, modelsPackage *ModelsPackage, typeMapping TypeMapping) template.FuncMap {
 	return template.FuncMap{
 		"pathFmt":                        pathFmt,
 		"isSimpleOperation":              isSimpleOperation,
@@ -70,7 +98,7 @@ func clientFuncs(schemaIndex map[string]*SchemaDescriptor, modelsPackage *Models
 			return op.DefaultTypedBody()
 		},
 		"goTypeForContent": func(content *ResponseContentDescriptor) string {
-			return goTypeForContent(content, schemaIndex, modelsPackage)
+			return goTypeForContent(content, schemaIndex, modelsPackage, typeMapping)
 		},
 		"modelsPkg": func() string {
 			return modelsPackage.Prefix()
@@ -170,7 +198,7 @@ func errorResponseForOperation(op *OperationDescriptor) *ResponseDescriptor {
 
 // goTypeForContent returns the Go type for a response content descriptor.
 // If modelsPackage is set, type names are prefixed with the package name.
-func goTypeForContent(content *ResponseContentDescriptor, schemaIndex map[string]*SchemaDescriptor, modelsPackage *ModelsPackage) string {
+func goTypeForContent(content *ResponseContentDescriptor, schemaIndex map[string]*SchemaDescriptor, modelsPackage *ModelsPackage, typeMapping TypeMapping) string {
 	if content == nil || content.Schema == nil {
 		return "any"
 	}
@@ -205,12 +233,59 @@ func goTypeForContent(content *ResponseContentDescriptor, schemaIndex map[string
 		return pkgPrefix + content.Schema.StableName
 	}
 
-	// Try to derive from the schema itself
+	// Try to derive from the schema itself using TypeMapping
 	if content.Schema.Schema != nil {
-		return schemaToGoType(content.Schema.Schema)
+		return resolveSchemaType(content.Schema.Schema, typeMapping)
 	}
 
 	return "any"
+}
+
+// resolveSchemaType converts a schema to a Go type string using the provided TypeMapping.
+// This is a standalone helper used as a last-resort fallback in goTypeForContent.
+func resolveSchemaType(schema *base.Schema, tm TypeMapping) string {
+	if schema == nil {
+		return "any"
+	}
+
+	// Check for array
+	if schema.Items != nil && schema.Items.A != nil {
+		itemType := "any"
+		if itemSchema := schema.Items.A.Schema(); itemSchema != nil {
+			itemType = resolveSchemaType(itemSchema, tm)
+		}
+		return "[]" + itemType
+	}
+
+	// Check explicit type
+	for _, t := range schema.Type {
+		switch t {
+		case "string":
+			return resolveFormatType(tm.String, schema.Format)
+		case "integer":
+			return resolveFormatType(tm.Integer, schema.Format)
+		case "number":
+			return resolveFormatType(tm.Number, schema.Format)
+		case "boolean":
+			return tm.Boolean.Default.Type
+		case "array":
+			return "[]any"
+		case "object":
+			return "map[string]any"
+		}
+	}
+
+	return "any"
+}
+
+// resolveFormatType looks up a type from a FormatMapping, falling back to its default.
+func resolveFormatType(fm FormatMapping, format string) string {
+	if format != "" {
+		if spec, ok := fm.Formats[format]; ok {
+			return spec.Type
+		}
+	}
+	return fm.Default.Type
 }
 
 // GenerateBase generates the base client types and helpers.
@@ -269,8 +344,14 @@ func (g *ClientGenerator) GenerateParamTypes(ops []*OperationDescriptor) (string
 
 // GenerateRequestBodyTypes generates type aliases for request bodies.
 func (g *ClientGenerator) GenerateRequestBodyTypes(ops []*OperationDescriptor) string {
+	return generateRequestBodyTypes(ops, g.schemaIndex, g.modelsPackage)
+}
+
+// generateRequestBodyTypes generates type aliases for request bodies.
+// This is shared between ClientGenerator and InitiatorGenerator.
+func generateRequestBodyTypes(ops []*OperationDescriptor, schemaIndex map[string]*SchemaDescriptor, modelsPackage *ModelsPackage) string {
 	var buf bytes.Buffer
-	pkgPrefix := g.modelsPackage.Prefix()
+	pkgPrefix := modelsPackage.Prefix()
 
 	for _, op := range ops {
 		for _, body := range op.Bodies {
@@ -282,7 +363,7 @@ func (g *ClientGenerator) GenerateRequestBodyTypes(ops []*OperationDescriptor) s
 			if body.Schema != nil {
 				if body.Schema.Ref != "" {
 					// Reference to a component schema
-					if target, ok := g.schemaIndex[body.Schema.Ref]; ok {
+					if target, ok := schemaIndex[body.Schema.Ref]; ok {
 						targetType = pkgPrefix + target.ShortName
 					}
 				} else if body.Schema.ShortName != "" {
@@ -293,8 +374,7 @@ func (g *ClientGenerator) GenerateRequestBodyTypes(ops []*OperationDescriptor) s
 				targetType = "any"
 			}
 
-			// Generate type alias: type addPetJSONRequestBody = models.NewPet
-			buf.WriteString(fmt.Sprintf("type %s = %s\n\n", body.GoTypeName, targetType))
+			fmt.Fprintf(&buf, "type %s = %s\n\n", body.GoTypeName, targetType)
 		}
 	}
 

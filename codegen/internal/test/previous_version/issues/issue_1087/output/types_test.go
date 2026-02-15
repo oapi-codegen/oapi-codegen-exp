@@ -28,7 +28,7 @@ func TestThingConstruction(t *testing.T) {
 	}
 
 	// ThingListKeys is a type alias for []Thing
-	var keys ThingListKeys = []Thing{{Name: "c"}}
+	keys := ThingListKeys([]Thing{{Name: "c"}})
 	if len(keys) != 1 {
 		t.Errorf("ThingListKeys length = %d, want 1", len(keys))
 	}

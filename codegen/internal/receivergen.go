@@ -31,11 +31,7 @@ func NewReceiverGenerator(prefix string, serverType string, rp RuntimePrefixes) 
 		return nil, fmt.Errorf("%s receiver requires a server type to be set", prefix)
 	}
 
-	tmpl := template.New("receiver").Funcs(templates.Funcs()).Funcs(template.FuncMap{
-		"runtimeParamsPrefix":  func() string { return rp.Params },
-		"runtimeTypesPrefix":   func() string { return rp.Types },
-		"runtimeHelpersPrefix": func() string { return rp.Helpers },
-	})
+	tmpl := template.New("receiver").Funcs(templates.Funcs()).Funcs(rp.FuncMap())
 
 	// Get receiver templates for the specified server type
 	receiverTemplates, err := getReceiverTemplates(serverType)
@@ -43,28 +39,14 @@ func NewReceiverGenerator(prefix string, serverType string, rp RuntimePrefixes) 
 		return nil, err
 	}
 
-	// Parse receiver-specific templates
+	// Convert receiver-specific templates to entries
+	receiverEntries := make([]templateEntry, 0, len(receiverTemplates))
 	for _, ct := range receiverTemplates {
-		content, err := templates.TemplateFS.ReadFile("files/" + ct.Template)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read receiver template %s: %w", ct.Template, err)
-		}
-		_, err = tmpl.New(ct.Name).Parse(string(content))
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse receiver template %s: %w", ct.Template, err)
-		}
+		receiverEntries = append(receiverEntries, templateEntry{Name: ct.Name, Template: ct.Template})
 	}
 
-	// Parse shared templates (errors, param_types)
-	for _, st := range templates.SharedServerTemplates {
-		content, err := templates.TemplateFS.ReadFile("files/" + st.Template)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read shared template %s: %w", st.Template, err)
-		}
-		_, err = tmpl.New(st.Name).Parse(string(content))
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse shared template %s: %w", st.Template, err)
-		}
+	if err := loadTemplates(tmpl, receiverEntries, sharedServerTemplateEntries()); err != nil {
+		return nil, err
 	}
 
 	return &ReceiverGenerator{

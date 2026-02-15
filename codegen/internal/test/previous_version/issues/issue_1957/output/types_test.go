@@ -93,31 +93,31 @@ func TestTypeAliases(t *testing.T) {
 	id := uuid.New()
 
 	// ID is an alias for googleuuid.UUID (= uuid.UUID)
-	var idAlias ID = id
+	idAlias := ID(id)
 	if idAlias != id {
 		t.Errorf("ID alias = %v, want %v", idAlias, id)
 	}
 
 	// GetRootParameter is an alias for googleuuid.UUID
-	var param GetRootParameter = id
+	param := GetRootParameter(id)
 	if param != id {
 		t.Errorf("GetRootParameter alias = %v, want %v", param, id)
 	}
 
 	// TypeWithOptionalFieldAt is an alias for googleuuid.UUID
-	var at TypeWithOptionalFieldAt = id
+	at := TypeWithOptionalFieldAt(id)
 	if at != id {
 		t.Errorf("TypeWithOptionalFieldAt alias = %v, want %v", at, id)
 	}
 
 	// TypeWithOptionalFieldAtRequired is an alias for googleuuid.UUID
-	var atReq TypeWithOptionalFieldAtRequired = id
+	atReq := TypeWithOptionalFieldAtRequired(id)
 	if atReq != id {
 		t.Errorf("TypeWithOptionalFieldAtRequired alias = %v, want %v", atReq, id)
 	}
 
 	// TypeWithAllOfID is now an alias for googleuuid.UUID (after allOf extension merge fix)
-	var allOfID TypeWithAllOfID = id
+	allOfID := TypeWithAllOfID(id)
 	if allOfID != id {
 		t.Errorf("TypeWithAllOfID alias = %v, want %v", allOfID, id)
 	}

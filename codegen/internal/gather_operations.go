@@ -5,33 +5,31 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pb33f/libopenapi"
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
 // GatherOperations traverses an OpenAPI document and collects all operations.
 // contentTypeMatcher determines which content types get typed request body methods.
-func GatherOperations(doc libopenapi.Document, ctx *CodegenContext, contentTypeMatcher *ContentTypeMatcher) ([]*OperationDescriptor, error) {
-	model, err := doc.BuildV3Model()
-	if err != nil {
-		return nil, fmt.Errorf("building v3 model: %w", err)
-	}
-	if model == nil {
-		return nil, fmt.Errorf("failed to build v3 model")
+// typeMapping is used to resolve parameter schema types consistently with the type generator.
+func GatherOperations(doc *v3.Document, ctx *CodegenContext, contentTypeMatcher *ContentTypeMatcher, typeMapping TypeMapping) ([]*OperationDescriptor, error) {
+	if doc == nil {
+		return nil, fmt.Errorf("nil v3 document")
 	}
 
 	g := &operationGatherer{
 		ctx:                ctx,
 		contentTypeMatcher: contentTypeMatcher,
+		typeMapping:        typeMapping,
 	}
 
-	return g.gatherFromDocument(&model.Model)
+	return g.gatherFromDocument(doc)
 }
 
 type operationGatherer struct {
 	ctx                *CodegenContext
 	contentTypeMatcher *ContentTypeMatcher
+	typeMapping        TypeMapping
 }
 
 func (g *operationGatherer) gatherFromDocument(doc *v3.Document) ([]*OperationDescriptor, error) {
@@ -226,7 +224,7 @@ func (g *operationGatherer) gatherParameter(param *v3.Parameter) (*ParameterDesc
 			schemaDesc = &SchemaDescriptor{
 				Schema: schema,
 			}
-			typeDecl = schemaToGoType(schema)
+			typeDecl = g.resolveType(schema)
 		}
 	}
 
@@ -587,39 +585,33 @@ func sortPathParamsByPath(path string, params []*ParameterDescriptor) ([]*Parame
 }
 
 // GatherWebhookOperations traverses an OpenAPI document and collects operations from webhooks.
-func GatherWebhookOperations(doc libopenapi.Document, ctx *CodegenContext, contentTypeMatcher *ContentTypeMatcher) ([]*OperationDescriptor, error) {
-	model, err := doc.BuildV3Model()
-	if err != nil {
-		return nil, fmt.Errorf("building v3 model: %w", err)
-	}
-	if model == nil {
-		return nil, fmt.Errorf("failed to build v3 model")
+func GatherWebhookOperations(doc *v3.Document, ctx *CodegenContext, contentTypeMatcher *ContentTypeMatcher, typeMapping TypeMapping) ([]*OperationDescriptor, error) {
+	if doc == nil {
+		return nil, fmt.Errorf("nil v3 document")
 	}
 
 	g := &operationGatherer{
 		ctx:                ctx,
 		contentTypeMatcher: contentTypeMatcher,
+		typeMapping:        typeMapping,
 	}
 
-	return g.gatherWebhooks(&model.Model)
+	return g.gatherWebhooks(doc)
 }
 
 // GatherCallbackOperations traverses an OpenAPI document and collects operations from callbacks.
-func GatherCallbackOperations(doc libopenapi.Document, ctx *CodegenContext, contentTypeMatcher *ContentTypeMatcher) ([]*OperationDescriptor, error) {
-	model, err := doc.BuildV3Model()
-	if err != nil {
-		return nil, fmt.Errorf("building v3 model: %w", err)
-	}
-	if model == nil {
-		return nil, fmt.Errorf("failed to build v3 model")
+func GatherCallbackOperations(doc *v3.Document, ctx *CodegenContext, contentTypeMatcher *ContentTypeMatcher, typeMapping TypeMapping) ([]*OperationDescriptor, error) {
+	if doc == nil {
+		return nil, fmt.Errorf("nil v3 document")
 	}
 
 	g := &operationGatherer{
 		ctx:                ctx,
 		contentTypeMatcher: contentTypeMatcher,
+		typeMapping:        typeMapping,
 	}
 
-	return g.gatherCallbacks(&model.Model)
+	return g.gatherCallbacks(doc)
 }
 
 func (g *operationGatherer) gatherWebhooks(doc *v3.Document) ([]*OperationDescriptor, error) {
@@ -828,9 +820,9 @@ func schemaProxyToDescriptor(proxy *base.SchemaProxy) *SchemaDescriptor {
 	return desc
 }
 
-// schemaToGoType converts a schema to a Go type string.
-// This is a simplified version for parameter types.
-func schemaToGoType(schema *base.Schema) string {
+// resolveType converts a schema to a Go type string using the configured TypeMapping.
+// This ensures parameter types are consistent with the type generator's output.
+func (g *operationGatherer) resolveType(schema *base.Schema) string {
 	if schema == nil {
 		return "any"
 	}
@@ -839,7 +831,7 @@ func schemaToGoType(schema *base.Schema) string {
 	if schema.Items != nil && schema.Items.A != nil {
 		itemType := "any"
 		if itemSchema := schema.Items.A.Schema(); itemSchema != nil {
-			itemType = schemaToGoType(itemSchema)
+			itemType = g.resolveType(itemSchema)
 		}
 		return "[]" + itemType
 	}
@@ -848,31 +840,13 @@ func schemaToGoType(schema *base.Schema) string {
 	for _, t := range schema.Type {
 		switch t {
 		case "string":
-			if schema.Format == "date-time" {
-				return "time.Time"
-			}
-			if schema.Format == "date" {
-				return "Date"
-			}
-			if schema.Format == "uuid" {
-				return "uuid.UUID"
-			}
-			return "string"
+			return g.resolveSpec(g.typeMapping.String, schema.Format)
 		case "integer":
-			if schema.Format == "int64" {
-				return "int64"
-			}
-			if schema.Format == "int32" {
-				return "int32"
-			}
-			return "int"
+			return g.resolveSpec(g.typeMapping.Integer, schema.Format)
 		case "number":
-			if schema.Format == "float" {
-				return "float32"
-			}
-			return "float64"
+			return g.resolveSpec(g.typeMapping.Number, schema.Format)
 		case "boolean":
-			return "bool"
+			return g.resolveSpecEntry(g.typeMapping.Boolean.Default)
 		case "array":
 			// Handled above
 			return "[]any"
@@ -882,4 +856,27 @@ func schemaToGoType(schema *base.Schema) string {
 	}
 
 	return "any"
+}
+
+// resolveSpec looks up a SimpleTypeSpec from a FormatMapping and applies runtime prefix if needed.
+func (g *operationGatherer) resolveSpec(fm FormatMapping, format string) string {
+	spec := fm.Default
+	if format != "" {
+		if formatSpec, ok := fm.Formats[format]; ok {
+			spec = formatSpec
+		}
+	}
+	return g.resolveSpecEntry(spec)
+}
+
+// resolveSpecEntry returns the Go type for a SimpleTypeSpec, applying the runtime
+// types prefix for template-based types (e.g., UUID, Date) when a runtime package is configured.
+func (g *operationGatherer) resolveSpecEntry(spec SimpleTypeSpec) string {
+	if g.ctx != nil && g.ctx.RuntimeTypesPrefix() != "" && spec.Template != "" {
+		return g.ctx.RuntimeTypesPrefix() + spec.Type
+	}
+	if spec.Import != "" && g.ctx != nil {
+		g.ctx.AddImport(spec.Import)
+	}
+	return spec.Type
 }
