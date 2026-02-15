@@ -242,6 +242,19 @@ func (g *TypeGenerator) goTypeForSchema(schema *base.Schema, desc *SchemaDescrip
 	if len(schema.AllOf) > 0 {
 		return g.allOfType(desc)
 	}
+
+	// Check for nullable oneOf/anyOf pattern: [realType, {type: "null"}]
+	// This is the OpenAPI 3.1 way to make a $ref'd type nullable.
+	if ok, nonNullProxy := isNullableAggregate(schema); ok {
+		if baseType := g.resolveNullableOneOfType(nonNullProxy); baseType != "" {
+			if g.ctx.RuntimeTypesPrefix() != "" {
+				return g.ctx.RuntimeTypesPrefix() + "Nullable[" + baseType + "]"
+			}
+			g.AddNullableTemplate()
+			return "Nullable[" + baseType + "]"
+		}
+	}
+
 	if len(schema.AnyOf) > 0 {
 		return g.anyOfType(desc)
 	}
@@ -460,6 +473,20 @@ func (g *TypeGenerator) oneOfType(desc *SchemaDescriptor) string {
 		return desc.ShortName
 	}
 	return "any"
+}
+
+// resolveNullableOneOfType resolves the Go type for the non-null member of a
+// nullable oneOf/anyOf pattern. Returns empty string if it can't be resolved.
+func (g *TypeGenerator) resolveNullableOneOfType(nonNullProxy *base.SchemaProxy) string {
+	if nonNullProxy.IsReference() {
+		ref := nonNullProxy.GetReference()
+		if target, ok := g.schemaIndex[ref]; ok {
+			return target.ShortName
+		}
+		return ""
+	}
+	// Inline non-null member — resolve its type directly
+	return g.goTypeForSchema(nonNullProxy.Schema(), nil)
 }
 
 // StructField represents a field in a generated Go struct.
@@ -923,6 +950,12 @@ func GetSchemaKind(desc *SchemaDescriptor) SchemaKind {
 	if len(schema.AllOf) > 0 {
 		return KindAllOf
 	}
+
+	// Nullable oneOf/anyOf pattern: [{$ref/type}, {type: "null"}] → alias to Nullable[T]
+	if ok, _ := isNullableAggregate(schema); ok {
+		return KindAlias
+	}
+
 	if len(schema.AnyOf) > 0 {
 		return KindAnyOf
 	}
