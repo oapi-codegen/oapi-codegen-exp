@@ -96,7 +96,7 @@ type ClientGenerator struct {
 // modelsPackage can be nil if models are in the same package.
 // rp holds the package prefixes for runtime sub-packages; all empty when embedded.
 func NewClientGenerator(schemaIndex map[string]*SchemaDescriptor, generateSimple bool, modelsPackage *ModelsPackage, rp RuntimePrefixes, typeMapping TypeMapping) (*ClientGenerator, error) {
-	tmpl := template.New("client").Funcs(templates.Funcs()).Funcs(clientFuncs(schemaIndex, modelsPackage, typeMapping)).Funcs(rp.FuncMap())
+	tmpl := template.New("client").Funcs(templates.Funcs()).Funcs(senderFuncs()).Funcs(clientFuncs(schemaIndex, modelsPackage, typeMapping)).Funcs(rp.FuncMap())
 
 	if err := loadTemplates(tmpl, clientTemplateEntries(), senderTemplateEntries(), sharedServerTemplateEntries()); err != nil {
 		return nil, err

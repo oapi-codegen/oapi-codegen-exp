@@ -2,9 +2,7 @@
 
 {{- range .Operations }}
 {{- $op := . }}
-{{- $opid := .GoOperationID }}
 {{- $hasParams := .HasParams }}
-{{- $pathParams := .PathParams }}
 {{- $paramsTypeName := .ParamsTypeName }}
 {{- $queryParams := .QueryParams }}
 {{- $headerParams := .HeaderParams }}
@@ -14,8 +12,8 @@
 {{- range .Bodies }}
 {{- if .GenerateTyped }}
 
-// New{{ $opid }}{{ $.Prefix }}Request{{ .FuncSuffix }} creates a {{ $op.Method }} request for {{ if $.IsClient }}{{ $op.Path }}{{ else }}the {{ $.PrefixLower }}{{ end }} with {{ .ContentType }} body
-func New{{ $opid }}{{ $.Prefix }}Request{{ .FuncSuffix }}({{ if $.IsClient }}server string{{ range $pathParams }}, {{ .GoVariableName }} {{ .TypeDecl }}{{ end }}{{ else }}targetURL string{{ end }}{{ if $hasParams }}, params *{{ $paramsTypeName }}{{ end }}, body {{ .GoTypeName }}) (*http.Request, error) {
+// {{ typedRequestBuilderName $ $op . }} {{ requestBuilderComment $ $op }} with {{ .ContentType }} body
+func {{ typedRequestBuilderName $ $op . }}({{ requestBuilderParams $ $op }}{{ if $hasParams }}, params *{{ $paramsTypeName }}{{ end }}, body {{ .GoTypeName }}) (*http.Request, error) {
 	var bodyReader io.Reader
 {{- if .IsFormEncoded }}
 	values, err := {{ runtimeHelpersPrefix }}MarshalForm(body)
@@ -30,16 +28,16 @@ func New{{ $opid }}{{ $.Prefix }}Request{{ .FuncSuffix }}({{ if $.IsClient }}ser
 	}
 	bodyReader = bytes.NewReader(buf)
 {{- end }}
-	return New{{ $opid }}{{ $.Prefix }}Request{{ if $op.HasBody }}WithBody{{ end }}({{ if $.IsClient }}server{{ range $pathParams }}, {{ .GoVariableName }}{{ end }}{{ else }}targetURL{{ end }}{{ if $hasParams }}, params{{ end }}, "{{ .ContentType }}", bodyReader)
+	return {{ requestBuilderName $ $op }}({{ requestBuilderArgs $ $op }}{{ if $hasParams }}, params{{ end }}, "{{ .ContentType }}", bodyReader)
 }
 {{- end }}
 {{- end }}
 
-// New{{ $opid }}{{ $.Prefix }}Request{{ if .HasBody }}WithBody{{ end }} creates a {{ .Method }} request for {{ if $.IsClient }}{{ .Path }}{{ else }}the {{ $.PrefixLower }}{{ end }}{{ if .HasBody }} with any body{{ end }}
-func New{{ $opid }}{{ $.Prefix }}Request{{ if .HasBody }}WithBody{{ end }}({{ if $.IsClient }}server string{{ range $pathParams }}, {{ .GoVariableName }} {{ .TypeDecl }}{{ end }}{{ else }}targetURL string{{ end }}{{ if $hasParams }}, params *{{ $paramsTypeName }}{{ end }}{{ if .HasBody }}, contentType string, body io.Reader{{ end }}) (*http.Request, error) {
+// {{ requestBuilderName $ . }} {{ requestBuilderComment $ . }}{{ if .HasBody }} with any body{{ end }}
+func {{ requestBuilderName $ . }}({{ requestBuilderParams $ . }}{{ if $hasParams }}, params *{{ $paramsTypeName }}{{ end }}{{ if .HasBody }}, contentType string, body io.Reader{{ end }}) (*http.Request, error) {
 	var err error
 {{- if $.IsClient }}
-{{- range $idx, $param := $pathParams }}
+{{- range $idx, $param := .PathParams }}
 
 	var pathParam{{ $idx }} string
 	{{- if .IsPassThrough }}
@@ -64,7 +62,7 @@ func New{{ $opid }}{{ $.Prefix }}Request{{ if .HasBody }}WithBody{{ end }}({{ if
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("{{ pathFmt .Path }}"{{ range $idx, $_ := $pathParams }}, pathParam{{ $idx }}{{ end }})
+	operationPath := fmt.Sprintf("{{ pathFmt .Path }}"{{ range $idx, $_ := .PathParams }}, pathParam{{ $idx }}{{ end }})
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
