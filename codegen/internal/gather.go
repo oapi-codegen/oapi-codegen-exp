@@ -376,14 +376,17 @@ func (g *gatherer) gatherFromSchemaProxy(proxy *base.SchemaProxy, path SchemaPat
 	// References are always gathered (they point to real schemas)
 	// Simple types (primitives without enum) are skipped for inline schemas
 	// Inline nullable primitives (under properties/) don't need types - they use Nullable[T] directly
+	// Inline nullable aggregates (oneOf/anyOf: [$ref, {type: null}]) also use Nullable[T] directly
 	// Schemas with type-override or type-name-override extensions always need types
 	// Component schemas (components/schemas/*) always get a type alias, even for primitives,
 	// so that external packages can reference them by name.
 	isComponentSchema := len(path) == 3 && path[0] == "components" && path[1] == "schemas"
 	isInlineProperty := path.ContainsProperties()
 	skipInlineNullablePrimitive := isInlineProperty && isNullablePrimitive(schema)
+	isNullableAgg, _ := isNullableAggregate(schema)
+	skipInlineNullableAggregate := isInlineProperty && isNullableAgg
 	needsType := isRef || needsGeneratedType(schema) || hasTypeOverride || hasTypeNameOverride || isComponentSchema
-	if needsType && !skipInlineNullablePrimitive {
+	if needsType && !skipInlineNullablePrimitive && !skipInlineNullableAggregate {
 		desc := &SchemaDescriptor{
 			Path:        path,
 			Parent:      parent,
@@ -523,6 +526,33 @@ func needsGeneratedType(schema *base.Schema) bool {
 	// Simple primitives (string, integer, number, boolean) without enum
 	// don't need generated types
 	return false
+}
+
+// isNullableAggregate detects the OpenAPI 3.1 pattern for nullable $ref types:
+// oneOf/anyOf with exactly two members where one is {type: "null"}.
+// Since you cannot combine $ref with a type array, this is the standard way to
+// make a referenced type nullable. Returns the non-null member's schema proxy
+// if matched.
+func isNullableAggregate(schema *base.Schema) (bool, *base.SchemaProxy) {
+	if schema == nil {
+		return false, nil
+	}
+
+	var members []*base.SchemaProxy
+	if len(schema.OneOf) == 2 {
+		members = schema.OneOf
+	} else if len(schema.AnyOf) == 2 {
+		members = schema.AnyOf
+	} else {
+		return false, nil
+	}
+
+	if s := members[0].Schema(); s != nil && len(s.Type) == 1 && s.Type[0] == "null" {
+		return true, members[1]
+	} else if s := members[1].Schema(); s != nil && len(s.Type) == 1 && s.Type[0] == "null" {
+		return true, members[0]
+	}
+	return false, nil
 }
 
 // isNullablePrimitive returns true if the schema is a nullable primitive type.
