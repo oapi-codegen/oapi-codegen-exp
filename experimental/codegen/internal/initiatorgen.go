@@ -9,13 +9,6 @@ import (
 	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/templates"
 )
 
-// InitiatorTemplateData is passed to initiator templates.
-type InitiatorTemplateData struct {
-	Prefix      string                 // "Webhook" or "Callback"
-	PrefixLower string                 // "webhook" or "callback"
-	Operations  []*OperationDescriptor // Operations to generate for
-}
-
 // InitiatorGenerator generates initiator (sender) code from operation descriptors.
 // It is parameterized by prefix to support both webhooks and callbacks.
 type InitiatorGenerator struct {
@@ -31,7 +24,7 @@ type InitiatorGenerator struct {
 func NewInitiatorGenerator(prefix string, schemaIndex map[string]*SchemaDescriptor, generateSimple bool, modelsPackage *ModelsPackage, rp RuntimePrefixes, typeMapping TypeMapping) (*InitiatorGenerator, error) {
 	tmpl := template.New("initiator").Funcs(templates.Funcs()).Funcs(clientFuncs(schemaIndex, modelsPackage, typeMapping)).Funcs(rp.FuncMap())
 
-	if err := loadTemplates(tmpl, initiatorTemplateEntries(), sharedServerTemplateEntries()); err != nil {
+	if err := loadTemplates(tmpl, initiatorTemplateEntries(), senderTemplateEntries(), sharedServerTemplateEntries()); err != nil {
 		return nil, err
 	}
 
@@ -44,54 +37,73 @@ func NewInitiatorGenerator(prefix string, schemaIndex map[string]*SchemaDescript
 	}, nil
 }
 
-func (g *InitiatorGenerator) templateData(ops []*OperationDescriptor) InitiatorTemplateData {
-	return InitiatorTemplateData{
+func (g *InitiatorGenerator) senderData(ops []*OperationDescriptor) SenderTemplateData {
+	return SenderTemplateData{
+		IsClient:    false,
 		Prefix:      g.prefix,
 		PrefixLower: strings.ToLower(g.prefix),
+		TypeName:    g.prefix + "Initiator",
+		Receiver:    "p",
+		OptionType:  g.prefix + "InitiatorOption",
+		ErrorType:   g.prefix + "HttpError",
+		SimpleType:  "Simple" + g.prefix + "Initiator",
 		Operations:  ops,
 	}
+}
+
+// baseTemplateData builds the data for the initiator base template, which still
+// uses the old shape (Prefix, PrefixLower, Operations).
+type initiatorBaseData struct {
+	Prefix      string
+	PrefixLower string
+	Operations  []*OperationDescriptor
 }
 
 // GenerateBase generates the base initiator types and helpers.
 func (g *InitiatorGenerator) GenerateBase(ops []*OperationDescriptor) (string, error) {
 	var buf bytes.Buffer
-	if err := g.tmpl.ExecuteTemplate(&buf, "initiator_base", g.templateData(ops)); err != nil {
+	data := initiatorBaseData{
+		Prefix:      g.prefix,
+		PrefixLower: strings.ToLower(g.prefix),
+		Operations:  ops,
+	}
+	if err := g.tmpl.ExecuteTemplate(&buf, "initiator_base", data); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
 }
 
 // GenerateInterface generates the InitiatorInterface.
-func (g *InitiatorGenerator) GenerateInterface(ops []*OperationDescriptor) (string, error) {
+func (g *InitiatorGenerator) GenerateInterface(data SenderTemplateData) (string, error) {
 	var buf bytes.Buffer
-	if err := g.tmpl.ExecuteTemplate(&buf, "initiator_interface", g.templateData(ops)); err != nil {
+	if err := g.tmpl.ExecuteTemplate(&buf, "sender_interface", data); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
 }
 
 // GenerateMethods generates the Initiator methods.
-func (g *InitiatorGenerator) GenerateMethods(ops []*OperationDescriptor) (string, error) {
+func (g *InitiatorGenerator) GenerateMethods(data SenderTemplateData) (string, error) {
 	var buf bytes.Buffer
-	if err := g.tmpl.ExecuteTemplate(&buf, "initiator_methods", g.templateData(ops)); err != nil {
+	if err := g.tmpl.ExecuteTemplate(&buf, "sender_methods", data); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
 }
 
 // GenerateRequestBuilders generates the request builder functions.
-func (g *InitiatorGenerator) GenerateRequestBuilders(ops []*OperationDescriptor) (string, error) {
+func (g *InitiatorGenerator) GenerateRequestBuilders(data SenderTemplateData) (string, error) {
 	var buf bytes.Buffer
-	if err := g.tmpl.ExecuteTemplate(&buf, "initiator_request_builders", g.templateData(ops)); err != nil {
+	if err := g.tmpl.ExecuteTemplate(&buf, "sender_request_builders", data); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
 }
 
 // GenerateSimple generates the SimpleInitiator with typed responses.
-func (g *InitiatorGenerator) GenerateSimple(ops []*OperationDescriptor) (string, error) {
+func (g *InitiatorGenerator) GenerateSimple(data SenderTemplateData) (string, error) {
 	var buf bytes.Buffer
-	if err := g.tmpl.ExecuteTemplate(&buf, "initiator_simple", g.templateData(ops)); err != nil {
+	if err := g.tmpl.ExecuteTemplate(&buf, "sender_simple", data); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
@@ -115,6 +127,8 @@ func (g *InitiatorGenerator) GenerateRequestBodyTypes(ops []*OperationDescriptor
 func (g *InitiatorGenerator) GenerateInitiator(ops []*OperationDescriptor) (string, error) {
 	var buf bytes.Buffer
 
+	data := g.senderData(ops)
+
 	// Generate request body type aliases first
 	bodyTypes := g.GenerateRequestBodyTypes(ops)
 	buf.WriteString(bodyTypes)
@@ -128,7 +142,7 @@ func (g *InitiatorGenerator) GenerateInitiator(ops []*OperationDescriptor) (stri
 	buf.WriteString("\n")
 
 	// Generate interface
-	iface, err := g.GenerateInterface(ops)
+	iface, err := g.GenerateInterface(data)
 	if err != nil {
 		return "", fmt.Errorf("generating initiator interface: %w", err)
 	}
@@ -144,7 +158,7 @@ func (g *InitiatorGenerator) GenerateInitiator(ops []*OperationDescriptor) (stri
 	buf.WriteString("\n")
 
 	// Generate methods
-	methods, err := g.GenerateMethods(ops)
+	methods, err := g.GenerateMethods(data)
 	if err != nil {
 		return "", fmt.Errorf("generating initiator methods: %w", err)
 	}
@@ -152,7 +166,7 @@ func (g *InitiatorGenerator) GenerateInitiator(ops []*OperationDescriptor) (stri
 	buf.WriteString("\n")
 
 	// Generate request builders
-	builders, err := g.GenerateRequestBuilders(ops)
+	builders, err := g.GenerateRequestBuilders(data)
 	if err != nil {
 		return "", fmt.Errorf("generating request builders: %w", err)
 	}
@@ -161,7 +175,7 @@ func (g *InitiatorGenerator) GenerateInitiator(ops []*OperationDescriptor) (stri
 
 	// Generate simple initiator if requested
 	if g.generateSimple {
-		simple, err := g.GenerateSimple(ops)
+		simple, err := g.GenerateSimple(data)
 		if err != nil {
 			return "", fmt.Errorf("generating simple initiator: %w", err)
 		}

@@ -52,6 +52,29 @@ func initiatorTemplateEntries() []templateEntry {
 	return entries
 }
 
+// senderTemplateEntries converts SenderTemplates map to a slice of templateEntry.
+func senderTemplateEntries() []templateEntry {
+	entries := make([]templateEntry, 0, len(templates.SenderTemplates))
+	for _, st := range templates.SenderTemplates {
+		entries = append(entries, templateEntry{Name: st.Name, Template: st.Template})
+	}
+	return entries
+}
+
+// SenderTemplateData is the unified template data for client and initiator templates.
+// Templates use {{if .IsClient}} to branch on the few points where they diverge.
+type SenderTemplateData struct {
+	IsClient    bool                   // true for client, false for initiator
+	Prefix      string                 // "" for client, "Webhook"/"Callback" for initiator
+	PrefixLower string                 // "" for client, "webhook"/"callback" for initiator
+	TypeName    string                 // "Client" or "WebhookInitiator"
+	Receiver    string                 // "c" or "p"
+	OptionType  string                 // "ClientOption" or "WebhookInitiatorOption"
+	ErrorType   string                 // "ClientHttpError" or "WebhookHttpError"
+	SimpleType  string                 // "SimpleClient" or "SimpleWebhookInitiator"
+	Operations  []*OperationDescriptor // Operations to generate for
+}
+
 // sharedServerTemplateEntries converts SharedServerTemplates map to a slice of templateEntry.
 func sharedServerTemplateEntries() []templateEntry {
 	entries := make([]templateEntry, 0, len(templates.SharedServerTemplates))
@@ -75,7 +98,7 @@ type ClientGenerator struct {
 func NewClientGenerator(schemaIndex map[string]*SchemaDescriptor, generateSimple bool, modelsPackage *ModelsPackage, rp RuntimePrefixes, typeMapping TypeMapping) (*ClientGenerator, error) {
 	tmpl := template.New("client").Funcs(templates.Funcs()).Funcs(clientFuncs(schemaIndex, modelsPackage, typeMapping)).Funcs(rp.FuncMap())
 
-	if err := loadTemplates(tmpl, clientTemplateEntries(), sharedServerTemplateEntries()); err != nil {
+	if err := loadTemplates(tmpl, clientTemplateEntries(), senderTemplateEntries(), sharedServerTemplateEntries()); err != nil {
 		return nil, err
 	}
 
@@ -298,36 +321,36 @@ func (g *ClientGenerator) GenerateBase() (string, error) {
 }
 
 // GenerateInterface generates the ClientInterface.
-func (g *ClientGenerator) GenerateInterface(ops []*OperationDescriptor) (string, error) {
+func (g *ClientGenerator) GenerateInterface(data SenderTemplateData) (string, error) {
 	var buf bytes.Buffer
-	if err := g.tmpl.ExecuteTemplate(&buf, "interface", ops); err != nil {
+	if err := g.tmpl.ExecuteTemplate(&buf, "sender_interface", data); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
 }
 
 // GenerateMethods generates the Client methods.
-func (g *ClientGenerator) GenerateMethods(ops []*OperationDescriptor) (string, error) {
+func (g *ClientGenerator) GenerateMethods(data SenderTemplateData) (string, error) {
 	var buf bytes.Buffer
-	if err := g.tmpl.ExecuteTemplate(&buf, "methods", ops); err != nil {
+	if err := g.tmpl.ExecuteTemplate(&buf, "sender_methods", data); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
 }
 
 // GenerateRequestBuilders generates the request builder functions.
-func (g *ClientGenerator) GenerateRequestBuilders(ops []*OperationDescriptor) (string, error) {
+func (g *ClientGenerator) GenerateRequestBuilders(data SenderTemplateData) (string, error) {
 	var buf bytes.Buffer
-	if err := g.tmpl.ExecuteTemplate(&buf, "request_builders", ops); err != nil {
+	if err := g.tmpl.ExecuteTemplate(&buf, "sender_request_builders", data); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
 }
 
 // GenerateSimple generates the SimpleClient with typed responses.
-func (g *ClientGenerator) GenerateSimple(ops []*OperationDescriptor) (string, error) {
+func (g *ClientGenerator) GenerateSimple(data SenderTemplateData) (string, error) {
 	var buf bytes.Buffer
-	if err := g.tmpl.ExecuteTemplate(&buf, "simple", ops); err != nil {
+	if err := g.tmpl.ExecuteTemplate(&buf, "sender_simple", data); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
@@ -385,6 +408,18 @@ func generateRequestBodyTypes(ops []*OperationDescriptor, schemaIndex map[string
 func (g *ClientGenerator) GenerateClient(ops []*OperationDescriptor) (string, error) {
 	var buf bytes.Buffer
 
+	data := SenderTemplateData{
+		IsClient:   true,
+		Prefix:     "",
+		PrefixLower: "",
+		TypeName:   "Client",
+		Receiver:   "c",
+		OptionType: "ClientOption",
+		ErrorType:  "ClientHttpError",
+		SimpleType: "SimpleClient",
+		Operations: ops,
+	}
+
 	// Generate request body type aliases first
 	bodyTypes := g.GenerateRequestBodyTypes(ops)
 	buf.WriteString(bodyTypes)
@@ -398,7 +433,7 @@ func (g *ClientGenerator) GenerateClient(ops []*OperationDescriptor) (string, er
 	buf.WriteString("\n")
 
 	// Generate interface
-	iface, err := g.GenerateInterface(ops)
+	iface, err := g.GenerateInterface(data)
 	if err != nil {
 		return "", fmt.Errorf("generating client interface: %w", err)
 	}
@@ -414,7 +449,7 @@ func (g *ClientGenerator) GenerateClient(ops []*OperationDescriptor) (string, er
 	buf.WriteString("\n")
 
 	// Generate methods
-	methods, err := g.GenerateMethods(ops)
+	methods, err := g.GenerateMethods(data)
 	if err != nil {
 		return "", fmt.Errorf("generating client methods: %w", err)
 	}
@@ -422,7 +457,7 @@ func (g *ClientGenerator) GenerateClient(ops []*OperationDescriptor) (string, er
 	buf.WriteString("\n")
 
 	// Generate request builders
-	builders, err := g.GenerateRequestBuilders(ops)
+	builders, err := g.GenerateRequestBuilders(data)
 	if err != nil {
 		return "", fmt.Errorf("generating request builders: %w", err)
 	}
@@ -431,7 +466,7 @@ func (g *ClientGenerator) GenerateClient(ops []*OperationDescriptor) (string, er
 
 	// Generate simple client if requested
 	if g.generateSimple {
-		simple, err := g.GenerateSimple(ops)
+		simple, err := g.GenerateSimple(data)
 		if err != nil {
 			return "", fmt.Errorf("generating simple client: %w", err)
 		}
