@@ -439,12 +439,12 @@ func NewTreePlantedCallbackRequest(targetURL string, body TreePlantedJSONRequest
 func NewTreePlantedCallbackRequestWithBody(targetURL string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
-	parsedURL, err := url.Parse(targetURL)
+	reqURL, err := url.Parse(targetURL)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", parsedURL.String(), body)
+	req, err := http.NewRequest("POST", reqURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -454,7 +454,7 @@ func NewTreePlantedCallbackRequestWithBody(targetURL string, contentType string,
 	return req, nil
 }
 
-// CallbackHttpError represents an HTTP error response.
+// CallbackHttpError represents an HTTP error response from the callback.
 // The type parameter E is the type of the parsed error body.
 type CallbackHttpError[E any] struct {
 	StatusCode int
@@ -475,11 +475,11 @@ type SimpleCallbackInitiator struct {
 
 // NewSimpleCallbackInitiator creates a new SimpleCallbackInitiator which wraps a CallbackInitiator.
 func NewSimpleCallbackInitiator(opts ...CallbackInitiatorOption) (*SimpleCallbackInitiator, error) {
-	initiator, err := NewCallbackInitiator(opts...)
+	inner, err := NewCallbackInitiator(opts...)
 	if err != nil {
 		return nil, err
 	}
-	return &SimpleCallbackInitiator{CallbackInitiator: initiator}, nil
+	return &SimpleCallbackInitiator{CallbackInitiator: inner}, nil
 }
 
 // CallbackReceiverInterface represents handlers for receiving callback requests.

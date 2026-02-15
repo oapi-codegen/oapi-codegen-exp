@@ -1,0 +1,18 @@
+{{/* Sender interface template - shared between client and initiator */}}
+
+// {{ .TypeName }}Interface is the interface specification for the {{ if .IsClient }}client{{ else }}{{ .PrefixLower }} initiator{{ end }}.
+type {{ .TypeName }}Interface interface {
+{{- range .Operations }}
+{{- $opid := .GoOperationID }}
+{{- $hasParams := .HasParams }}
+{{- $paramsTypeName := .ParamsTypeName }}
+{{- $pathParams := .PathParams }}
+	// {{ $opid }}{{ if .HasBody }}WithBody{{ end }}{{ if $.IsClient }} makes a {{ .Method }} request to {{ .Path }}{{ else }} sends a {{ .Method }} {{ $.PrefixLower }} request{{ end }}
+	{{ $opid }}{{ if .HasBody }}WithBody{{ end }}(ctx context.Context{{ if $.IsClient }}{{ range $pathParams }}, {{ .GoVariableName }} {{ .TypeDecl }}{{ end }}{{ else }}, targetURL string{{ end }}{{ if $hasParams }}, params *{{ $paramsTypeName }}{{ end }}{{ if .HasBody }}, contentType string, body io.Reader{{ end }}, reqEditors ...RequestEditorFn) (*http.Response, error)
+{{- range .Bodies }}
+{{- if .GenerateTyped }}
+	{{ $opid }}{{ .FuncSuffix }}(ctx context.Context{{ if $.IsClient }}{{ range $pathParams }}, {{ .GoVariableName }} {{ .TypeDecl }}{{ end }}{{ else }}, targetURL string{{ end }}{{ if $hasParams }}, params *{{ $paramsTypeName }}{{ end }}, body {{ .GoTypeName }}, reqEditors ...RequestEditorFn) (*http.Response, error)
+{{- end }}
+{{- end }}
+{{- end }}
+}

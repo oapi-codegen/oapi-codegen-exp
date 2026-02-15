@@ -137,9 +137,12 @@ func Generate(doc libopenapi.Document, specData []byte, cfg Configuration) (stri
 		}
 		output.AddType(clientCode)
 
-		// Add client template imports
+		// Add client template imports (base + shared sender templates)
 		for _, ct := range templates.ClientTemplates {
 			ctx.AddTemplateImports(ct.Imports)
+		}
+		for _, st := range templates.SenderTemplates {
+			ctx.AddTemplateImports(st.Imports)
 		}
 
 		// Add models package import if using external models
@@ -213,8 +216,12 @@ func Generate(doc libopenapi.Document, specData []byte, cfg Configuration) (stri
 			}
 			output.AddType(initiatorCode)
 
+			// Add initiator template imports (base + shared sender templates)
 			for _, pt := range templates.InitiatorTemplates {
 				ctx.AddTemplateImports(pt.Imports)
+			}
+			for _, st := range templates.SenderTemplates {
+				ctx.AddTemplateImports(st.Imports)
 			}
 
 			if cfg.Generation.ModelsPackage != nil && cfg.Generation.ModelsPackage.Path != "" {
@@ -239,8 +246,12 @@ func Generate(doc libopenapi.Document, specData []byte, cfg Configuration) (stri
 			}
 			output.AddType(initiatorCode)
 
+			// Add initiator template imports (base + shared sender templates)
 			for _, pt := range templates.InitiatorTemplates {
 				ctx.AddTemplateImports(pt.Imports)
+			}
+			for _, st := range templates.SenderTemplates {
+				ctx.AddTemplateImports(st.Imports)
 			}
 
 			if cfg.Generation.ModelsPackage != nil && cfg.Generation.ModelsPackage.Path != "" {

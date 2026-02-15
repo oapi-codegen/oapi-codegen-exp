@@ -809,13 +809,14 @@ var SharedServerTemplates = map[string]ServerTemplate{
 
 // InitiatorTemplate defines a template for initiator (webhook/callback sender) generation.
 type InitiatorTemplate struct {
-	Name     string   // Template name (e.g., "initiator_base", "initiator_interface")
+	Name     string   // Template name (e.g., "initiator_base")
 	Imports  []Import // Required imports for this template
 	Template string   // Template path in embedded FS
 }
 
-// InitiatorTemplates contains templates for initiator generation.
-// These are shared between webhook and callback initiators (parameterized by prefix).
+// InitiatorTemplates contains the base template for initiator generation.
+// The shared sender templates (interface, methods, request_builders, simple)
+// are in SenderTemplates and used by both client and initiator generators.
 var InitiatorTemplates = map[string]InitiatorTemplate{
 	"initiator_base": {
 		Name: "initiator_base",
@@ -825,58 +826,18 @@ var InitiatorTemplates = map[string]InitiatorTemplate{
 		},
 		Template: "initiator/base.go.tmpl",
 	},
-	"initiator_interface": {
-		Name: "initiator_interface",
-		Imports: []Import{
-			{Path: "context"},
-			{Path: "io"},
-			{Path: "net/http"},
-		},
-		Template: "initiator/interface.go.tmpl",
-	},
-	"initiator_methods": {
-		Name: "initiator_methods",
-		Imports: []Import{
-			{Path: "context"},
-			{Path: "io"},
-			{Path: "net/http"},
-		},
-		Template: "initiator/methods.go.tmpl",
-	},
-	"initiator_request_builders": {
-		Name: "initiator_request_builders",
-		Imports: []Import{
-			{Path: "bytes"},
-			{Path: "encoding/json"},
-			{Path: "fmt"},
-			{Path: "io"},
-			{Path: "net/http"},
-			{Path: "net/url"},
-			{Path: "strings"},
-		},
-		Template: "initiator/request_builders.go.tmpl",
-	},
-	"initiator_simple": {
-		Name: "initiator_simple",
-		Imports: []Import{
-			{Path: "context"},
-			{Path: "encoding/json"},
-			{Path: "fmt"},
-			{Path: "io"},
-			{Path: "net/http"},
-		},
-		Template: "initiator/simple.go.tmpl",
-	},
 }
 
 // ClientTemplate defines a template for client generation.
 type ClientTemplate struct {
-	Name     string   // Template name (e.g., "base", "interface")
+	Name     string   // Template name (e.g., "base")
 	Imports  []Import // Required imports for this template
 	Template string   // Template path in embedded FS
 }
 
-// ClientTemplates contains templates for client generation.
+// ClientTemplates contains the base template for client generation.
+// The shared sender templates (interface, methods, request_builders, simple)
+// are in SenderTemplates and used by both client and initiator generators.
 var ClientTemplates = map[string]ClientTemplate{
 	"base": {
 		Name: "base",
@@ -888,26 +849,39 @@ var ClientTemplates = map[string]ClientTemplate{
 		},
 		Template: "client/base.go.tmpl",
 	},
-	"interface": {
-		Name: "interface",
+}
+
+// SenderTemplate defines a template shared between client and initiator generation.
+type SenderTemplate struct {
+	Name     string   // Template name (e.g., "sender_interface")
+	Imports  []Import // Required imports for this template
+	Template string   // Template path in embedded FS
+}
+
+// SenderTemplates contains templates shared between client and initiator generators.
+// These templates accept SenderTemplateData and use {{if .IsClient}} to branch
+// on the few points where client and initiator logic diverges.
+var SenderTemplates = map[string]SenderTemplate{
+	"sender_interface": {
+		Name: "sender_interface",
 		Imports: []Import{
 			{Path: "context"},
 			{Path: "io"},
 			{Path: "net/http"},
 		},
-		Template: "client/interface.go.tmpl",
+		Template: "sender/interface.go.tmpl",
 	},
-	"methods": {
-		Name: "methods",
+	"sender_methods": {
+		Name: "sender_methods",
 		Imports: []Import{
 			{Path: "context"},
 			{Path: "io"},
 			{Path: "net/http"},
 		},
-		Template: "client/methods.go.tmpl",
+		Template: "sender/methods.go.tmpl",
 	},
-	"request_builders": {
-		Name: "request_builders",
+	"sender_request_builders": {
+		Name: "sender_request_builders",
 		Imports: []Import{
 			{Path: "bytes"},
 			{Path: "encoding/json"},
@@ -917,10 +891,10 @@ var ClientTemplates = map[string]ClientTemplate{
 			{Path: "net/url"},
 			{Path: "strings"},
 		},
-		Template: "client/request_builders.go.tmpl",
+		Template: "sender/request_builders.go.tmpl",
 	},
-	"simple": {
-		Name: "simple",
+	"sender_simple": {
+		Name: "sender_simple",
 		Imports: []Import{
 			{Path: "context"},
 			{Path: "encoding/json"},
@@ -928,6 +902,6 @@ var ClientTemplates = map[string]ClientTemplate{
 			{Path: "io"},
 			{Path: "net/http"},
 		},
-		Template: "client/simple.go.tmpl",
+		Template: "sender/simple.go.tmpl",
 	},
 }

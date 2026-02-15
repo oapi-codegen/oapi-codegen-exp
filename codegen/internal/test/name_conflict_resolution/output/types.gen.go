@@ -1025,12 +1025,12 @@ func NewListEntitiesRequest(server string) (*http.Request, error) {
 		operationPath = "." + operationPath
 	}
 
-	queryURL, err := serverURL.Parse(operationPath)
+	reqURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest("GET", reqURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1063,13 +1063,13 @@ func NewPostFooRequestWithBody(server string, params *PostFooParams, contentType
 		operationPath = "." + operationPath
 	}
 
-	queryURL, err := serverURL.Parse(operationPath)
+	reqURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
 	}
 
 	if params != nil {
-		queryValues := queryURL.Query()
+		queryValues := reqURL.Query()
 		if params.Bar != nil {
 			if queryFrag, err := StyleFormExplodeParam("bar", ParamLocationQuery, *params.Bar); err != nil {
 				return nil, err
@@ -1083,10 +1083,10 @@ func NewPostFooRequestWithBody(server string, params *PostFooParams, contentType
 				}
 			}
 		}
-		queryURL.RawQuery = queryValues.Encode()
+		reqURL.RawQuery = queryValues.Encode()
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest("POST", reqURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -1110,12 +1110,12 @@ func NewListItemsRequest(server string) (*http.Request, error) {
 		operationPath = "." + operationPath
 	}
 
-	queryURL, err := serverURL.Parse(operationPath)
+	reqURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest("GET", reqURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1148,12 +1148,12 @@ func NewCreateItemRequestWithBody(server string, contentType string, body io.Rea
 		operationPath = "." + operationPath
 	}
 
-	queryURL, err := serverURL.Parse(operationPath)
+	reqURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest("POST", reqURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -1210,12 +1210,12 @@ func NewCreateOrderRequestWithBody(server string, contentType string, body io.Re
 		operationPath = "." + operationPath
 	}
 
-	queryURL, err := serverURL.Parse(operationPath)
+	reqURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest("POST", reqURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -1250,12 +1250,12 @@ func NewCreatePetRequestWithBody(server string, contentType string, body io.Read
 		operationPath = "." + operationPath
 	}
 
-	queryURL, err := serverURL.Parse(operationPath)
+	reqURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest("POST", reqURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -1290,12 +1290,12 @@ func NewQueryRequestWithBody(server string, contentType string, body io.Reader) 
 		operationPath = "." + operationPath
 	}
 
-	queryURL, err := serverURL.Parse(operationPath)
+	reqURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest("POST", reqURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -1319,12 +1319,12 @@ func NewGetQuxRequest(server string) (*http.Request, error) {
 		operationPath = "." + operationPath
 	}
 
-	queryURL, err := serverURL.Parse(operationPath)
+	reqURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest("GET", reqURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1357,12 +1357,12 @@ func NewPostQuxRequestWithBody(server string, contentType string, body io.Reader
 		operationPath = "." + operationPath
 	}
 
-	queryURL, err := serverURL.Parse(operationPath)
+	reqURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest("POST", reqURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -1425,12 +1425,12 @@ func NewPatchResourceRequestWithBody(server string, id string, contentType strin
 		operationPath = "." + operationPath
 	}
 
-	queryURL, err := serverURL.Parse(operationPath)
+	reqURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	req, err := http.NewRequest("PATCH", reqURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -1454,12 +1454,12 @@ func NewGetStatusRequest(server string) (*http.Request, error) {
 		operationPath = "." + operationPath
 	}
 
-	queryURL, err := serverURL.Parse(operationPath)
+	reqURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest("GET", reqURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1481,12 +1481,12 @@ func NewGetZapRequest(server string) (*http.Request, error) {
 		operationPath = "." + operationPath
 	}
 
-	queryURL, err := serverURL.Parse(operationPath)
+	reqURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest("GET", reqURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1519,12 +1519,12 @@ func NewPostZapRequestWithBody(server string, contentType string, body io.Reader
 		operationPath = "." + operationPath
 	}
 
-	queryURL, err := serverURL.Parse(operationPath)
+	reqURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest("POST", reqURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -1534,7 +1534,7 @@ func NewPostZapRequestWithBody(server string, contentType string, body io.Reader
 	return req, nil
 }
 
-// ClientHttpError represents an HTTP error response from the server.
+// ClientHttpError represents an HTTP error response.
 // The type parameter E is the type of the parsed error body.
 type ClientHttpError[E any] struct {
 	StatusCode int
@@ -1555,11 +1555,11 @@ type SimpleClient struct {
 
 // NewSimpleClient creates a new SimpleClient which wraps a Client.
 func NewSimpleClient(server string, opts ...ClientOption) (*SimpleClient, error) {
-	client, err := NewClient(server, opts...)
+	inner, err := NewClient(server, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return &SimpleClient{Client: client}, nil
+	return &SimpleClient{Client: inner}, nil
 }
 
 // ListEntities makes a GET request to /entities and returns the parsed response.
