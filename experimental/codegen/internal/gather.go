@@ -8,26 +8,10 @@ import (
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
-// GatherResult contains the results of gathering from an OpenAPI document.
-type GatherResult struct {
-	Schemas []*SchemaDescriptor
-	Ctx     *CodegenContext
-}
-
 // GatherSchemas traverses an OpenAPI document and collects all schemas into a list.
 // When outputOpts contains operation filters (include/exclude tags or operation IDs),
 // schemas from excluded operations are not gathered.
 func GatherSchemas(doc *v3.Document, contentTypeMatcher *ContentTypeMatcher, outputOpts OutputOptions) ([]*SchemaDescriptor, error) {
-	result, err := GatherAll(doc, contentTypeMatcher, outputOpts)
-	if err != nil {
-		return nil, err
-	}
-	return result.Schemas, nil
-}
-
-// GatherAll traverses an OpenAPI document and collects all schemas and parameter usage.
-// When outputOpts contains operation filters, schemas from excluded operations are skipped.
-func GatherAll(doc *v3.Document, contentTypeMatcher *ContentTypeMatcher, outputOpts OutputOptions) (*GatherResult, error) {
 	if doc == nil {
 		return nil, fmt.Errorf("nil v3 document")
 	}
@@ -35,21 +19,16 @@ func GatherAll(doc *v3.Document, contentTypeMatcher *ContentTypeMatcher, outputO
 	g := &gatherer{
 		schemas:            make([]*SchemaDescriptor, 0),
 		contentTypeMatcher: contentTypeMatcher,
-		ctx:                NewCodegenContext(),
 		outputOpts:         outputOpts,
 	}
 
 	g.gatherFromDocument(doc)
-	return &GatherResult{
-		Schemas: g.schemas,
-		Ctx:     g.ctx,
-	}, nil
+	return g.schemas, nil
 }
 
 type gatherer struct {
 	schemas            []*SchemaDescriptor
 	contentTypeMatcher *ContentTypeMatcher
-	ctx                *CodegenContext
 	outputOpts         OutputOptions
 	// Context for the current operation being gathered (for nicer naming)
 	currentOperationID string
@@ -232,24 +211,6 @@ func (g *gatherer) gatherFromOperation(op *v3.Operation, basePath SchemaPath) {
 func (g *gatherer) gatherFromParameter(param *v3.Parameter, basePath SchemaPath) {
 	if param == nil {
 		return
-	}
-
-	// Track parameter styling usage for code generation
-	if g.ctx != nil && param.Schema != nil {
-		// Determine style (with defaults based on location)
-		style := param.Style
-		if style == "" {
-			style = DefaultParamStyle(param.In)
-		}
-
-		// Determine explode (with defaults based on location)
-		explode := DefaultParamExplode(param.In)
-		if param.Explode != nil {
-			explode = *param.Explode
-		}
-
-		// Record both style (client) and bind (server) usage
-		g.ctx.NeedParam(style, explode)
 	}
 
 	if param.Schema != nil {
@@ -557,21 +518,7 @@ func isNullablePrimitive(schema *base.Schema) bool {
 		return false
 	}
 
-	// Check for nullable
-	isNullable := false
-	// OpenAPI 3.1 style: type array includes "null"
-	for _, t := range schema.Type {
-		if t == "null" {
-			isNullable = true
-			break
-		}
-	}
-	// OpenAPI 3.0 style: nullable: true
-	if schema.Nullable != nil && *schema.Nullable {
-		isNullable = true
-	}
-
-	if !isNullable {
+	if !isNullable(schema) {
 		return false
 	}
 
