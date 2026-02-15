@@ -24,9 +24,9 @@ func Generate(doc libopenapi.Document, specData []byte, cfg Configuration) (stri
 	var runtimePrefixes RuntimePrefixes
 	if cfg.Generation.RuntimePackage != nil {
 		runtimePrefixes = RuntimePrefixes{
-			Params:  "params.",
-			Types:   "types.",
-			Helpers: "helpers.",
+			Params:  "oapiCodegenParamsPkg.",
+			Types:   "oapiCodegenTypesPkg.",
+			Helpers: "oapiCodegenHelpersPkg.",
 		}
 		ctx.SetRuntimePrefixes(runtimePrefixes.Params, runtimePrefixes.Types, runtimePrefixes.Helpers)
 	}
@@ -343,12 +343,12 @@ func Generate(doc libopenapi.Document, specData []byte, cfg Configuration) (stri
 	if cfg.Generation.RuntimePackage != nil {
 		// Runtime package is configured — don't embed helpers, import them.
 		// Add imports for whichever sub-packages are actually needed.
-		ctx.AddImport(cfg.Generation.RuntimePackage.TypesImport())
+		ctx.AddImportAlias(cfg.Generation.RuntimePackage.TypesImport(), "oapiCodegenTypesPkg")
 		if ctx.HasAnyParams() {
-			ctx.AddImport(cfg.Generation.RuntimePackage.ParamsImport())
+			ctx.AddImportAlias(cfg.Generation.RuntimePackage.ParamsImport(), "oapiCodegenParamsPkg")
 		}
 		if len(ctx.RequiredHelpers()) > 0 {
-			ctx.AddImport(cfg.Generation.RuntimePackage.HelpersImport())
+			ctx.AddImportAlias(cfg.Generation.RuntimePackage.HelpersImport(), "oapiCodegenHelpersPkg")
 		}
 	} else {
 		// Resolve param template dependencies first — this may register

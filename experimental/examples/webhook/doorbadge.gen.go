@@ -16,8 +16,8 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/params"
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/types"
+	oapiCodegenParamsPkg "github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/params"
+	oapiCodegenTypesPkg "github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/types"
 )
 
 // #/components/schemas/WebhookRegistration
@@ -33,7 +33,7 @@ func (s *WebhookRegistration) ApplyDefaults() {
 // #/components/schemas/WebhookRegistrationResponse
 type WebhookRegistrationResponse struct {
 	// Unique identifier for this webhook registration
-	ID types.UUID `json:"id" form:"id"`
+	ID oapiCodegenTypesPkg.UUID `json:"id" form:"id"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -156,7 +156,7 @@ func (siw *ServerInterfaceWrapper) DeregisterWebhook(w http.ResponseWriter, r *h
 	// ------------- Path parameter "id" -------------
 	var id uuid.UUID
 
-	err = params.BindSimpleParam("id", params.ParamLocationPath, r.PathValue("id"), &id)
+	err = oapiCodegenParamsPkg.BindSimpleParam("id", oapiCodegenParamsPkg.ParamLocationPath, r.PathValue("id"), &id)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
 		return
@@ -180,7 +180,7 @@ func (siw *ServerInterfaceWrapper) RegisterWebhook(w http.ResponseWriter, r *htt
 	// ------------- Path parameter "kind" -------------
 	var kind string
 
-	err = params.BindSimpleParam("kind", params.ParamLocationPath, r.PathValue("kind"), &kind)
+	err = oapiCodegenParamsPkg.BindSimpleParam("kind", oapiCodegenParamsPkg.ParamLocationPath, r.PathValue("kind"), &kind)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
 		return
