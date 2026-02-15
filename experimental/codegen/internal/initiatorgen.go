@@ -28,35 +28,11 @@ type InitiatorGenerator struct {
 
 // NewInitiatorGenerator creates a new initiator generator.
 // rp holds the package prefixes for runtime sub-packages; all empty when embedded.
-func NewInitiatorGenerator(prefix string, schemaIndex map[string]*SchemaDescriptor, generateSimple bool, modelsPackage *ModelsPackage, rp RuntimePrefixes) (*InitiatorGenerator, error) {
-	tmpl := template.New("initiator").Funcs(templates.Funcs()).Funcs(clientFuncs(schemaIndex, modelsPackage)).Funcs(template.FuncMap{
-		"runtimeParamsPrefix":  func() string { return rp.Params },
-		"runtimeTypesPrefix":   func() string { return rp.Types },
-		"runtimeHelpersPrefix": func() string { return rp.Helpers },
-	})
+func NewInitiatorGenerator(prefix string, schemaIndex map[string]*SchemaDescriptor, generateSimple bool, modelsPackage *ModelsPackage, rp RuntimePrefixes, typeMapping TypeMapping) (*InitiatorGenerator, error) {
+	tmpl := template.New("initiator").Funcs(templates.Funcs()).Funcs(clientFuncs(schemaIndex, modelsPackage, typeMapping)).Funcs(rp.FuncMap())
 
-	// Parse initiator templates
-	for _, pt := range templates.InitiatorTemplates {
-		content, err := templates.TemplateFS.ReadFile("files/" + pt.Template)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read initiator template %s: %w", pt.Template, err)
-		}
-		_, err = tmpl.New(pt.Name).Parse(string(content))
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse initiator template %s: %w", pt.Template, err)
-		}
-	}
-
-	// Parse shared templates (param_types)
-	for _, st := range templates.SharedServerTemplates {
-		content, err := templates.TemplateFS.ReadFile("files/" + st.Template)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read shared template %s: %w", st.Template, err)
-		}
-		_, err = tmpl.New(st.Name).Parse(string(content))
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse shared template %s: %w", st.Template, err)
-		}
+	if err := loadTemplates(tmpl, initiatorTemplateEntries(), sharedServerTemplateEntries()); err != nil {
+		return nil, err
 	}
 
 	return &InitiatorGenerator{
@@ -132,32 +108,7 @@ func (g *InitiatorGenerator) GenerateParamTypes(ops []*OperationDescriptor) (str
 
 // GenerateRequestBodyTypes generates type aliases for request bodies.
 func (g *InitiatorGenerator) GenerateRequestBodyTypes(ops []*OperationDescriptor) string {
-	var buf bytes.Buffer
-	pkgPrefix := g.modelsPackage.Prefix()
-
-	for _, op := range ops {
-		for _, body := range op.Bodies {
-			if !body.GenerateTyped {
-				continue
-			}
-			var targetType string
-			if body.Schema != nil {
-				if body.Schema.Ref != "" {
-					if target, ok := g.schemaIndex[body.Schema.Ref]; ok {
-						targetType = pkgPrefix + target.ShortName
-					}
-				} else if body.Schema.ShortName != "" {
-					targetType = pkgPrefix + body.Schema.ShortName
-				}
-			}
-			if targetType == "" {
-				targetType = "any"
-			}
-			buf.WriteString(fmt.Sprintf("type %s = %s\n\n", body.GoTypeName, targetType))
-		}
-	}
-
-	return buf.String()
+	return generateRequestBodyTypes(ops, g.schemaIndex, g.modelsPackage)
 }
 
 // GenerateInitiator generates the complete initiator code.

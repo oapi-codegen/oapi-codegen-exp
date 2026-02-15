@@ -88,19 +88,19 @@ func TestResponseBodyJSONRoundTrip(t *testing.T) {
 // TestTypeAliases verifies that type aliases resolve correctly.
 func TestTypeAliases(t *testing.T) {
 	// ResponseBodyRequiredSlice is an alias for []Pong
-	var rs ResponseBodyRequiredSlice = []Pong{{Ping: "alias"}}
+	rs := ResponseBodyRequiredSlice([]Pong{{Ping: "alias"}})
 	if len(rs) != 1 {
 		t.Errorf("ResponseBodyRequiredSlice len = %d, want 1", len(rs))
 	}
 
 	// ResponseBodyASlice is an alias for []Pong
-	var as ResponseBodyASlice = []Pong{{Ping: "slice"}}
+	as := ResponseBodyASlice([]Pong{{Ping: "slice"}})
 	if len(as) != 1 {
 		t.Errorf("ResponseBodyASlice len = %d, want 1", len(as))
 	}
 
 	// ResponseBodyAdditionalProps is an alias for map[string]any
-	var ap ResponseBodyAdditionalProps = map[string]any{"k": "v"}
+	ap := ResponseBodyAdditionalProps(map[string]any{"k": "v"})
 	if ap["k"] != "v" {
 		t.Errorf("ResponseBodyAdditionalProps[k] = %v, want %q", ap["k"], "v")
 	}

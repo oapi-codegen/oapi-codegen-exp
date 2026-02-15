@@ -234,9 +234,10 @@ func extractApplyDefaultsMethod(t *testing.T, code, typeName string) string {
 	rest := code[idx:]
 	braceCount := 0
 	for i, ch := range rest {
-		if ch == '{' {
+		switch ch {
+		case '{':
 			braceCount++
-		} else if ch == '}' {
+		case '}':
 			braceCount--
 			if braceCount == 0 {
 				return rest[:i+1]

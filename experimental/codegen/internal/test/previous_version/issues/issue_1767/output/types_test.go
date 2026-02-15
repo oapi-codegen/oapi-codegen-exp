@@ -59,7 +59,7 @@ func TestAlarmJSONRoundTrip(t *testing.T) {
 
 // TestUUIDTypeAlias verifies that the UUID type alias resolves to uuid.UUID.
 func TestUUIDTypeAlias(t *testing.T) {
-	var u UUID = uuid.New()
+	u := UUID(uuid.New())
 	// Verify it behaves like uuid.UUID
 	str := u.String()
 	if len(str) != 36 {

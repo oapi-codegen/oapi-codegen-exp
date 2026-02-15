@@ -3,6 +3,7 @@ package codegen
 import (
 	"sort"
 	"strings"
+	"text/template"
 
 	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/templates"
 )
@@ -13,6 +14,15 @@ type RuntimePrefixes struct {
 	Params  string // "params." or ""
 	Types   string // "types." or ""
 	Helpers string // "helpers." or ""
+}
+
+// FuncMap returns a template.FuncMap that exposes runtime prefix accessors to templates.
+func (rp RuntimePrefixes) FuncMap() template.FuncMap {
+	return template.FuncMap{
+		"runtimeParamsPrefix":  func() string { return rp.Params },
+		"runtimeTypesPrefix":   func() string { return rp.Types },
+		"runtimeHelpersPrefix": func() string { return rp.Helpers },
+	}
 }
 
 // CodegenContext is a centralized tracker for imports, helpers, param functions,
