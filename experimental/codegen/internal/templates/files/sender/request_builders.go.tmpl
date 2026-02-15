@@ -1,23 +1,21 @@
-{{/* Initiator request builder functions template */}}
-{{/* Input: InitiatorTemplateData */}}
+{{/* Sender request builder functions template - shared between client and initiator */}}
 
 {{- range .Operations }}
 {{- $op := . }}
 {{- $opid := .GoOperationID }}
 {{- $hasParams := .HasParams }}
+{{- $pathParams := .PathParams }}
 {{- $paramsTypeName := .ParamsTypeName }}
 {{- $queryParams := .QueryParams }}
 {{- $headerParams := .HeaderParams }}
 {{- $cookieParams := .CookieParams }}
-{{- $prefix := $.Prefix }}
-{{- $prefixLower := $.PrefixLower }}
 
 {{- /* Generate typed body request builders for content types matching config */ -}}
 {{- range .Bodies }}
 {{- if .GenerateTyped }}
 
-// New{{ $opid }}{{ $prefix }}Request{{ .FuncSuffix }} creates a {{ $op.Method }} request for the {{ $prefixLower }} with {{ .ContentType }} body
-func New{{ $opid }}{{ $prefix }}Request{{ .FuncSuffix }}(targetURL string{{ if $hasParams }}, params *{{ $paramsTypeName }}{{ end }}, body {{ .GoTypeName }}) (*http.Request, error) {
+// New{{ $opid }}{{ $.Prefix }}Request{{ .FuncSuffix }} creates a {{ $op.Method }} request for {{ if $.IsClient }}{{ $op.Path }}{{ else }}the {{ $.PrefixLower }}{{ end }} with {{ .ContentType }} body
+func New{{ $opid }}{{ $.Prefix }}Request{{ .FuncSuffix }}({{ if $.IsClient }}server string{{ range $pathParams }}, {{ .GoVariableName }} {{ .TypeDecl }}{{ end }}{{ else }}targetURL string{{ end }}{{ if $hasParams }}, params *{{ $paramsTypeName }}{{ end }}, body {{ .GoTypeName }}) (*http.Request, error) {
 	var bodyReader io.Reader
 {{- if .IsFormEncoded }}
 	values, err := {{ runtimeHelpersPrefix }}MarshalForm(body)
@@ -32,23 +30,60 @@ func New{{ $opid }}{{ $prefix }}Request{{ .FuncSuffix }}(targetURL string{{ if $
 	}
 	bodyReader = bytes.NewReader(buf)
 {{- end }}
-	return New{{ $opid }}{{ $prefix }}RequestWithBody(targetURL{{ if $hasParams }}, params{{ end }}, "{{ .ContentType }}", bodyReader)
+	return New{{ $opid }}{{ $.Prefix }}Request{{ if $op.HasBody }}WithBody{{ end }}({{ if $.IsClient }}server{{ range $pathParams }}, {{ .GoVariableName }}{{ end }}{{ else }}targetURL{{ end }}{{ if $hasParams }}, params{{ end }}, "{{ .ContentType }}", bodyReader)
 }
 {{- end }}
 {{- end }}
 
-// New{{ $opid }}{{ $prefix }}Request{{ if .HasBody }}WithBody{{ end }} creates a {{ .Method }} request for the {{ $prefixLower }}{{ if .HasBody }} with any body{{ end }}
-func New{{ $opid }}{{ $prefix }}Request{{ if .HasBody }}WithBody{{ end }}(targetURL string{{ if $hasParams }}, params *{{ $paramsTypeName }}{{ end }}{{ if .HasBody }}, contentType string, body io.Reader{{ end }}) (*http.Request, error) {
+// New{{ $opid }}{{ $.Prefix }}Request{{ if .HasBody }}WithBody{{ end }} creates a {{ .Method }} request for {{ if $.IsClient }}{{ .Path }}{{ else }}the {{ $.PrefixLower }}{{ end }}{{ if .HasBody }} with any body{{ end }}
+func New{{ $opid }}{{ $.Prefix }}Request{{ if .HasBody }}WithBody{{ end }}({{ if $.IsClient }}server string{{ range $pathParams }}, {{ .GoVariableName }} {{ .TypeDecl }}{{ end }}{{ else }}targetURL string{{ end }}{{ if $hasParams }}, params *{{ $paramsTypeName }}{{ end }}{{ if .HasBody }}, contentType string, body io.Reader{{ end }}) (*http.Request, error) {
 	var err error
+{{- if $.IsClient }}
+{{- range $idx, $param := $pathParams }}
 
-	parsedURL, err := url.Parse(targetURL)
+	var pathParam{{ $idx }} string
+	{{- if .IsPassThrough }}
+	pathParam{{ $idx }} = {{ .GoVariableName }}
+	{{- else if .IsJSON }}
+	var pathParamBuf{{ $idx }} []byte
+	pathParamBuf{{ $idx }}, err = json.Marshal({{ .GoVariableName }})
 	if err != nil {
 		return nil, err
 	}
+	pathParam{{ $idx }} = string(pathParamBuf{{ $idx }})
+	{{- else if .IsStyled }}
+	pathParam{{ $idx }}, err = {{ .StyleFunc }}("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationPath, {{ .GoVariableName }})
+	if err != nil {
+		return nil, err
+	}
+	{{- end }}
+{{- end }}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("{{ pathFmt .Path }}"{{ range $idx, $_ := $pathParams }}, pathParam{{ $idx }}{{ end }})
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	reqURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+{{- else }}
+
+	reqURL, err := url.Parse(targetURL)
+	if err != nil {
+		return nil, err
+	}
+{{- end }}
 {{- if $queryParams }}
 
 	if params != nil {
-		queryValues := parsedURL.Query()
+		queryValues := reqURL.Query()
 {{- range $idx, $param := $queryParams }}
 		{{- if .HasOptionalPointer }}
 		if params.{{ .GoName }} != nil {
@@ -78,11 +113,11 @@ func New{{ $opid }}{{ $prefix }}Request{{ if .HasBody }}WithBody{{ end }}(target
 		}
 		{{- end }}
 {{- end }}
-		parsedURL.RawQuery = queryValues.Encode()
+		reqURL.RawQuery = queryValues.Encode()
 	}
 {{- end }}
 
-	req, err := http.NewRequest("{{ .Method }}", parsedURL.String(), {{ if .HasBody }}body{{ else }}nil{{ end }})
+	req, err := http.NewRequest("{{ .Method }}", reqURL.String(), {{ if .HasBody }}body{{ else }}nil{{ end }})
 	if err != nil {
 		return nil, err
 	}

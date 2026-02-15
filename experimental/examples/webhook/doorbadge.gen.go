@@ -483,12 +483,12 @@ func NewEnterEventWebhookRequest(targetURL string, body EnterEventJSONRequestBod
 func NewEnterEventWebhookRequestWithBody(targetURL string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
-	parsedURL, err := url.Parse(targetURL)
+	reqURL, err := url.Parse(targetURL)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", parsedURL.String(), body)
+	req, err := http.NewRequest("POST", reqURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -513,12 +513,12 @@ func NewExitEventWebhookRequest(targetURL string, body ExitEventJSONRequestBody)
 func NewExitEventWebhookRequestWithBody(targetURL string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
-	parsedURL, err := url.Parse(targetURL)
+	reqURL, err := url.Parse(targetURL)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", parsedURL.String(), body)
+	req, err := http.NewRequest("POST", reqURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -528,7 +528,7 @@ func NewExitEventWebhookRequestWithBody(targetURL string, contentType string, bo
 	return req, nil
 }
 
-// WebhookHttpError represents an HTTP error response.
+// WebhookHttpError represents an HTTP error response from the webhook.
 // The type parameter E is the type of the parsed error body.
 type WebhookHttpError[E any] struct {
 	StatusCode int
@@ -549,11 +549,11 @@ type SimpleWebhookInitiator struct {
 
 // NewSimpleWebhookInitiator creates a new SimpleWebhookInitiator which wraps a WebhookInitiator.
 func NewSimpleWebhookInitiator(opts ...WebhookInitiatorOption) (*SimpleWebhookInitiator, error) {
-	initiator, err := NewWebhookInitiator(opts...)
+	inner, err := NewWebhookInitiator(opts...)
 	if err != nil {
 		return nil, err
 	}
-	return &SimpleWebhookInitiator{WebhookInitiator: initiator}, nil
+	return &SimpleWebhookInitiator{WebhookInitiator: inner}, nil
 }
 
 // WebhookReceiverInterface represents handlers for receiving webhook requests.
