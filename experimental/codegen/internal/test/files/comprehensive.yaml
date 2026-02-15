@@ -278,6 +278,32 @@ components:
             - integer
             - "null"
 
+    # OpenAPI 3.1 nullable $ref via oneOf/anyOf — the only way to make
+    # a referenced type nullable since you cannot combine $ref with type arrays.
+    NullableRefOneOf:
+      type: object
+      required:
+        - nullableObject
+      properties:
+        nullableObject:
+          oneOf:
+            - $ref: "#/components/schemas/SimpleObject"
+            - type: "null"
+        nullableObjectOptional:
+          oneOf:
+            - $ref: "#/components/schemas/SimpleObject"
+            - type: "null"
+
+    NullableRefAnyOf:
+      type: object
+      required:
+        - nullableObject
+      properties:
+        nullableObject:
+          anyOf:
+            - $ref: "#/components/schemas/SimpleObject"
+            - type: "null"
+
     # ===========================================
     # ARRAYS
     # ===========================================
