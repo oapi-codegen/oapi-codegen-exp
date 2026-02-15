@@ -765,16 +765,8 @@ func generateAllOfType(gen *TypeGenerator, desc *SchemaDescriptor) string {
 		// Apply required array from this allOf member to update pointer/omitempty
 		for _, reqName := range member.required {
 			if field, ok := mergedFields[reqName]; ok {
-				if !field.Required {
-					field.Required = true
-					field.OmitEmpty = false
-					// Update pointer status - required non-nullable fields are not pointers
-					if !field.Nullable && !strings.HasPrefix(field.Type, "[]") && !strings.HasPrefix(field.Type, "map[") {
-						field.Type = strings.TrimPrefix(field.Type, "*")
-						field.Pointer = false
-					}
-					mergedFields[reqName] = field
-				}
+				applyRequiredOverride(&field)
+				mergedFields[reqName] = field
 			}
 		}
 	}
@@ -1015,7 +1007,7 @@ func generateAllOfStructWithUnions(name string, fields []StructField, unionField
 
 // generateAnyOfType generates a union type for anyOf schemas.
 func generateAnyOfType(gen *TypeGenerator, desc *SchemaDescriptor) string {
-	members := collectUnionMembers(gen, desc, desc.AnyOf, desc.Schema.AnyOf)
+	members := collectUnionMembers(gen, desc, desc.AnyOf, desc.Schema.AnyOf, "anyOf")
 	if len(members) == 0 {
 		return ""
 	}
@@ -1037,7 +1029,7 @@ func generateAnyOfType(gen *TypeGenerator, desc *SchemaDescriptor) string {
 
 // generateOneOfType generates a union type for oneOf schemas.
 func generateOneOfType(gen *TypeGenerator, desc *SchemaDescriptor) string {
-	members := collectUnionMembers(gen, desc, desc.OneOf, desc.Schema.OneOf)
+	members := collectUnionMembers(gen, desc, desc.OneOf, desc.Schema.OneOf, "oneOf")
 	if len(members) == 0 {
 		return ""
 	}
@@ -1091,7 +1083,8 @@ func schemaHasApplyDefaults(schema *base.Schema) bool {
 }
 
 // collectUnionMembers gathers union member information for anyOf/oneOf.
-func collectUnionMembers(gen *TypeGenerator, parentDesc *SchemaDescriptor, memberDescs []*SchemaDescriptor, memberProxies []*base.SchemaProxy) []UnionMember {
+// unionKind is "anyOf" or "oneOf", used to construct the correct schema path.
+func collectUnionMembers(gen *TypeGenerator, parentDesc *SchemaDescriptor, memberDescs []*SchemaDescriptor, memberProxies []*base.SchemaProxy, unionKind string) []UnionMember {
 	var members []UnionMember
 
 	// Build a map of schema paths to descriptors for lookup
@@ -1126,11 +1119,7 @@ func collectUnionMembers(gen *TypeGenerator, parentDesc *SchemaDescriptor, membe
 			// Determine the path for this member to look up its descriptor
 			var memberPath SchemaPath
 			if parentDesc != nil {
-				// Try to find a descriptor by constructing the expected path
-				memberPath = parentDesc.Path.Append("anyOf", fmt.Sprintf("%d", i))
-				if _, ok := descByPath[memberPath.String()]; !ok {
-					memberPath = parentDesc.Path.Append("oneOf", fmt.Sprintf("%d", i))
-				}
+				memberPath = parentDesc.Path.Append(unionKind, fmt.Sprintf("%d", i))
 			}
 
 			if desc, ok := descByPath[memberPath.String()]; ok && desc.ShortName != "" {

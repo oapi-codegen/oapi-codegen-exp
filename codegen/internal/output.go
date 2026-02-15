@@ -183,7 +183,10 @@ func generateFieldTag(f StructField, tagGen *StructTagGenerator) string {
 		if f.JSONIgnore {
 			return "`json:\"-\"`"
 		}
-		return FormatJSONTag(f.JSONName, f.OmitEmpty)
+		if f.OmitEmpty {
+			return fmt.Sprintf("`json:\"%s,omitempty\"`", f.JSONName)
+		}
+		return fmt.Sprintf("`json:\"%s\"`", f.JSONName)
 	}
 	info := StructTagInfo{
 		FieldName:   f.JSONName,

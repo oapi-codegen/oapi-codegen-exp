@@ -78,16 +78,6 @@ func (g *TypeGenerator) Imports() map[string]string {
 	return g.ctx.Imports()
 }
 
-// RequiredTemplates returns the set of custom type template names needed.
-func (g *TypeGenerator) RequiredTemplates() map[string]bool {
-	// Build a map from the context's list for backward compatibility
-	result := make(map[string]bool)
-	for _, name := range g.ctx.RequiredCustomTypes() {
-		result[name] = true
-	}
-	return result
-}
-
 // addTemplate records that a custom type template is needed.
 func (g *TypeGenerator) addTemplate(templateName string) {
 	g.ctx.NeedCustomType(templateName)
@@ -508,6 +498,20 @@ type StructField struct {
 	Order           *int   // Optional field ordering (lower values come first)
 }
 
+// applyRequiredOverride upgrades a field to required: clears OmitEmpty and
+// removes the pointer wrapper for non-nullable, non-collection types.
+func applyRequiredOverride(field *StructField) {
+	if field.Required {
+		return
+	}
+	field.Required = true
+	field.OmitEmpty = false
+	if !field.Nullable && !strings.HasPrefix(field.Type, "[]") && !strings.HasPrefix(field.Type, "map[") {
+		field.Type = strings.TrimPrefix(field.Type, "*")
+		field.Pointer = false
+	}
+}
+
 // GenerateStructFields creates the list of struct fields for an object schema.
 func (g *TypeGenerator) GenerateStructFields(desc *SchemaDescriptor) []StructField {
 	schema := desc.Schema
@@ -781,13 +785,8 @@ func (g *TypeGenerator) collectFieldsRecursive(desc *SchemaDescriptor) []StructF
 				reqSet[r] = true
 			}
 			for j := range memberFields {
-				if reqSet[memberFields[j].JSONName] && !memberFields[j].Required {
-					memberFields[j].Required = true
-					memberFields[j].OmitEmpty = false
-					if !memberFields[j].Nullable && !strings.HasPrefix(memberFields[j].Type, "[]") && !strings.HasPrefix(memberFields[j].Type, "map[") {
-						memberFields[j].Type = strings.TrimPrefix(memberFields[j].Type, "*")
-						memberFields[j].Pointer = false
-					}
+				if reqSet[memberFields[j].JSONName] {
+					applyRequiredOverride(&memberFields[j])
 				}
 			}
 		}
@@ -979,38 +978,6 @@ func GetSchemaKind(desc *SchemaDescriptor) SchemaKind {
 
 	// Everything else is an alias to a primitive type
 	return KindAlias
-}
-
-// FormatJSONTag generates a JSON struct tag for a field.
-// Deprecated: Use StructTagGenerator instead.
-func FormatJSONTag(jsonName string, omitEmpty bool) string {
-	if omitEmpty {
-		return fmt.Sprintf("`json:\"%s,omitempty\"`", jsonName)
-	}
-	return fmt.Sprintf("`json:\"%s\"`", jsonName)
-}
-
-// GenerateFieldTag generates struct tags for a field using the configured templates.
-func (g *TypeGenerator) GenerateFieldTag(field StructField) string {
-	if g.tagGenerator == nil {
-		// Fallback to legacy behavior
-		if field.JSONIgnore {
-			return "`json:\"-\"`"
-		}
-		return FormatJSONTag(field.JSONName, field.OmitEmpty)
-	}
-
-	info := StructTagInfo{
-		FieldName:   field.JSONName,
-		GoFieldName: field.Name,
-		IsOptional:  !field.Required,
-		IsNullable:  field.Nullable,
-		IsPointer:   field.Pointer,
-		OmitEmpty:   field.OmitEmpty,
-		OmitZero:    field.OmitZero,
-		JSONIgnore:  field.JSONIgnore,
-	}
-	return g.tagGenerator.GenerateTags(info)
 }
 
 // TagGenerator returns the struct tag generator.
