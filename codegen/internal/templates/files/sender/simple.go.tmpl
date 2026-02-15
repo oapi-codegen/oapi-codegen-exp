@@ -32,7 +32,6 @@ func New{{ .SimpleType }}({{ if .IsClient }}server string, {{ end }}opts ...{{ .
 {{- $op := . }}
 {{- $opid := .GoOperationID }}
 {{- $hasParams := .HasParams }}
-{{- $pathParams := .PathParams }}
 {{- $paramsTypeName := .ParamsTypeName }}
 
 {{- /* Determine if this operation is "simple" - single success content type, single JSON success response */}}
@@ -43,19 +42,19 @@ func New{{ .SimpleType }}({{ if .IsClient }}server string, {{ end }}opts ...{{ .
 {{- $successType := goTypeForContent $successContent }}
 {{- $errorResponse := errorResponseForOperation . }}
 
-// {{ $opid }}{{ if $.IsClient }} makes a {{ .Method }} request to {{ .Path }}{{ else }} sends a {{ .Method }} {{ $.PrefixLower }} request{{ end }} and returns the parsed response.
+// {{ $opid }}{{ methodComment $ $op }} and returns the parsed response.
 {{ if .Summary }}// {{ .Summary }}{{ end }}
 {{- if $errorResponse }}
 {{- $errorContent := index $errorResponse.Contents 0 }}
 {{- $errorType := goTypeForContent $errorContent }}
 // On success, returns the response body. On HTTP error, returns *{{ $.ErrorType }}[{{ $errorType }}].
 {{- $typedBody := defaultTypedBody $op }}
-func ({{ $.Receiver }} *{{ $.SimpleType }}) {{ $opid }}(ctx context.Context{{ if $.IsClient }}{{ range $pathParams }}, {{ .GoVariableName }} {{ .TypeDecl }}{{ end }}{{ else }}, targetURL string{{ end }}{{ if $hasParams }}, params *{{ $paramsTypeName }}{{ end }}{{ if $typedBody }}, body {{ $typedBody.GoTypeName }}{{ end }}, reqEditors ...RequestEditorFn) ({{ $successType }}, error) {
+func ({{ $.Receiver }} *{{ $.SimpleType }}) {{ $opid }}(ctx context.Context{{ methodParams $ $op }}{{ if $hasParams }}, params *{{ $paramsTypeName }}{{ end }}{{ if $typedBody }}, body {{ $typedBody.GoTypeName }}{{ end }}, reqEditors ...RequestEditorFn) ({{ $successType }}, error) {
 	var result {{ $successType }}
 {{- if $typedBody }}
-	resp, err := {{ $.Receiver }}.{{ $.TypeName }}.{{ $opid }}{{ $typedBody.FuncSuffix }}(ctx{{ if $.IsClient }}{{ range $pathParams }}, {{ .GoVariableName }}{{ end }}{{ else }}, targetURL{{ end }}{{ if $hasParams }}, params{{ end }}, body, reqEditors...)
+	resp, err := {{ $.Receiver }}.{{ $.TypeName }}.{{ typedMethodName $op $typedBody }}(ctx{{ methodCallArgs $ $op }}{{ if $hasParams }}, params{{ end }}, body, reqEditors...)
 {{- else }}
-	resp, err := {{ $.Receiver }}.{{ $.TypeName }}.{{ $opid }}(ctx{{ if $.IsClient }}{{ range $pathParams }}, {{ .GoVariableName }}{{ end }}{{ else }}, targetURL{{ end }}{{ if $hasParams }}, params{{ end }}, reqEditors...)
+	resp, err := {{ $.Receiver }}.{{ $.TypeName }}.{{ $opid }}(ctx{{ methodCallArgs $ $op }}{{ if $hasParams }}, params{{ end }}, reqEditors...)
 {{- end }}
 	if err != nil {
 		return result, err
@@ -86,12 +85,12 @@ func ({{ $.Receiver }} *{{ $.SimpleType }}) {{ $opid }}(ctx context.Context{{ if
 {{- else }}
 // On success, returns the response body. On HTTP error, returns *{{ $.ErrorType }}[struct{}].
 {{- $typedBody := defaultTypedBody $op }}
-func ({{ $.Receiver }} *{{ $.SimpleType }}) {{ $opid }}(ctx context.Context{{ if $.IsClient }}{{ range $pathParams }}, {{ .GoVariableName }} {{ .TypeDecl }}{{ end }}{{ else }}, targetURL string{{ end }}{{ if $hasParams }}, params *{{ $paramsTypeName }}{{ end }}{{ if $typedBody }}, body {{ $typedBody.GoTypeName }}{{ end }}, reqEditors ...RequestEditorFn) ({{ $successType }}, error) {
+func ({{ $.Receiver }} *{{ $.SimpleType }}) {{ $opid }}(ctx context.Context{{ methodParams $ $op }}{{ if $hasParams }}, params *{{ $paramsTypeName }}{{ end }}{{ if $typedBody }}, body {{ $typedBody.GoTypeName }}{{ end }}, reqEditors ...RequestEditorFn) ({{ $successType }}, error) {
 	var result {{ $successType }}
 {{- if $typedBody }}
-	resp, err := {{ $.Receiver }}.{{ $.TypeName }}.{{ $opid }}{{ $typedBody.FuncSuffix }}(ctx{{ if $.IsClient }}{{ range $pathParams }}, {{ .GoVariableName }}{{ end }}{{ else }}, targetURL{{ end }}{{ if $hasParams }}, params{{ end }}, body, reqEditors...)
+	resp, err := {{ $.Receiver }}.{{ $.TypeName }}.{{ typedMethodName $op $typedBody }}(ctx{{ methodCallArgs $ $op }}{{ if $hasParams }}, params{{ end }}, body, reqEditors...)
 {{- else }}
-	resp, err := {{ $.Receiver }}.{{ $.TypeName }}.{{ $opid }}(ctx{{ if $.IsClient }}{{ range $pathParams }}, {{ .GoVariableName }}{{ end }}{{ else }}, targetURL{{ end }}{{ if $hasParams }}, params{{ end }}, reqEditors...)
+	resp, err := {{ $.Receiver }}.{{ $.TypeName }}.{{ $opid }}(ctx{{ methodCallArgs $ $op }}{{ if $hasParams }}, params{{ end }}, reqEditors...)
 {{- end }}
 	if err != nil {
 		return result, err

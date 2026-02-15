@@ -22,7 +22,7 @@ type InitiatorGenerator struct {
 // NewInitiatorGenerator creates a new initiator generator.
 // rp holds the package prefixes for runtime sub-packages; all empty when embedded.
 func NewInitiatorGenerator(prefix string, schemaIndex map[string]*SchemaDescriptor, generateSimple bool, modelsPackage *ModelsPackage, rp RuntimePrefixes, typeMapping TypeMapping) (*InitiatorGenerator, error) {
-	tmpl := template.New("initiator").Funcs(templates.Funcs()).Funcs(clientFuncs(schemaIndex, modelsPackage, typeMapping)).Funcs(rp.FuncMap())
+	tmpl := template.New("initiator").Funcs(templates.Funcs()).Funcs(senderFuncs()).Funcs(clientFuncs(schemaIndex, modelsPackage, typeMapping)).Funcs(rp.FuncMap())
 
 	if err := loadTemplates(tmpl, initiatorTemplateEntries(), senderTemplateEntries(), sharedServerTemplateEntries()); err != nil {
 		return nil, err
