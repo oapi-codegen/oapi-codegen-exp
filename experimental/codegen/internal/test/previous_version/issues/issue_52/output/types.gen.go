@@ -13,7 +13,7 @@ import (
 
 // #/components/schemas/Document
 type Document struct {
-	Fields map[string]any `json:"fields,omitempty" form:"fields,omitempty"`
+	Fields map[string]any `form:"fields,omitempty" json:"fields,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -25,8 +25,8 @@ type DocumentFields = map[string]any
 
 // #/components/schemas/Value
 type Value struct {
-	StringValue *string     `json:"stringValue,omitempty" form:"stringValue,omitempty"`
-	ArrayValue  *ArrayValue `json:"arrayValue,omitempty" form:"arrayValue,omitempty"`
+	StringValue *string     `form:"stringValue,omitempty" json:"stringValue,omitempty"`
+	ArrayValue  *ArrayValue `form:"arrayValue,omitempty" json:"arrayValue,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

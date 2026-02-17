@@ -14,8 +14,8 @@ import (
 
 // #/components/schemas/WithAnyAdditional1
 type WithAnyAdditional1 struct {
-	Field1               *int           `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2               *string        `json:"field2,omitempty" form:"field2,omitempty"`
+	Field1               *int           `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2               *string        `form:"field2,omitempty" json:"field2,omitempty"`
 	AdditionalProperties map[string]any `json:"-"`
 }
 
@@ -85,8 +85,8 @@ func (s *WithAnyAdditional1) ApplyDefaults() {
 
 // #/components/schemas/WithAnyAdditional2
 type WithAnyAdditional2 struct {
-	FieldA               *int           `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB               *string        `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	FieldA               *int           `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB               *string        `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 	AdditionalProperties map[string]any `json:"-"`
 }
 
@@ -156,8 +156,8 @@ func (s *WithAnyAdditional2) ApplyDefaults() {
 
 // #/components/schemas/WithStringAdditional1
 type WithStringAdditional1 struct {
-	Field1               *int              `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2               *string           `json:"field2,omitempty" form:"field2,omitempty"`
+	Field1               *int              `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2               *string           `form:"field2,omitempty" json:"field2,omitempty"`
 	AdditionalProperties map[string]string `json:"-"`
 }
 
@@ -227,8 +227,8 @@ func (s *WithStringAdditional1) ApplyDefaults() {
 
 // #/components/schemas/WithStringAdditional2
 type WithStringAdditional2 struct {
-	FieldA               *int              `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB               *string           `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	FieldA               *int              `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB               *string           `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 	AdditionalProperties map[string]string `json:"-"`
 }
 
@@ -298,8 +298,8 @@ func (s *WithStringAdditional2) ApplyDefaults() {
 
 // #/components/schemas/WithoutAdditional1
 type WithoutAdditional1 struct {
-	Field1               *int           `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2               *string        `json:"field2,omitempty" form:"field2,omitempty"`
+	Field1               *int           `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2               *string        `form:"field2,omitempty" json:"field2,omitempty"`
 	AdditionalProperties map[string]any `json:"-"`
 }
 
@@ -369,8 +369,8 @@ func (s *WithoutAdditional1) ApplyDefaults() {
 
 // #/components/schemas/WithoutAdditional2
 type WithoutAdditional2 struct {
-	FieldA               *int           `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB               *string        `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	FieldA               *int           `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB               *string        `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 	AdditionalProperties map[string]any `json:"-"`
 }
 
@@ -440,8 +440,8 @@ func (s *WithoutAdditional2) ApplyDefaults() {
 
 // #/components/schemas/DefaultAdditional1
 type DefaultAdditional1 struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -450,8 +450,8 @@ func (s *DefaultAdditional1) ApplyDefaults() {
 
 // #/components/schemas/DefaultAdditional2
 type DefaultAdditional2 struct {
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -460,10 +460,10 @@ func (s *DefaultAdditional2) ApplyDefaults() {
 
 // #/components/schemas/MergeWithoutWithout
 type MergeWithoutWithout struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -472,10 +472,10 @@ func (s *MergeWithoutWithout) ApplyDefaults() {
 
 // #/components/schemas/MergeWithoutWithString
 type MergeWithoutWithString struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -484,10 +484,10 @@ func (s *MergeWithoutWithString) ApplyDefaults() {
 
 // #/components/schemas/MergeWithoutWithAny
 type MergeWithoutWithAny struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -496,10 +496,10 @@ func (s *MergeWithoutWithAny) ApplyDefaults() {
 
 // #/components/schemas/MergeWithoutDefault
 type MergeWithoutDefault struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -508,10 +508,10 @@ func (s *MergeWithoutDefault) ApplyDefaults() {
 
 // #/components/schemas/MergeWithStringWithout
 type MergeWithStringWithout struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -520,10 +520,10 @@ func (s *MergeWithStringWithout) ApplyDefaults() {
 
 // #/components/schemas/MergeWithStringWithAny
 type MergeWithStringWithAny struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -532,10 +532,10 @@ func (s *MergeWithStringWithAny) ApplyDefaults() {
 
 // #/components/schemas/MergeWithStringDefault
 type MergeWithStringDefault struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -544,10 +544,10 @@ func (s *MergeWithStringDefault) ApplyDefaults() {
 
 // #/components/schemas/MergeWithAnyWithout
 type MergeWithAnyWithout struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -556,10 +556,10 @@ func (s *MergeWithAnyWithout) ApplyDefaults() {
 
 // #/components/schemas/MergeWithAnyWithString
 type MergeWithAnyWithString struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -568,10 +568,10 @@ func (s *MergeWithAnyWithString) ApplyDefaults() {
 
 // #/components/schemas/MergeWithAnyWithAny
 type MergeWithAnyWithAny struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -580,10 +580,10 @@ func (s *MergeWithAnyWithAny) ApplyDefaults() {
 
 // #/components/schemas/MergeWithAnyDefault
 type MergeWithAnyDefault struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -592,10 +592,10 @@ func (s *MergeWithAnyDefault) ApplyDefaults() {
 
 // #/components/schemas/MergeDefaultWithout
 type MergeDefaultWithout struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -604,10 +604,10 @@ func (s *MergeDefaultWithout) ApplyDefaults() {
 
 // #/components/schemas/MergeDefaultWithString
 type MergeDefaultWithString struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -616,10 +616,10 @@ func (s *MergeDefaultWithString) ApplyDefaults() {
 
 // #/components/schemas/MergeDefaultWithAny
 type MergeDefaultWithAny struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -628,10 +628,10 @@ func (s *MergeDefaultWithAny) ApplyDefaults() {
 
 // #/components/schemas/MergeDefaultDefault
 type MergeDefaultDefault struct {
-	Field1 *int    `json:"field1,omitempty" form:"field1,omitempty"`
-	Field2 *string `json:"field2,omitempty" form:"field2,omitempty"`
-	FieldA *int    `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *string `json:"fieldB,omitempty" form:"fieldB,omitempty"`
+	Field1 *int    `form:"field1,omitempty" json:"field1,omitempty"`
+	Field2 *string `form:"field2,omitempty" json:"field2,omitempty"`
+	FieldA *int    `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *string `form:"fieldB,omitempty" json:"fieldB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

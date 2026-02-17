@@ -26,7 +26,7 @@ import (
 
 // #/components/schemas/Bar
 type Bar struct {
-	Value *string `json:"value,omitempty" form:"value,omitempty"`
+	Value *string `form:"value,omitempty" json:"value,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -35,7 +35,7 @@ func (s *Bar) ApplyDefaults() {
 
 // #/components/schemas/Bar2
 type Bar2 struct {
-	Value *float32 `json:"value,omitempty" form:"value,omitempty"`
+	Value *float32 `form:"value,omitempty" json:"value,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -44,8 +44,8 @@ func (s *Bar2) ApplyDefaults() {
 
 // #/components/schemas/CreateItemResponse
 type CreateItemResponse struct {
-	ID   *string `json:"id,omitempty" form:"id,omitempty"`
-	Name *string `json:"name,omitempty" form:"name,omitempty"`
+	ID   *string `form:"id,omitempty" json:"id,omitempty"`
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -57,7 +57,7 @@ type ListItemsResponse = string
 
 // #/components/schemas/QueryResponse
 type QueryResponse struct {
-	Results []string `json:"results,omitempty" form:"results,omitempty"`
+	Results []string `form:"results,omitempty" json:"results,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -66,8 +66,8 @@ func (s *QueryResponse) ApplyDefaults() {
 
 // #/components/schemas/GetStatusResponse
 type GetStatusResponse struct {
-	Status    *string `json:"status,omitempty" form:"status,omitempty"`
-	Timestamp *string `json:"timestamp,omitempty" form:"timestamp,omitempty"`
+	Status    *string `form:"status,omitempty" json:"status,omitempty"`
+	Timestamp *string `form:"timestamp,omitempty" json:"timestamp,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -76,8 +76,8 @@ func (s *GetStatusResponse) ApplyDefaults() {
 
 // #/components/schemas/Order
 type Order struct {
-	ID      *string `json:"id,omitempty" form:"id,omitempty"`
-	Product *string `json:"product,omitempty" form:"product,omitempty"`
+	ID      *string `form:"id,omitempty" json:"id,omitempty"`
+	Product *string `form:"product,omitempty" json:"product,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -86,8 +86,8 @@ func (s *Order) ApplyDefaults() {
 
 // #/components/schemas/Pet
 type Pet struct {
-	ID   *int    `json:"id,omitempty" form:"id,omitempty"`
-	Name *string `json:"name,omitempty" form:"name,omitempty"`
+	ID   *int    `form:"id,omitempty" json:"id,omitempty"`
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -100,8 +100,8 @@ type Metadata = string
 
 // #/components/schemas/Resource_MVO
 type ResourceMVO struct {
-	Name   *string `json:"name,omitempty" form:"name,omitempty"`
-	Status *string `json:"status,omitempty" form:"status,omitempty"`
+	Name   *string `form:"name,omitempty" json:"name,omitempty"`
+	Status *string `form:"status,omitempty" json:"status,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -110,9 +110,9 @@ func (s *ResourceMVO) ApplyDefaults() {
 
 // #/components/schemas/Resource
 type Resource struct {
-	ID     *string `json:"id,omitempty" form:"id,omitempty"`
-	Name   *string `json:"name,omitempty" form:"name,omitempty"`
-	Status *string `json:"status,omitempty" form:"status,omitempty"`
+	ID     *string `form:"id,omitempty" json:"id,omitempty"`
+	Name   *string `form:"name,omitempty" json:"name,omitempty"`
+	Status *string `form:"status,omitempty" json:"status,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -124,8 +124,8 @@ type JSONPatch = []JSONPatchItem
 
 // #/components/schemas/JsonPatch/items
 type JSONPatchItem struct {
-	Op   *string `json:"op,omitempty" form:"op,omitempty"`
-	Path *string `json:"path,omitempty" form:"path,omitempty"`
+	Op   *string `form:"op,omitempty" json:"op,omitempty"`
+	Path *string `form:"path,omitempty" json:"path,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -134,7 +134,7 @@ func (s *JSONPatchItem) ApplyDefaults() {
 
 // #/components/schemas/Qux
 type CustomQux struct {
-	Label *string `json:"label,omitempty" form:"label,omitempty"`
+	Label *string `form:"label,omitempty" json:"label,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -145,7 +145,7 @@ type Zap = string
 
 // #/paths//foo/post/requestBody/content/application/json/schema
 type PostFooJSONRequest struct {
-	Value *int `json:"value,omitempty" form:"value,omitempty"`
+	Value *int `form:"value,omitempty" json:"value,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -154,8 +154,8 @@ func (s *PostFooJSONRequest) ApplyDefaults() {
 
 // #/paths//foo/post/responses/200/content/application/json/schema
 type PostFooJSONResponse struct {
-	Value1 *Bar  `json:"value1,omitempty" form:"value1,omitempty"`
-	Value2 *Bar2 `json:"value2,omitempty" form:"value2,omitempty"`
+	Value1 *Bar  `form:"value1,omitempty" json:"value1,omitempty"`
+	Value2 *Bar2 `form:"value2,omitempty" json:"value2,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -170,7 +170,7 @@ func (s *PostFooJSONResponse) ApplyDefaults() {
 
 // #/paths//items/post/requestBody/content/application/json/schema
 type CreateItemJSONRequest struct {
-	Name *string `json:"name,omitempty" form:"name,omitempty"`
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -179,7 +179,7 @@ func (s *CreateItemJSONRequest) ApplyDefaults() {
 
 // #/paths//query/post/requestBody/content/application/json/schema
 type QueryJSONRequest struct {
-	Q *string `json:"q,omitempty" form:"q,omitempty"`
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -188,7 +188,7 @@ func (s *QueryJSONRequest) ApplyDefaults() {
 
 // #/paths//qux/get/responses/200/content/application/json/schema
 type GetQuxJSONResponse struct {
-	Data *string `json:"data,omitempty" form:"data,omitempty"`
+	Data *string `form:"data,omitempty" json:"data,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -197,7 +197,7 @@ func (s *GetQuxJSONResponse) ApplyDefaults() {
 
 // #/paths//zap/get/responses/200/content/application/json/schema
 type GetZapJSONResponse struct {
-	Result *string `json:"result,omitempty" form:"result,omitempty"`
+	Result *string `form:"result,omitempty" json:"result,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -206,8 +206,8 @@ func (s *GetZapJSONResponse) ApplyDefaults() {
 
 // #/paths//orders/post/requestBody/content/application/json/schema
 type CreateOrderJSONRequest1 struct {
-	ID      *string `json:"id,omitempty" form:"id,omitempty"`
-	Product *string `json:"product,omitempty" form:"product,omitempty"`
+	ID      *string `form:"id,omitempty" json:"id,omitempty"`
+	Product *string `form:"product,omitempty" json:"product,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -216,7 +216,7 @@ func (s *CreateOrderJSONRequest1) ApplyDefaults() {
 
 // #/paths//orders/post/requestBody/content/application/merge-patch+json/schema
 type CreateOrderJSONRequest2 struct {
-	Product *string `json:"product,omitempty" form:"product,omitempty"`
+	Product *string `form:"product,omitempty" json:"product,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -228,9 +228,9 @@ type CreateOrderJSONRequest3 = []PostOrdersRequest
 
 // #/paths//orders/post/requestBody/content/application/json-patch+json/schema/items
 type PostOrdersRequest struct {
-	Op    *string `json:"op,omitempty" form:"op,omitempty"`
-	Path  *string `json:"path,omitempty" form:"path,omitempty"`
-	Value *string `json:"value,omitempty" form:"value,omitempty"`
+	Op    *string `form:"op,omitempty" json:"op,omitempty"`
+	Path  *string `form:"path,omitempty" json:"path,omitempty"`
+	Value *string `form:"value,omitempty" json:"value,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -239,8 +239,8 @@ func (s *PostOrdersRequest) ApplyDefaults() {
 
 // #/paths//entities/get/responses/200/content/application/json/schema
 type ListEntitiesJSONResponse struct {
-	Data     []Widget `json:"data,omitempty" form:"data,omitempty"`
-	Metadata string   `json:"metadata,omitempty" form:"metadata,omitempty"`
+	Data     []Widget `form:"data,omitempty" json:"data,omitempty"`
+	Metadata string   `form:"metadata,omitempty" json:"metadata,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -416,8 +416,8 @@ type PatchResourcesID200ResponseJSONOneOf22 = Nullable[string]
 
 // #/paths//pets/post/requestBody/content/application/json/schema
 type CreatePetJSONRequest struct {
-	Name    *string `json:"name,omitempty" form:"name,omitempty"`
-	Species *string `json:"species,omitempty" form:"species,omitempty"`
+	Name    *string `form:"name,omitempty" json:"name,omitempty"`
+	Species *string `form:"species,omitempty" json:"species,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

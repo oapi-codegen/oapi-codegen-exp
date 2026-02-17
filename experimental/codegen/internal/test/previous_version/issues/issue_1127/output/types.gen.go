@@ -13,7 +13,7 @@ import (
 
 // #/components/schemas/Whatever
 type Whatever struct {
-	SomeProperty *string `json:"someProperty,omitempty" form:"someProperty,omitempty"`
+	SomeProperty *string `form:"someProperty,omitempty" json:"someProperty,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

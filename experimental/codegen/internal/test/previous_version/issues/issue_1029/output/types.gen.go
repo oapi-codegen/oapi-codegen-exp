@@ -14,7 +14,7 @@ import (
 
 // #/components/schemas/Registration
 type Registration struct {
-	State *RegistrationState `json:"state,omitempty" form:"state,omitempty"`
+	State *RegistrationState `form:"state,omitempty" json:"state,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

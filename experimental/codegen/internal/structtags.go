@@ -8,24 +8,13 @@ import (
 )
 
 // StructTagInfo contains the data available to struct tag templates.
+// Extension-driven concerns (omitzero, json-ignore, omitempty overrides)
+// are applied as post-processing in generateFieldTag, not exposed here.
 type StructTagInfo struct {
 	// FieldName is the JSON/YAML field name (from the OpenAPI property name)
 	FieldName string
-	// GoFieldName is the Go struct field name
-	GoFieldName string
 	// IsOptional is true if the field is optional (not required)
 	IsOptional bool
-	// IsNullable is true if the field can be null
-	IsNullable bool
-	// IsPointer is true if the Go type is a pointer
-	IsPointer bool
-	// OmitEmpty is true if the omitempty tag option should be used
-	// (derived from IsOptional but can be overridden via extensions)
-	OmitEmpty bool
-	// OmitZero is true if the omitzero tag option should be used (Go 1.24+)
-	OmitZero bool
-	// JSONIgnore is true if the field should be excluded from JSON (json:"-")
-	JSONIgnore bool
 }
 
 // StructTagTemplate defines a single struct tag with a name and template.
@@ -33,7 +22,7 @@ type StructTagTemplate struct {
 	// Name is the tag name (e.g., "json", "yaml", "form")
 	Name string `yaml:"name"`
 	// Template is a Go text/template that produces the tag value.
-	// Available fields: .FieldName, .GoFieldName, .IsOptional, .IsNullable, .IsPointer
+	// Available fields: .FieldName, .IsOptional
 	// Example: `{{ .FieldName }}{{if .IsOptional}},omitempty{{end}}`
 	Template string `yaml:"template"`
 }
@@ -46,29 +35,48 @@ type StructTagsConfig struct {
 }
 
 // DefaultStructTagsConfig returns the default struct tag configuration.
-// By default, json and form tags are generated.
+// By default, json and form tags are generated. Extension-driven concerns
+// (omitzero, json-ignore, omitempty overrides) are handled by post-processing
+// in generateFieldTag, not in the templates.
 func DefaultStructTagsConfig() StructTagsConfig {
 	return StructTagsConfig{
 		Tags: []StructTagTemplate{
 			{
 				Name:     "json",
-				Template: `{{if .JSONIgnore}}-{{else}}{{ .FieldName }}{{if .OmitEmpty}},omitempty{{end}}{{if .OmitZero}},omitzero{{end}}{{end}}`,
+				Template: `{{ .FieldName }}{{if .IsOptional}},omitempty{{end}}`,
 			},
 			{
 				Name:     "form",
-				Template: `{{if .JSONIgnore}}-{{else}}{{ .FieldName }}{{if .OmitEmpty}},omitempty{{end}}{{end}}`,
+				Template: `{{ .FieldName }}{{if .IsOptional}},omitempty{{end}}`,
 			},
 		},
 	}
 }
 
-// Merge merges user config on top of this config.
-// If user specifies any tags, they completely replace the defaults.
+// Merge merges user config on top of this config by name.
+// User entries override matching defaults; new entries are appended.
 func (c StructTagsConfig) Merge(other StructTagsConfig) StructTagsConfig {
-	if len(other.Tags) > 0 {
-		return other
+	if len(other.Tags) == 0 {
+		return c
 	}
-	return c
+	// Start with defaults, override/append from user config
+	merged := make(map[string]StructTagTemplate, len(c.Tags)+len(other.Tags))
+	order := make([]string, 0, len(c.Tags)+len(other.Tags))
+	for _, t := range c.Tags {
+		merged[t.Name] = t
+		order = append(order, t.Name)
+	}
+	for _, t := range other.Tags {
+		if _, exists := merged[t.Name]; !exists {
+			order = append(order, t.Name)
+		}
+		merged[t.Name] = t
+	}
+	result := StructTagsConfig{Tags: make([]StructTagTemplate, 0, len(order))}
+	for _, name := range order {
+		result.Tags = append(result.Tags, merged[name])
+	}
+	return result
 }
 
 // StructTagGenerator generates struct tags from templates.
@@ -169,4 +177,18 @@ func FormatTagsMap(tags map[string]string) string {
 	}
 
 	return "`" + strings.Join(parts, " ") + "`"
+}
+
+// applyOmitEmptyOverride rebuilds tag values when extensions override the default omitempty.
+func applyOmitEmptyOverride(tags map[string]string, fieldName string, omitEmpty bool, tagNames ...string) {
+	for _, name := range tagNames {
+		if _, ok := tags[name]; !ok {
+			continue
+		}
+		v := fieldName
+		if omitEmpty {
+			v += ",omitempty"
+		}
+		tags[name] = v
+	}
 }

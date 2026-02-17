@@ -17,8 +17,8 @@ import (
 
 // #/components/schemas/Container
 type Container struct {
-	ObjectA *ext_55025e84.ObjectA `json:"object_a,omitempty" form:"object_a,omitempty"`
-	ObjectB *ext_cd3e418f.ObjectB `json:"object_b,omitempty" form:"object_b,omitempty"`
+	ObjectA *ext_55025e84.ObjectA `form:"object_a,omitempty" json:"object_a,omitempty"`
+	ObjectB *ext_cd3e418f.ObjectB `form:"object_b,omitempty" json:"object_b,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

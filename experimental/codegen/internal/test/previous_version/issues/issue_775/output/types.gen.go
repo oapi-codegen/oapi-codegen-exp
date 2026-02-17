@@ -13,8 +13,8 @@ import (
 
 // #/components/schemas/TestObject
 type TestObject struct {
-	UUIDProperty *TestObjectUUIDProperty `json:"uuidProperty,omitempty" form:"uuidProperty,omitempty"`
-	DateProperty *TestObjectDateProperty `json:"dateProperty,omitempty" form:"dateProperty,omitempty"`
+	UUIDProperty *TestObjectUUIDProperty `form:"uuidProperty,omitempty" json:"uuidProperty,omitempty"`
+	DateProperty *TestObjectDateProperty `form:"dateProperty,omitempty" json:"dateProperty,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

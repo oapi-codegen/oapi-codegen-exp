@@ -15,11 +15,11 @@ import (
 // #/components/schemas/Cat
 // This is a cat
 type Cat struct {
-	ID    *string `json:"id,omitempty" form:"id,omitempty"`
-	Name  *string `json:"name,omitempty" form:"name,omitempty"`
-	Breed *string `json:"breed,omitempty" form:"breed,omitempty"`
-	Color *string `json:"color,omitempty" form:"color,omitempty"`
-	Purrs *bool   `json:"purrs,omitempty" form:"purrs,omitempty"`
+	ID    *string `form:"id,omitempty" json:"id,omitempty"`
+	Name  *string `form:"name,omitempty" json:"name,omitempty"`
+	Breed *string `form:"breed,omitempty" json:"breed,omitempty"`
+	Color *string `form:"color,omitempty" json:"color,omitempty"`
+	Purrs *bool   `form:"purrs,omitempty" json:"purrs,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -29,11 +29,11 @@ func (s *Cat) ApplyDefaults() {
 // #/components/schemas/Dog
 // This is a dog
 type Dog struct {
-	ID    *string `json:"id,omitempty" form:"id,omitempty"`
-	Name  *string `json:"name,omitempty" form:"name,omitempty"`
-	Breed *string `json:"breed,omitempty" form:"breed,omitempty"`
-	Color *string `json:"color,omitempty" form:"color,omitempty"`
-	Barks *bool   `json:"barks,omitempty" form:"barks,omitempty"`
+	ID    *string `form:"id,omitempty" json:"id,omitempty"`
+	Name  *string `form:"name,omitempty" json:"name,omitempty"`
+	Breed *string `form:"breed,omitempty" json:"breed,omitempty"`
+	Color *string `form:"color,omitempty" json:"color,omitempty"`
+	Barks *bool   `form:"barks,omitempty" json:"barks,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -43,10 +43,10 @@ func (s *Dog) ApplyDefaults() {
 // #/components/schemas/Rat
 // This is a rat
 type Rat struct {
-	ID      *string `json:"id,omitempty" form:"id,omitempty"`
-	Name    *string `json:"name,omitempty" form:"name,omitempty"`
-	Color   *string `json:"color,omitempty" form:"color,omitempty"`
-	Squeaks *bool   `json:"squeaks,omitempty" form:"squeaks,omitempty"`
+	ID      *string `form:"id,omitempty" json:"id,omitempty"`
+	Name    *string `form:"name,omitempty" json:"name,omitempty"`
+	Color   *string `form:"color,omitempty" json:"color,omitempty"`
+	Squeaks *bool   `form:"squeaks,omitempty" json:"squeaks,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -55,7 +55,7 @@ func (s *Rat) ApplyDefaults() {
 
 // #/paths//pets/get/responses/200/content/application/json/schema
 type GetPetsJSONResponse struct {
-	Data []GetPets200ResponseJSON2 `json:"data,omitempty" form:"data,omitempty"`
+	Data []GetPets200ResponseJSON2 `form:"data,omitempty" json:"data,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
