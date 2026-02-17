@@ -13,8 +13,8 @@ import (
 
 // #/components/schemas/Test
 type Test struct {
-	Field1 string `json:"field1" form:"field1"`
-	Field2 string `json:"field2" form:"field2"`
+	Field1 string `form:"field1" json:"field1"`
+	Field2 string `form:"field2" json:"field2"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

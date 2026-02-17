@@ -15,8 +15,8 @@ import (
 
 // #/components/schemas/Pet
 type Pet struct {
-	Born   *AliasedDate `json:"born,omitempty" form:"born,omitempty"`
-	BornAt *Date        `json:"born_at,omitempty" form:"born_at,omitempty"`
+	Born   *AliasedDate `form:"born,omitempty" json:"born,omitempty"`
+	BornAt *Date        `form:"born_at,omitempty" json:"born_at,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

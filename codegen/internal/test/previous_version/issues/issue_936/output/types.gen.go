@@ -14,7 +14,7 @@ import (
 
 // #/components/schemas/FilterColumnIncludes
 type FilterColumnIncludes struct {
-	DollarSignIncludes   *FilterPredicate `json:"$includes,omitempty" form:"$includes,omitempty"`
+	DollarSignIncludes   *FilterPredicate `form:"$includes,omitempty" json:"$includes,omitempty"`
 	AdditionalProperties map[string]any   `json:"-"`
 }
 
@@ -175,8 +175,8 @@ type FilterPredicateOneOf1 = []FilterPredicate
 
 // #/components/schemas/FilterPredicateOp
 type FilterPredicateOp struct {
-	DollarSignAny        *FilterPredicateOpAny  `json:"$any,omitempty" form:"$any,omitempty"`
-	DollarSignNone       *FilterPredicateOpNone `json:"$none,omitempty" form:"$none,omitempty"`
+	DollarSignAny        *FilterPredicateOpAny  `form:"$any,omitempty" json:"$any,omitempty"`
+	DollarSignNone       *FilterPredicateOpNone `form:"$none,omitempty" json:"$none,omitempty"`
 	AdditionalProperties map[string]any         `json:"-"`
 }
 
@@ -359,7 +359,7 @@ type FilterPredicateOpNoneOneOf1 = []FilterPredicate
 
 // #/components/schemas/FilterPredicateRangeOp
 type FilterPredicateRangeOp struct {
-	DollarSignLt         *FilterRangeValue `json:"$lt,omitempty" form:"$lt,omitempty"`
+	DollarSignLt         *FilterRangeValue `form:"$lt,omitempty" json:"$lt,omitempty"`
 	AdditionalProperties map[string]any    `json:"-"`
 }
 

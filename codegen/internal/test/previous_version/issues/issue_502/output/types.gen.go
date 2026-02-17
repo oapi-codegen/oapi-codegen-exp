@@ -15,8 +15,8 @@ import (
 
 // #/components/schemas/OptionalClaims
 type OptionalClaims struct {
-	IDToken     *string `json:"idToken,omitempty" form:"idToken,omitempty"`
-	AccessToken *string `json:"accessToken,omitempty" form:"accessToken,omitempty"`
+	IDToken     *string `form:"idToken,omitempty" json:"idToken,omitempty"`
+	AccessToken *string `form:"accessToken,omitempty" json:"accessToken,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -25,9 +25,9 @@ func (s *OptionalClaims) ApplyDefaults() {
 
 // #/components/schemas/Application
 type Application struct {
-	Name *string `json:"name,omitempty" form:"name,omitempty"`
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
 	// Optional claims configuration
-	OptionalClaims Nullable[ApplicationOptionalClaims] `json:"optionalClaims,omitempty" form:"optionalClaims,omitempty"`
+	OptionalClaims Nullable[ApplicationOptionalClaims] `form:"optionalClaims,omitempty" json:"optionalClaims,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

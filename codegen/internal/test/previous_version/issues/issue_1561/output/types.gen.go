@@ -13,14 +13,14 @@ import (
 
 // #/components/schemas/ResponseBody
 type ResponseBody struct {
-	RequiredSlice             []Pong                                      `json:"required_slice" form:"required_slice"`
-	ASlice                    []Pong                                      `json:"a_slice,omitempty" form:"a_slice,omitempty"`
-	AMap                      *any                                        `json:"a_map,omitempty" form:"a_map,omitempty"`
-	UnknownObject             map[string]any                              `json:"unknown_object,omitempty" form:"unknown_object,omitempty"`
-	AdditionalProps           map[string]any                              `json:"additional_props,omitempty" form:"additional_props,omitempty"`
-	ASliceWithAdditionalProps []ResponseBodyASliceWithAdditionalPropsItem `json:"a_slice_with_additional_props,omitempty" form:"a_slice_with_additional_props,omitempty"`
-	Bytes                     []byte                                      `json:"bytes,omitempty" form:"bytes,omitempty"`
-	BytesWithOverride         []byte                                      `json:"bytes_with_override,omitempty" form:"bytes_with_override,omitempty"`
+	RequiredSlice             []Pong                                      `form:"required_slice" json:"required_slice"`
+	ASlice                    []Pong                                      `form:"a_slice,omitempty" json:"a_slice,omitempty"`
+	AMap                      *any                                        `form:"a_map,omitempty" json:"a_map,omitempty"`
+	UnknownObject             map[string]any                              `form:"unknown_object,omitempty" json:"unknown_object,omitempty"`
+	AdditionalProps           map[string]any                              `form:"additional_props,omitempty" json:"additional_props,omitempty"`
+	ASliceWithAdditionalProps []ResponseBodyASliceWithAdditionalPropsItem `form:"a_slice_with_additional_props,omitempty" json:"a_slice_with_additional_props,omitempty"`
+	Bytes                     []byte                                      `form:"bytes,omitempty" json:"bytes,omitempty"`
+	BytesWithOverride         []byte                                      `form:"bytes_with_override,omitempty" json:"bytes_with_override,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -55,7 +55,7 @@ type ResponseBodyASliceWithAdditionalPropsItem = any
 
 // #/components/schemas/Pong
 type Pong struct {
-	Ping string `json:"ping" form:"ping"`
+	Ping string `form:"ping" json:"ping"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

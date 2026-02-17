@@ -75,7 +75,7 @@ func (u *Test) ApplyDefaults() {
 
 // #/components/schemas/test/anyOf/0
 type TestAnyOf0 struct {
-	FieldA *string `json:"fieldA,omitempty" form:"fieldA,omitempty"`
+	FieldA *string `form:"fieldA,omitempty" json:"fieldA,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -84,7 +84,7 @@ func (s *TestAnyOf0) ApplyDefaults() {
 
 // #/components/schemas/test/anyOf/1
 type TestAnyOf1 struct {
-	FieldA *string `json:"fieldA,omitempty" form:"fieldA,omitempty"`
+	FieldA *string `form:"fieldA,omitempty" json:"fieldA,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

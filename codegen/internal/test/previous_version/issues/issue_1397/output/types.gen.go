@@ -14,11 +14,11 @@ import (
 // #/components/schemas/Test
 type MyTestRequest struct {
 	// A array of enum values
-	Field1 []TestField1Item `json:"field1,omitempty" form:"field1,omitempty"`
+	Field1 []TestField1Item `form:"field1,omitempty" json:"field1,omitempty"`
 	// A nested object with allocated name
-	Field2 *MyTestRequestNestedField `json:"field2,omitempty" form:"field2,omitempty"`
+	Field2 *MyTestRequestNestedField `form:"field2,omitempty" json:"field2,omitempty"`
 	// A nested object without allocated name
-	Field3 *TestField3 `json:"field3,omitempty" form:"field3,omitempty"`
+	Field3 *TestField3 `form:"field3,omitempty" json:"field3,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -46,8 +46,8 @@ const (
 // #/components/schemas/Test/properties/field2
 // A nested object with allocated name
 type MyTestRequestNestedField struct {
-	Field1 bool   `json:"field1" form:"field1"`
-	Field2 string `json:"field2" form:"field2"`
+	Field1 bool   `form:"field1" json:"field1"`
+	Field2 string `form:"field2" json:"field2"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -57,8 +57,8 @@ func (s *MyTestRequestNestedField) ApplyDefaults() {
 // #/components/schemas/Test/properties/field3
 // A nested object without allocated name
 type TestField3 struct {
-	Field1 bool   `json:"field1" form:"field1"`
-	Field2 string `json:"field2" form:"field2"`
+	Field1 bool   `form:"field1" json:"field1"`
+	Field2 string `form:"field2" json:"field2"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

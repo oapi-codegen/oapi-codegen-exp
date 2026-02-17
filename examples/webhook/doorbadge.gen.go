@@ -22,7 +22,7 @@ import (
 // #/components/schemas/WebhookRegistration
 type WebhookRegistration struct {
 	// URL to receive webhook events
-	URL string `json:"url" form:"url"`
+	URL string `form:"url" json:"url"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -32,7 +32,7 @@ func (s *WebhookRegistration) ApplyDefaults() {
 // #/components/schemas/WebhookRegistrationResponse
 type WebhookRegistrationResponse struct {
 	// Unique identifier for this webhook registration
-	ID oapiCodegenTypesPkg.UUID `json:"id" form:"id"`
+	ID oapiCodegenTypesPkg.UUID `form:"id" json:"id"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -42,7 +42,7 @@ func (s *WebhookRegistrationResponse) ApplyDefaults() {
 // #/components/schemas/Person
 type Person struct {
 	// Name of the person who badged in or out
-	Name string `json:"name" form:"name"`
+	Name string `form:"name" json:"name"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -52,9 +52,9 @@ func (s *Person) ApplyDefaults() {
 // #/components/schemas/Error
 type Error struct {
 	// Error code
-	Code int32 `json:"code" form:"code"`
+	Code int32 `form:"code" json:"code"`
 	// Error message
-	Message string `json:"message" form:"message"`
+	Message string `form:"message" json:"message"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

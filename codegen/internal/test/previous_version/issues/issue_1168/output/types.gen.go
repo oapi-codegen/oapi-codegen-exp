@@ -14,11 +14,11 @@ import (
 
 // #/components/schemas/ProblemDetails
 type ProblemDetails struct {
-	Type                 *string        `json:"type,omitempty" form:"type,omitempty"`
-	Title                *string        `json:"title,omitempty" form:"title,omitempty"`
-	Status               *int32         `json:"status,omitempty" form:"status,omitempty"`
-	Detail               *string        `json:"detail,omitempty" form:"detail,omitempty"`
-	Instance             *string        `json:"instance,omitempty" form:"instance,omitempty"`
+	Type                 *string        `form:"type,omitempty" json:"type,omitempty"`
+	Title                *string        `form:"title,omitempty" json:"title,omitempty"`
+	Status               *int32         `form:"status,omitempty" json:"status,omitempty"`
+	Detail               *string        `form:"detail,omitempty" json:"detail,omitempty"`
+	Instance             *string        `form:"instance,omitempty" json:"instance,omitempty"`
 	AdditionalProperties map[string]any `json:"-"`
 }
 

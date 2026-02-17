@@ -16,11 +16,11 @@ import (
 // #/components/schemas/PatchRequest
 // A request to patch an existing user object.
 type PatchRequest struct {
-	SimpleRequiredNullable    SimpleRequiredNullable            `json:"simple_required_nullable" form:"simple_required_nullable"`
-	SimpleOptionalNullable    SimpleOptionalNullable            `json:"simple_optional_nullable,omitempty" form:"simple_optional_nullable,omitempty"`
-	SimpleOptionalNonNullable *SimpleOptionalNonNullable        `json:"simple_optional_non_nullable,omitempty" form:"simple_optional_non_nullable,omitempty"`
-	ComplexRequiredNullable   Nullable[ComplexRequiredNullable] `json:"complex_required_nullable" form:"complex_required_nullable"`
-	ComplexOptionalNullable   Nullable[ComplexOptionalNullable] `json:"complex_optional_nullable,omitempty" form:"complex_optional_nullable,omitempty"`
+	SimpleRequiredNullable    SimpleRequiredNullable            `form:"simple_required_nullable" json:"simple_required_nullable"`
+	SimpleOptionalNullable    SimpleOptionalNullable            `form:"simple_optional_nullable,omitempty" json:"simple_optional_nullable,omitempty"`
+	SimpleOptionalNonNullable *SimpleOptionalNonNullable        `form:"simple_optional_non_nullable,omitempty" json:"simple_optional_non_nullable,omitempty"`
+	ComplexRequiredNullable   Nullable[ComplexRequiredNullable] `form:"complex_required_nullable" json:"complex_required_nullable"`
+	ComplexOptionalNullable   Nullable[ComplexOptionalNullable] `form:"complex_optional_nullable,omitempty" json:"complex_optional_nullable,omitempty"`
 	AdditionalProperties      map[string]any                    `json:"-"`
 }
 
@@ -121,7 +121,7 @@ type SimpleOptionalNonNullable = string
 // Complex required and nullable
 type ComplexRequiredNullable struct {
 	// Optional and non nullable
-	Name *string `json:"name,omitempty" form:"name,omitempty"`
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -132,9 +132,9 @@ func (s *ComplexRequiredNullable) ApplyDefaults() {
 // Complex, optional and nullable
 type ComplexOptionalNullable struct {
 	// Optional and nullable
-	AliasName Nullable[string] `json:"alias_name,omitempty" form:"alias_name,omitempty"`
+	AliasName Nullable[string] `form:"alias_name,omitempty" json:"alias_name,omitempty"`
 	// Optional and non nullable
-	Name *string `json:"name,omitempty" form:"name,omitempty"`
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

@@ -14,7 +14,7 @@ import (
 // #/components/schemas/Thing
 type Thing struct {
 	// just a name
-	Name string `json:"name" form:"name"`
+	Name string `form:"name" json:"name"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -24,7 +24,7 @@ func (s *Thing) ApplyDefaults() {
 // #/components/schemas/ThingList
 // Object containing list of Things
 type ThingList struct {
-	Keys []Thing `json:"keys" form:"keys"`
+	Keys []Thing `form:"keys" json:"keys"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

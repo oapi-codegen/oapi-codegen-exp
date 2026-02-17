@@ -14,7 +14,7 @@ import (
 
 // #/components/schemas/ArrayContainer
 type ArrayContainer struct {
-	Values               []string       `json:"values,omitempty" form:"values,omitempty"`
+	Values               []string       `form:"values,omitempty" json:"values,omitempty"`
 	AdditionalProperties map[string]any `json:"-"`
 }
 

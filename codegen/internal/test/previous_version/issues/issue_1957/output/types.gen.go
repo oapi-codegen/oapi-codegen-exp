@@ -15,8 +15,8 @@ import (
 
 // #/components/schemas/TypeWithOptionalField
 type TypeWithOptionalField struct {
-	At         googleuuid.UUID `json:"at,omitempty" form:"at,omitempty"`
-	AtRequired googleuuid.UUID `json:"at_required" form:"at_required"`
+	At         googleuuid.UUID `form:"at,omitempty" json:"at,omitempty"`
+	AtRequired googleuuid.UUID `form:"at_required" json:"at_required"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -31,7 +31,7 @@ type ID = googleuuid.UUID
 
 // #/components/schemas/TypeWithAllOf
 type TypeWithAllOf struct {
-	ID googleuuid.UUID `json:"id,omitempty" form:"id,omitempty"`
+	ID googleuuid.UUID `form:"id,omitempty" json:"id,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

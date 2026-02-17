@@ -13,7 +13,7 @@ import (
 
 // #/components/schemas/YBase
 type YBase struct {
-	BaseField *string `json:"baseField,omitempty" form:"baseField,omitempty"`
+	BaseField *string `form:"baseField,omitempty" json:"baseField,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -22,9 +22,9 @@ func (s *YBase) ApplyDefaults() {
 
 // #/components/schemas/X
 type X struct {
-	A         *string `json:"a,omitempty" form:"a,omitempty"`
-	B         *int    `json:"b,omitempty" form:"b,omitempty"`
-	BaseField *string `json:"baseField,omitempty" form:"baseField,omitempty"`
+	A         *string `form:"a,omitempty" json:"a,omitempty"`
+	B         *int    `form:"b,omitempty" json:"b,omitempty"`
+	BaseField *string `form:"baseField,omitempty" json:"baseField,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

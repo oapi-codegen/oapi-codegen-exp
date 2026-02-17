@@ -13,8 +13,8 @@ import (
 
 // #/components/schemas/Object
 type Object struct {
-	Role      string `json:"role" form:"role"`
-	FirstName string `json:"firstName" form:"firstName"`
+	Role      string `form:"role" json:"role"`
+	FirstName string `form:"firstName" json:"firstName"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -23,9 +23,9 @@ func (s *Object) ApplyDefaults() {
 
 // #/components/schemas/ComplexObject
 type ComplexObject struct {
-	Object  Object `json:"Object" form:"Object"`
-	ID      int    `json:"Id" form:"Id"`
-	IsAdmin bool   `json:"IsAdmin" form:"IsAdmin"`
+	Object  Object `form:"Object" json:"Object"`
+	ID      int    `form:"Id" json:"Id"`
+	IsAdmin bool   `form:"IsAdmin" json:"IsAdmin"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

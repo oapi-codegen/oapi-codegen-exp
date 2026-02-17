@@ -35,10 +35,10 @@ type CustomStringType = string
 
 // #/components/schemas/NullableProperties
 type NullableProperties struct {
-	Optional            *string          `json:"optional,omitempty" form:"optional,omitempty"`
-	OptionalAndNullable Nullable[string] `json:"optionalAndNullable,omitempty" form:"optionalAndNullable,omitempty"`
-	Required            string           `json:"required" form:"required"`
-	RequiredAndNullable Nullable[string] `json:"requiredAndNullable" form:"requiredAndNullable"`
+	Optional            *string          `form:"optional,omitempty" json:"optional,omitempty"`
+	OptionalAndNullable Nullable[string] `form:"optionalAndNullable,omitempty" json:"optionalAndNullable,omitempty"`
+	Required            string           `form:"required" json:"required"`
+	RequiredAndNullable Nullable[string] `form:"requiredAndNullable" json:"requiredAndNullable"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -59,7 +59,7 @@ type EnumInObjInArray = []EnumInObjInArrayItem
 
 // #/components/schemas/EnumInObjInArray/items
 type EnumInObjInArrayItem struct {
-	Val *string `json:"val,omitempty" form:"val,omitempty"`
+	Val *string `form:"val,omitempty" json:"val,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -77,15 +77,15 @@ const (
 // #/components/schemas/DeprecatedProperty
 type DeprecatedProperty struct {
 	// Use this now!
-	NewProp  string  `json:"newProp" form:"newProp"`
-	OldProp1 *string `json:"oldProp1,omitempty" form:"oldProp1,omitempty"`
+	NewProp  string  `form:"newProp" json:"newProp"`
+	OldProp1 *string `form:"oldProp1,omitempty" json:"oldProp1,omitempty"`
 	// It used to do this and that
-	OldProp2 *string `json:"oldProp2,omitempty" form:"oldProp2,omitempty"`
+	OldProp2 *string `form:"oldProp2,omitempty" json:"oldProp2,omitempty"`
 	// Deprecated: Use NewProp instead!
-	OldProp3 *string `json:"oldProp3,omitempty" form:"oldProp3,omitempty"`
+	OldProp3 *string `form:"oldProp3,omitempty" json:"oldProp3,omitempty"`
 	// It used to do this and that
 	// Deprecated: Use NewProp instead!
-	OldProp4 *string `json:"oldProp4,omitempty" form:"oldProp4,omitempty"`
+	OldProp4 *string `form:"oldProp4,omitempty" json:"oldProp4,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -94,8 +94,8 @@ func (s *DeprecatedProperty) ApplyDefaults() {
 
 // #/components/schemas/OuterTypeWithAnonymousInner
 type OuterTypeWithAnonymousInner struct {
-	Name  string                      `json:"name" form:"name"`
-	Inner InnerRenamedAnonymousObject `json:"inner" form:"inner"`
+	Name  string                      `form:"name" json:"name"`
+	Inner InnerRenamedAnonymousObject `form:"inner" json:"inner"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -104,7 +104,7 @@ func (s *OuterTypeWithAnonymousInner) ApplyDefaults() {
 
 // #/components/schemas/OuterTypeWithAnonymousInner/properties/inner
 type InnerRenamedAnonymousObject struct {
-	ID int `json:"id" form:"id"`
+	ID int `form:"id" json:"id"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -113,9 +113,9 @@ func (s *InnerRenamedAnonymousObject) ApplyDefaults() {
 
 // #/paths//ensure-everything-is-referenced/get/responses/200/content/application/json/schema
 type EnsureEverythingIsReferencedJSONResponse struct {
-	AnyType1         *AnyType1         `json:"anyType1,omitempty" form:"anyType1,omitempty"`
-	AnyType2         *AnyType2         `json:"anyType2,omitempty" form:"anyType2,omitempty"`
-	CustomStringType *CustomStringType `json:"customStringType,omitempty" form:"customStringType,omitempty"`
+	AnyType1         *AnyType1         `form:"anyType1,omitempty" json:"anyType1,omitempty"`
+	AnyType2         *AnyType2         `form:"anyType2,omitempty" json:"anyType2,omitempty"`
+	CustomStringType *CustomStringType `form:"customStringType,omitempty" json:"customStringType,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

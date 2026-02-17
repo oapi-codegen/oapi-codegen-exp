@@ -15,9 +15,9 @@ import (
 // These are fields that specify a person. They are all optional, and
 // would be used by an `Edit` style API endpoint, where each is optional.
 type PersonProperties struct {
-	FirstName          *string `json:"FirstName,omitempty" form:"FirstName,omitempty"`
-	LastName           *string `json:"LastName,omitempty" form:"LastName,omitempty"`
-	GovernmentIDNumber *int64  `json:"GovernmentIDNumber,omitempty" form:"GovernmentIDNumber,omitempty"`
+	FirstName          *string `form:"FirstName,omitempty" json:"FirstName,omitempty"`
+	LastName           *string `form:"LastName,omitempty" json:"LastName,omitempty"`
+	GovernmentIDNumber *int64  `form:"GovernmentIDNumber,omitempty" json:"GovernmentIDNumber,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -29,9 +29,9 @@ func (s *PersonProperties) ApplyDefaults() {
 // number. This would be returned by a `Get` style API. We merge the person
 // properties with another Schema which only provides required fields.
 type Person struct {
-	FirstName          string `json:"FirstName" form:"FirstName"`
-	LastName           string `json:"LastName" form:"LastName"`
-	GovernmentIDNumber *int64 `json:"GovernmentIDNumber,omitempty" form:"GovernmentIDNumber,omitempty"`
+	FirstName          string `form:"FirstName" json:"FirstName"`
+	LastName           string `form:"LastName" json:"LastName"`
+	GovernmentIDNumber *int64 `form:"GovernmentIDNumber,omitempty" json:"GovernmentIDNumber,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -42,10 +42,10 @@ func (s *Person) ApplyDefaults() {
 // This is a person record as returned from a Create endpoint. It contains
 // all the fields of a Person, with an additional resource UUID.
 type PersonWithID struct {
-	FirstName          *string `json:"FirstName,omitempty" form:"FirstName,omitempty"`
-	LastName           *string `json:"LastName,omitempty" form:"LastName,omitempty"`
-	GovernmentIDNumber *int64  `json:"GovernmentIDNumber,omitempty" form:"GovernmentIDNumber,omitempty"`
-	ID                 int64   `json:"ID" form:"ID"`
+	FirstName          *string `form:"FirstName,omitempty" json:"FirstName,omitempty"`
+	LastName           *string `form:"LastName,omitempty" json:"LastName,omitempty"`
+	GovernmentIDNumber *int64  `form:"GovernmentIDNumber,omitempty" json:"GovernmentIDNumber,omitempty"`
+	ID                 int64   `form:"ID" json:"ID"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

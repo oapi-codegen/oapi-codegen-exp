@@ -277,19 +277,21 @@ content-type-short-names:
   #   - "^text/xml$"
 
 # Struct tags: controls which struct tags are generated and their format.
-# Uses Go text/template syntax. If specified, completely replaces the defaults.
-# Default: json and form tags.
+# Uses Go text/template syntax with a simple 2-field context (.FieldName, .IsOptional).
+# Default: json and form tags with omitempty for optional fields.
+# User tags are merged by name: matching defaults are overridden, new tags are appended.
+# Extension-driven concerns (omitzero, json-ignore, omitempty overrides) are handled
+# automatically as post-processing — templates only need the simple context.
 struct-tags:
   tags:
-    - name: json
-      template: '{{if .JSONIgnore}}-{{else}}{{ .FieldName }}{{if .OmitEmpty}},omitempty{{end}}{{if .OmitZero}},omitzero{{end}}{{end}}'
-    - name: form
-      template: '{{if .JSONIgnore}}-{{else}}{{ .FieldName }}{{if .OmitEmpty}},omitempty{{end}}{{end}}'
-    # Add additional tags:
+    # Add additional tags (json and form defaults are kept):
     - name: yaml
-      template: '{{ .FieldName }}{{if .OmitEmpty}},omitempty{{end}}'
+      template: '{{ .FieldName }}{{if .IsOptional}},omitempty{{end}}'
     - name: db
       template: '{{ .FieldName }}'
+    # Can override the default json template too:
+    # - name: json
+    #   template: '{{ .FieldName }}'
 ```
 
 ## Struct tag template variables
@@ -298,11 +300,7 @@ The struct tag templates have access to the following fields:
 
 | Variable | Type | Description |
 |----------|------|-------------|
-| `.FieldName` | `string` | The original field name from the OpenAPI spec |
-| `.GoFieldName` | `string` | The Go identifier name after name mangling |
-| `.IsOptional` | `bool` | Whether the field is optional in the schema |
-| `.IsNullable` | `bool` | Whether the field is nullable |
-| `.IsPointer` | `bool` | Whether the field is rendered as a pointer type |
-| `.OmitEmpty` | `bool` | Whether `omitempty` should be applied (from extensions or optionality) |
-| `.OmitZero` | `bool` | Whether `omitzero` should be applied (from `x-oapi-codegen-omitzero` extension) |
-| `.JSONIgnore` | `bool` | Whether the field should be ignored in JSON (from `x-go-json-ignore` extension) |
+| `.FieldName` | `string` | The original property name from the OpenAPI spec |
+| `.IsOptional` | `bool` | Whether the field is optional (not required) |
+
+Extension-driven concerns (`x-oapi-codegen-omitzero`, `x-go-json-ignore`, `x-oapi-codegen-omitempty` overrides) are handled automatically as post-processing on the `json` and `form` tags. Templates do not need to handle these cases.

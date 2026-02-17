@@ -13,7 +13,7 @@ import (
 
 // #/components/schemas/ObjectA
 type ObjectA struct {
-	Name *string `json:"name,omitempty" form:"name,omitempty"`
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

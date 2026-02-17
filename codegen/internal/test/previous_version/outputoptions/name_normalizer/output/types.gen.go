@@ -17,9 +17,9 @@ import (
 // #/components/schemas/Pet
 type Pet struct {
 	// The pet uuid.
-	UUID string `json:"uuid" form:"uuid"`
+	UUID string `form:"uuid" json:"uuid"`
 	// The name of the pet.
-	Name string `json:"name" form:"name"`
+	Name string `form:"name" json:"name"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -29,9 +29,9 @@ func (s *Pet) ApplyDefaults() {
 // #/components/schemas/Error
 type Error struct {
 	// Error code
-	Code int32 `json:"code" form:"code"`
+	Code int32 `form:"code" json:"code"`
 	// Error message
-	Message string `json:"message" form:"message"`
+	Message string `form:"message" json:"message"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -106,7 +106,7 @@ func (u *OneOf2Things) ApplyDefaults() {
 
 // #/components/schemas/OneOf2things/oneOf/0
 type OneOf2ThingsOneOf0 struct {
-	ID int `json:"id" form:"id"`
+	ID int `form:"id" json:"id"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -115,7 +115,7 @@ func (s *OneOf2ThingsOneOf0) ApplyDefaults() {
 
 // #/components/schemas/OneOf2things/oneOf/1
 type OneOf2ThingsOneOf1 struct {
-	ID UUID `json:"id" form:"id"`
+	ID UUID `form:"id" json:"id"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

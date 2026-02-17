@@ -13,7 +13,7 @@ import (
 
 // #/components/schemas/ClientType
 type ClientType struct {
-	Name string `json:"name" form:"name"`
+	Name string `form:"name" json:"name"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -22,7 +22,7 @@ func (s *ClientType) ApplyDefaults() {
 
 // #/components/schemas/Unreferenced
 type Unreferenced struct {
-	ID any `json:"id" form:"id"`
+	ID any `form:"id" json:"id"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -31,7 +31,7 @@ func (s *Unreferenced) ApplyDefaults() {
 
 // #/paths//client/put/responses/400/content/application/json/schema
 type UpdateClient400JSONResponse struct {
-	Code string `json:"code" form:"code"`
+	Code string `form:"code" json:"code"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

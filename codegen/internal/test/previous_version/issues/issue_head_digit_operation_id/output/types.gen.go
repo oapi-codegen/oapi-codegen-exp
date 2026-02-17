@@ -13,7 +13,7 @@ import (
 
 // #/paths//3gpp/foo/get/responses/200/content/application/json/schema
 type N3GPPFooJSONResponse struct {
-	Value *string `json:"value,omitempty" form:"value,omitempty"`
+	Value *string `form:"value,omitempty" json:"value,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

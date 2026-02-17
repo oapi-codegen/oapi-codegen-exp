@@ -19,9 +19,9 @@ type DirectBar = ext_2b0e5dc3.Foo
 
 // #/components/schemas/PackedBar
 type PackedBar struct {
-	ID      *string           `json:"id,omitempty" form:"id,omitempty"`
-	Core    *ext_2b0e5dc3.Foo `json:"core,omitempty" form:"core,omitempty"`
-	Directd *DirectBar        `json:"directd,omitempty" form:"directd,omitempty"`
+	ID      *string           `form:"id,omitempty" json:"id,omitempty"`
+	Core    *ext_2b0e5dc3.Foo `form:"core,omitempty" json:"core,omitempty"`
+	Directd *DirectBar        `form:"directd,omitempty" json:"directd,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -35,10 +35,10 @@ func (s *PackedBar) ApplyDefaults() {
 
 // #/paths//noTrouble/post/responses/200/content/application/json/schema
 type PostNoTrouble200Response struct {
-	DirectFoo   *ext_2b0e5dc3.Foo `json:"directFoo,omitempty" form:"directFoo,omitempty"`
-	DirectBar   *DirectBar        `json:"directBar,omitempty" form:"directBar,omitempty"`
-	IndirectFoo *PackedBar        `json:"indirectFoo,omitempty" form:"indirectFoo,omitempty"`
-	Name        *string           `json:"name,omitempty" form:"name,omitempty"`
+	DirectFoo   *ext_2b0e5dc3.Foo `form:"directFoo,omitempty" json:"directFoo,omitempty"`
+	DirectBar   *DirectBar        `form:"directBar,omitempty" json:"directBar,omitempty"`
+	IndirectFoo *PackedBar        `form:"indirectFoo,omitempty" json:"indirectFoo,omitempty"`
+	Name        *string           `form:"name,omitempty" json:"name,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

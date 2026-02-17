@@ -14,9 +14,9 @@ import (
 
 // #/components/schemas/test
 type Test struct {
-	FieldA *TestFieldA `json:"fieldA,omitempty" form:"fieldA,omitempty"`
-	FieldB *TestFieldB `json:"fieldB,omitempty" form:"fieldB,omitempty"`
-	FieldC *TestFieldC `json:"fieldC,omitempty" form:"fieldC,omitempty"`
+	FieldA *TestFieldA `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *TestFieldB `form:"fieldB,omitempty" json:"fieldB,omitempty"`
+	FieldC *TestFieldC `form:"fieldC,omitempty" json:"fieldC,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

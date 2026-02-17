@@ -13,7 +13,7 @@ import (
 
 // #/components/schemas/Foo
 type Foo struct {
-	Foo string `json:"foo" form:"foo"`
+	Foo string `form:"foo" json:"foo"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -22,8 +22,8 @@ func (s *Foo) ApplyDefaults() {
 
 // #/components/schemas/Bar
 type Bar struct {
-	Bar string `json:"bar" form:"bar"`
-	Foo string `json:"foo" form:"foo"`
+	Bar string `form:"bar" json:"bar"`
+	Foo string `form:"foo" json:"foo"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

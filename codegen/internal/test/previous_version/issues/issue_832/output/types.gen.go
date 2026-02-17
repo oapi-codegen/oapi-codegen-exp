@@ -13,8 +13,8 @@ import (
 
 // #/components/schemas/Document
 type Document struct {
-	Name   *string `json:"name,omitempty" form:"name,omitempty"`
-	Status *string `json:"status,omitempty" form:"status,omitempty"`
+	Name   *string `form:"name,omitempty" json:"name,omitempty"`
+	Status *string `form:"status,omitempty" json:"status,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -33,7 +33,7 @@ const (
 
 // #/components/schemas/DocumentStatus
 type DocumentStatus struct {
-	Value *string `json:"value,omitempty" form:"value,omitempty"`
+	Value *string `form:"value,omitempty" json:"value,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

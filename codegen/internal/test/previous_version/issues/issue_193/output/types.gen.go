@@ -13,9 +13,9 @@ import (
 
 // #/components/schemas/Person
 type Person struct {
-	Metadata string   `json:"metadata" form:"metadata"`
-	Name     *string  `json:"name,omitempty" form:"name,omitempty"`
-	Age      *float32 `json:"age,omitempty" form:"age,omitempty"`
+	Metadata string   `form:"metadata" json:"metadata"`
+	Name     *string  `form:"name,omitempty" json:"name,omitempty"`
+	Age      *float32 `form:"age,omitempty" json:"age,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

@@ -14,13 +14,13 @@ import (
 
 // #/components/schemas/SchemaObject
 type SchemaObject struct {
-	Role      string `json:"role" form:"role"`
-	FirstName string `json:"firstName" form:"firstName"`
+	Role      string `form:"role" json:"role"`
+	FirstName string `form:"firstName" json:"firstName"`
 	// This property is required and readOnly, so the go model should have it as a pointer,
 	// as it will not be included when it is sent from client to server.
 	//
-	ReadOnlyRequiredProp  string `json:"readOnlyRequiredProp" form:"readOnlyRequiredProp"`
-	WriteOnlyRequiredProp int    `json:"writeOnlyRequiredProp" form:"writeOnlyRequiredProp"`
+	ReadOnlyRequiredProp  string `form:"readOnlyRequiredProp" json:"readOnlyRequiredProp"`
+	WriteOnlyRequiredProp int    `form:"writeOnlyRequiredProp" json:"writeOnlyRequiredProp"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -29,13 +29,13 @@ func (s *SchemaObject) ApplyDefaults() {
 
 // #/components/schemas/SchemaObjectNullable
 type SchemaObjectNullable struct {
-	Role      string `json:"role" form:"role"`
-	FirstName string `json:"firstName" form:"firstName"`
+	Role      string `form:"role" json:"role"`
+	FirstName string `form:"firstName" json:"firstName"`
 	// This property is required and readOnly, so the go model should have it as a pointer,
 	// as it will not be included when it is sent from client to server.
 	//
-	ReadOnlyRequiredProp  string `json:"readOnlyRequiredProp" form:"readOnlyRequiredProp"`
-	WriteOnlyRequiredProp int    `json:"writeOnlyRequiredProp" form:"writeOnlyRequiredProp"`
+	ReadOnlyRequiredProp  string `form:"readOnlyRequiredProp" json:"readOnlyRequiredProp"`
+	WriteOnlyRequiredProp int    `form:"writeOnlyRequiredProp" json:"writeOnlyRequiredProp"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -45,9 +45,9 @@ func (s *SchemaObjectNullable) ApplyDefaults() {
 // #/components/schemas/AdditionalPropertiesObject1
 // Has additional properties of type int
 type AdditionalPropertiesObject1 struct {
-	Name                 string         `json:"name" form:"name"`
-	ID                   int            `json:"id" form:"id"`
-	Optional             *string        `json:"optional,omitempty" form:"optional,omitempty"`
+	Name                 string         `form:"name" json:"name"`
+	ID                   int            `form:"id" json:"id"`
+	Optional             *string        `form:"optional,omitempty" json:"optional,omitempty"`
 	AdditionalProperties map[string]int `json:"-"`
 }
 
@@ -121,8 +121,8 @@ func (s *AdditionalPropertiesObject1) ApplyDefaults() {
 // #/components/schemas/AdditionalPropertiesObject2
 // Does not allow additional properties
 type AdditionalPropertiesObject2 struct {
-	Name                 string         `json:"name" form:"name"`
-	ID                   int            `json:"id" form:"id"`
+	Name                 string         `form:"name" json:"name"`
+	ID                   int            `form:"id" json:"id"`
 	AdditionalProperties map[string]any `json:"-"`
 }
 
@@ -185,7 +185,7 @@ func (s *AdditionalPropertiesObject2) ApplyDefaults() {
 // #/components/schemas/AdditionalPropertiesObject3
 // Allows any additional property
 type AdditionalPropertiesObject3 struct {
-	Name                 string         `json:"name" form:"name"`
+	Name                 string         `form:"name" json:"name"`
 	AdditionalProperties map[string]any `json:"-"`
 }
 
@@ -241,8 +241,8 @@ func (s *AdditionalPropertiesObject3) ApplyDefaults() {
 // #/components/schemas/AdditionalPropertiesObject4
 // Has anonymous field which has additional properties
 type AdditionalPropertiesObject4 struct {
-	Name                 string                           `json:"name" form:"name"`
-	Inner                AdditionalPropertiesObject4Inner `json:"inner" form:"inner"`
+	Name                 string                           `form:"name" json:"name"`
+	Inner                AdditionalPropertiesObject4Inner `form:"inner" json:"inner"`
 	AdditionalProperties map[string]any                   `json:"-"`
 }
 
@@ -304,7 +304,7 @@ func (s *AdditionalPropertiesObject4) ApplyDefaults() {
 
 // #/components/schemas/AdditionalPropertiesObject4/properties/inner
 type AdditionalPropertiesObject4Inner struct {
-	Name                 string         `json:"name" form:"name"`
+	Name                 string         `form:"name" json:"name"`
 	AdditionalProperties map[string]any `json:"-"`
 }
 
@@ -528,7 +528,7 @@ func (u *OneOfObject2) ApplyDefaults() {
 
 // #/components/schemas/OneOfObject2/oneOf/0
 type OneOfObject2OneOf0 struct {
-	Name *string `json:"name,omitempty" form:"name,omitempty"`
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -538,7 +538,7 @@ func (s *OneOfObject2OneOf0) ApplyDefaults() {
 // #/components/schemas/OneOfObject3
 // inline OneOf
 type OneOfObject3 struct {
-	Union *OneOfObject3Union `json:"union,omitempty" form:"union,omitempty"`
+	Union *OneOfObject3Union `form:"union,omitempty" json:"union,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -1609,7 +1609,7 @@ func (u *AnyOfObject1) ApplyDefaults() {
 
 // #/components/schemas/OneOfVariant1
 type OneOfVariant1 struct {
-	Name string `json:"name" form:"name"`
+	Name string `form:"name" json:"name"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -1624,8 +1624,8 @@ type OneOfVariant3 = bool
 
 // #/components/schemas/OneOfVariant4
 type OneOfVariant4 struct {
-	Discriminator string `json:"discriminator" form:"discriminator"`
-	Name          string `json:"name" form:"name"`
+	Discriminator string `form:"discriminator" json:"discriminator"`
+	Name          string `form:"name" json:"name"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -1634,8 +1634,8 @@ func (s *OneOfVariant4) ApplyDefaults() {
 
 // #/components/schemas/OneOfVariant5
 type OneOfVariant5 struct {
-	Discriminator string `json:"discriminator" form:"discriminator"`
-	ID            int    `json:"id" form:"id"`
+	Discriminator string `form:"discriminator" json:"discriminator"`
+	ID            int    `form:"id" json:"id"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -1644,8 +1644,8 @@ func (s *OneOfVariant5) ApplyDefaults() {
 
 // #/components/schemas/one_of_variant51
 type OneOfVariant51 struct {
-	Discriminator string `json:"discriminator" form:"discriminator"`
-	ID            int    `json:"id" form:"id"`
+	Discriminator string `form:"discriminator" json:"discriminator"`
+	ID            int    `form:"id" json:"id"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -1654,7 +1654,7 @@ func (s *OneOfVariant51) ApplyDefaults() {
 
 // #/components/schemas/OneOfVariant6
 type OneOfVariant6 struct {
-	Values OneOfVariant2 `json:"values" form:"values"`
+	Values OneOfVariant2 `form:"values" json:"values"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -1663,9 +1663,9 @@ func (s *OneOfVariant6) ApplyDefaults() {
 
 // #/components/schemas/ObjectWithJsonField
 type ObjectWithJSONField struct {
-	Name   string           `json:"name" form:"name"`
-	Value1 json.RawMessage  `json:"value1" form:"value1"`
-	Value2 *json.RawMessage `json:"value2,omitempty" form:"value2,omitempty"`
+	Name   string           `form:"name" json:"name"`
+	Value1 json.RawMessage  `form:"value1" json:"value1"`
+	Value2 *json.RawMessage `form:"value2,omitempty" json:"value2,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -1758,8 +1758,8 @@ const (
 // #/components/schemas/RenameMe
 // This schema should be renamed via x-go-name when generating
 type RenameMe struct {
-	Prop1 string `json:"prop1" form:"prop1"`
-	Prop2 string `json:"prop2" form:"prop2"`
+	Prop1 string `form:"prop1" json:"prop1"`
+	Prop2 string `form:"prop2" json:"prop2"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -1769,7 +1769,7 @@ func (s *RenameMe) ApplyDefaults() {
 // #/components/schemas/ReferenceToRenameMe
 // When a Schema is renamed, $ref should refer to the new name
 type ReferenceToRenameMe struct {
-	NewName RenameMe `json:"ToNewName" form:"ToNewName"`
+	NewName RenameMe `form:"ToNewName" json:"ToNewName"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -1778,7 +1778,7 @@ func (s *ReferenceToRenameMe) ApplyDefaults() {
 
 // #/paths//ensure-everything-is-referenced/get/requestBody/content/application/json/schema
 type EnsureEverythingIsReferencedJSONRequest struct {
-	Field SchemaObject `json:"Field" form:"Field"`
+	Field SchemaObject `form:"Field" json:"Field"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -1787,26 +1787,26 @@ func (s *EnsureEverythingIsReferencedJSONRequest) ApplyDefaults() {
 
 // #/paths//ensure-everything-is-referenced/get/responses/200/content/application/json/schema
 type EnsureEverythingIsReferencedJSONResponse struct {
-	One       *AdditionalPropertiesObject1 `json:"one,omitempty" form:"one,omitempty"`
-	Two       *AdditionalPropertiesObject2 `json:"two,omitempty" form:"two,omitempty"`
-	Three     *AdditionalPropertiesObject3 `json:"three,omitempty" form:"three,omitempty"`
-	Four      *AdditionalPropertiesObject4 `json:"four,omitempty" form:"four,omitempty"`
-	Five      *AdditionalPropertiesObject5 `json:"five,omitempty" form:"five,omitempty"`
-	Six       *AdditionalPropertiesObject6 `json:"six,omitempty" form:"six,omitempty"`
-	OneOf1    *OneOfObject1                `json:"oneOf1,omitempty" form:"oneOf1,omitempty"`
-	OneOf2    *OneOfObject2                `json:"oneOf2,omitempty" form:"oneOf2,omitempty"`
-	OneOf3    *OneOfObject3                `json:"oneOf3,omitempty" form:"oneOf3,omitempty"`
-	OneOf4    *OneOfObject4                `json:"oneOf4,omitempty" form:"oneOf4,omitempty"`
-	OneOf5    *OneOfObject5                `json:"oneOf5,omitempty" form:"oneOf5,omitempty"`
-	OneOf6    *OneOfObject6                `json:"oneOf6,omitempty" form:"oneOf6,omitempty"`
-	OneOf7    *OneOfObject7                `json:"oneOf7,omitempty" form:"oneOf7,omitempty"`
-	OneOf8    *OneOfObject8                `json:"oneOf8,omitempty" form:"oneOf8,omitempty"`
-	OneOf9    *OneOfObject9                `json:"oneOf9,omitempty" form:"oneOf9,omitempty"`
-	OneOf10   *OneOfObject10               `json:"oneOf10,omitempty" form:"oneOf10,omitempty"`
-	OneOf11   *OneOfObject11               `json:"oneOf11,omitempty" form:"oneOf11,omitempty"`
-	OneOf12   *OneOfObject12               `json:"oneOf12,omitempty" form:"oneOf12,omitempty"`
-	AnyOf1    *AnyOfObject1                `json:"anyOf1,omitempty" form:"anyOf1,omitempty"`
-	JSONField *ObjectWithJSONField         `json:"jsonField,omitempty" form:"jsonField,omitempty"`
+	One       *AdditionalPropertiesObject1 `form:"one,omitempty" json:"one,omitempty"`
+	Two       *AdditionalPropertiesObject2 `form:"two,omitempty" json:"two,omitempty"`
+	Three     *AdditionalPropertiesObject3 `form:"three,omitempty" json:"three,omitempty"`
+	Four      *AdditionalPropertiesObject4 `form:"four,omitempty" json:"four,omitempty"`
+	Five      *AdditionalPropertiesObject5 `form:"five,omitempty" json:"five,omitempty"`
+	Six       *AdditionalPropertiesObject6 `form:"six,omitempty" json:"six,omitempty"`
+	OneOf1    *OneOfObject1                `form:"oneOf1,omitempty" json:"oneOf1,omitempty"`
+	OneOf2    *OneOfObject2                `form:"oneOf2,omitempty" json:"oneOf2,omitempty"`
+	OneOf3    *OneOfObject3                `form:"oneOf3,omitempty" json:"oneOf3,omitempty"`
+	OneOf4    *OneOfObject4                `form:"oneOf4,omitempty" json:"oneOf4,omitempty"`
+	OneOf5    *OneOfObject5                `form:"oneOf5,omitempty" json:"oneOf5,omitempty"`
+	OneOf6    *OneOfObject6                `form:"oneOf6,omitempty" json:"oneOf6,omitempty"`
+	OneOf7    *OneOfObject7                `form:"oneOf7,omitempty" json:"oneOf7,omitempty"`
+	OneOf8    *OneOfObject8                `form:"oneOf8,omitempty" json:"oneOf8,omitempty"`
+	OneOf9    *OneOfObject9                `form:"oneOf9,omitempty" json:"oneOf9,omitempty"`
+	OneOf10   *OneOfObject10               `form:"oneOf10,omitempty" json:"oneOf10,omitempty"`
+	OneOf11   *OneOfObject11               `form:"oneOf11,omitempty" json:"oneOf11,omitempty"`
+	OneOf12   *OneOfObject12               `form:"oneOf12,omitempty" json:"oneOf12,omitempty"`
+	AnyOf1    *AnyOfObject1                `form:"anyOf1,omitempty" json:"anyOf1,omitempty"`
+	JSONField *ObjectWithJSONField         `form:"jsonField,omitempty" json:"jsonField,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -1866,7 +1866,7 @@ type GetParamsWithAddPropsParameter0 = map[string]any
 
 // #/paths//params_with_add_props/get/parameters/1/schema
 type GetParamsWithAddPropsParameter11 struct {
-	Inner map[string]string `json:"inner" form:"inner"`
+	Inner map[string]string `form:"inner" json:"inner"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -1878,8 +1878,8 @@ type GetParamsWithAddPropsParameter12 = map[string]string
 
 // #/paths//params_with_add_props/post/requestBody/content/application/json/schema
 type BodyWithAddPropsJSONRequest struct {
-	Name                 string         `json:"name" form:"name"`
-	Inner                map[string]int `json:"inner" form:"inner"`
+	Name                 string         `form:"name" json:"name"`
+	Inner                map[string]int `form:"inner" json:"inner"`
 	AdditionalProperties map[string]any `json:"-"`
 }
 

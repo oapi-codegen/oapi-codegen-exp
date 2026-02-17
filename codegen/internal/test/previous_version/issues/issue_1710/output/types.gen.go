@@ -14,8 +14,8 @@ import (
 
 // #/components/schemas/BasePrompt
 type BasePrompt struct {
-	Name    string `json:"name" form:"name"`
-	Version int    `json:"version" form:"version"`
+	Name    string `form:"name" json:"name"`
+	Version int    `form:"version" json:"version"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -24,9 +24,9 @@ func (s *BasePrompt) ApplyDefaults() {
 
 // #/components/schemas/TextPrompt
 type TextPrompt struct {
-	Prompt  string `json:"prompt" form:"prompt"`
-	Name    string `json:"name" form:"name"`
-	Version int    `json:"version" form:"version"`
+	Prompt  string `form:"prompt" json:"prompt"`
+	Name    string `form:"name" json:"name"`
+	Version int    `form:"version" json:"version"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -35,8 +35,8 @@ func (s *TextPrompt) ApplyDefaults() {
 
 // #/components/schemas/ChatMessage
 type ChatMessage struct {
-	Role    string `json:"role" form:"role"`
-	Content string `json:"content" form:"content"`
+	Role    string `form:"role" json:"role"`
+	Content string `form:"content" json:"content"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -45,9 +45,9 @@ func (s *ChatMessage) ApplyDefaults() {
 
 // #/components/schemas/ChatPrompt
 type ChatPrompt struct {
-	Prompt  []ChatMessage `json:"prompt" form:"prompt"`
-	Name    string        `json:"name" form:"name"`
-	Version int           `json:"version" form:"version"`
+	Prompt  []ChatMessage `form:"prompt" json:"prompt"`
+	Name    string        `form:"name" json:"name"`
+	Version int           `form:"version" json:"version"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -124,10 +124,10 @@ func (u *Prompt) ApplyDefaults() {
 
 // #/components/schemas/Prompt/oneOf/0
 type PromptOneOf0 struct {
-	Type    *string       `json:"type,omitempty" form:"type,omitempty"`
-	Prompt  []ChatMessage `json:"prompt" form:"prompt"`
-	Name    string        `json:"name" form:"name"`
-	Version int           `json:"version" form:"version"`
+	Type    *string       `form:"type,omitempty" json:"type,omitempty"`
+	Prompt  []ChatMessage `form:"prompt" json:"prompt"`
+	Name    string        `form:"name" json:"name"`
+	Version int           `form:"version" json:"version"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -143,10 +143,10 @@ const (
 
 // #/components/schemas/Prompt/oneOf/1
 type PromptOneOf1 struct {
-	Type    *string `json:"type,omitempty" form:"type,omitempty"`
-	Prompt  string  `json:"prompt" form:"prompt"`
-	Name    string  `json:"name" form:"name"`
-	Version int     `json:"version" form:"version"`
+	Type    *string `form:"type,omitempty" json:"type,omitempty"`
+	Prompt  string  `form:"prompt" json:"prompt"`
+	Name    string  `form:"name" json:"name"`
+	Version int     `form:"version" json:"version"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

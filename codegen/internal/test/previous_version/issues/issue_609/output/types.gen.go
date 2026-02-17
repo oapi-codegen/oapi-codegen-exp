@@ -13,7 +13,7 @@ import (
 
 // #/components/schemas/ResponseBody
 type ResponseBody struct {
-	Unknown *any `json:"unknown,omitempty" form:"unknown,omitempty"`
+	Unknown *any `form:"unknown,omitempty" json:"unknown,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

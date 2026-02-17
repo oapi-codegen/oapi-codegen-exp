@@ -13,8 +13,8 @@ import (
 
 // #/components/schemas/Pet
 type Pet struct {
-	Name string  `json:"name" form:"name"`
-	Tag  *string `json:"tag,omitempty" form:"tag,omitempty"`
+	Name string  `form:"name" json:"name"`
+	Tag  *string `form:"tag,omitempty" json:"tag,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
