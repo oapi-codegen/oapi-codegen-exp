@@ -22,9 +22,9 @@ import (
 // A tree to be planted
 type Tree struct {
 	// Where to plant the tree (e.g. "north meadow")
-	Location string `json:"location" form:"location"`
+	Location string `form:"location" json:"location"`
 	// What kind of tree to plant (e.g. "oak")
-	Kind string `json:"kind" form:"kind"`
+	Kind string `form:"kind" json:"kind"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -36,11 +36,11 @@ func (s *Tree) ApplyDefaults() {
 // for completion notification.
 type TreePlantingRequest struct {
 	// Where to plant the tree (e.g. "north meadow")
-	Location string `json:"location" form:"location"`
+	Location string `form:"location" json:"location"`
 	// What kind of tree to plant (e.g. "oak")
-	Kind string `json:"kind" form:"kind"`
+	Kind string `form:"kind" json:"kind"`
 	// URL to receive the planting result callback
-	CallbackURL string `json:"callbackUrl" form:"callbackUrl"`
+	CallbackURL string `form:"callbackUrl" json:"callbackUrl"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -51,11 +51,11 @@ func (s *TreePlantingRequest) ApplyDefaults() {
 // A tree with a server-assigned identifier
 type TreeWithID struct {
 	// Where to plant the tree (e.g. "north meadow")
-	Location string `json:"location" form:"location"`
+	Location string `form:"location" json:"location"`
 	// What kind of tree to plant (e.g. "oak")
-	Kind string `json:"kind" form:"kind"`
+	Kind string `form:"kind" json:"kind"`
 	// Unique identifier for this planting request
-	ID UUID `json:"id" form:"id"`
+	ID UUID `form:"id" json:"id"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -66,13 +66,13 @@ func (s *TreeWithID) ApplyDefaults() {
 // The result of a tree planting operation, sent via callback
 type TreePlantingResult struct {
 	// Where to plant the tree (e.g. "north meadow")
-	Location string `json:"location" form:"location"`
+	Location string `form:"location" json:"location"`
 	// What kind of tree to plant (e.g. "oak")
-	Kind string `json:"kind" form:"kind"`
+	Kind string `form:"kind" json:"kind"`
 	// Unique identifier for this planting request
-	ID UUID `json:"id" form:"id"`
+	ID UUID `form:"id" json:"id"`
 	// Whether the tree was successfully planted
-	Success bool `json:"success" form:"success"`
+	Success bool `form:"success" json:"success"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -82,9 +82,9 @@ func (s *TreePlantingResult) ApplyDefaults() {
 // #/components/schemas/Error
 type Error struct {
 	// Error code
-	Code int32 `json:"code" form:"code"`
+	Code int32 `form:"code" json:"code"`
 	// Error message
-	Message string `json:"message" form:"message"`
+	Message string `form:"message" json:"message"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

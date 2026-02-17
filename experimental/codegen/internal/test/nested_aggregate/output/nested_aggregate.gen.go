@@ -66,7 +66,7 @@ func (u *ArrayOfAnyOfItem) ApplyDefaults() {
 
 // #/components/schemas/ArrayOfAnyOf/items/anyOf/1
 type ArrayOfAnyOfAnyOf1 struct {
-	ID *int `json:"id,omitempty" form:"id,omitempty"`
+	ID *int `form:"id,omitempty" json:"id,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -75,7 +75,7 @@ func (s *ArrayOfAnyOfAnyOf1) ApplyDefaults() {
 
 // #/components/schemas/ObjectWithAnyOfProperty
 type ObjectWithAnyOfProperty struct {
-	Value *ObjectWithAnyOfPropertyValue `json:"value,omitempty" form:"value,omitempty"`
+	Value *ObjectWithAnyOfPropertyValue `form:"value,omitempty" json:"value,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -118,7 +118,7 @@ func (u *ObjectWithAnyOfPropertyValue) ApplyDefaults() {
 
 // #/components/schemas/ObjectWithOneOfProperty
 type ObjectWithOneOfProperty struct {
-	Variant *ObjectWithOneOfPropertyVariant `json:"variant,omitempty" form:"variant,omitempty"`
+	Variant *ObjectWithOneOfPropertyVariant `form:"variant,omitempty" json:"variant,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -192,8 +192,8 @@ func (u *ObjectWithOneOfPropertyVariant) ApplyDefaults() {
 
 // #/components/schemas/ObjectWithOneOfProperty/properties/variant/oneOf/0
 type ObjectWithOneOfPropertyVariantOneOf0 struct {
-	Kind *string `json:"kind,omitempty" form:"kind,omitempty"`
-	Name *string `json:"name,omitempty" form:"name,omitempty"`
+	Kind *string `form:"kind,omitempty" json:"kind,omitempty"`
+	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -202,8 +202,8 @@ func (s *ObjectWithOneOfPropertyVariantOneOf0) ApplyDefaults() {
 
 // #/components/schemas/ObjectWithOneOfProperty/properties/variant/oneOf/1
 type ObjectWithOneOfPropertyVariantOneOf1 struct {
-	Kind  *string `json:"kind,omitempty" form:"kind,omitempty"`
-	Count *int    `json:"count,omitempty" form:"count,omitempty"`
+	Kind  *string `form:"kind,omitempty" json:"kind,omitempty"`
+	Count *int    `form:"count,omitempty" json:"count,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -212,7 +212,7 @@ func (s *ObjectWithOneOfPropertyVariantOneOf1) ApplyDefaults() {
 
 // #/components/schemas/AllOfWithOneOf
 type AllOfWithOneOf struct {
-	Base                 *string               `json:"base,omitempty" form:"base,omitempty"`
+	Base                 *string               `form:"base,omitempty" json:"base,omitempty"`
 	AllOfWithOneOfAllOf1 *AllOfWithOneOfAllOf1 `json:"-"`
 }
 
@@ -333,7 +333,7 @@ func (u *AllOfWithOneOfAllOf1) ApplyDefaults() {
 
 // #/components/schemas/AllOfWithOneOf/allOf/1/oneOf/0
 type AllOfWithOneOfAllOf1OneOf0 struct {
-	OptionA *bool `json:"optionA,omitempty" form:"optionA,omitempty"`
+	OptionA *bool `form:"optionA,omitempty" json:"optionA,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -342,7 +342,7 @@ func (s *AllOfWithOneOfAllOf1OneOf0) ApplyDefaults() {
 
 // #/components/schemas/AllOfWithOneOf/allOf/1/oneOf/1
 type AllOfWithOneOfAllOf1OneOf1 struct {
-	OptionB *int `json:"optionB,omitempty" form:"optionB,omitempty"`
+	OptionB *int `form:"optionB,omitempty" json:"optionB,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

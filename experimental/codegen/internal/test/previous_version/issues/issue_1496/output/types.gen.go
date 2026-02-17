@@ -14,7 +14,7 @@ import (
 
 // #/paths//something/get/responses/200/content/application/json/schema
 type GetSomethingJSONResponse struct {
-	Results []GetSomething200ResponseJSON2 `json:"results" form:"results"`
+	Results []GetSomething200ResponseJSON2 `form:"results" json:"results"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -87,7 +87,7 @@ func (u *GetSomething200ResponseJSON2) ApplyDefaults() {
 
 // #/paths//something/get/responses/200/content/application/json/schema/properties/results/items/anyOf/0
 type GetSomething200ResponseJSONAnyOf0 struct {
-	Order *string `json:"order,omitempty" form:"order,omitempty"`
+	Order *string `form:"order,omitempty" json:"order,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -96,7 +96,7 @@ func (s *GetSomething200ResponseJSONAnyOf0) ApplyDefaults() {
 
 // #/paths//something/get/responses/200/content/application/json/schema/properties/results/items/anyOf/1
 type GetSomething200ResponseJSONAnyOf11 struct {
-	Error *GetSomething200ResponseJSONAnyOf12 `json:"error,omitempty" form:"error,omitempty"`
+	Error *GetSomething200ResponseJSONAnyOf12 `form:"error,omitempty" json:"error,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -108,8 +108,8 @@ func (s *GetSomething200ResponseJSONAnyOf11) ApplyDefaults() {
 
 // #/paths//something/get/responses/200/content/application/json/schema/properties/results/items/anyOf/1/properties/error
 type GetSomething200ResponseJSONAnyOf12 struct {
-	Code    *float32 `json:"code,omitempty" form:"code,omitempty"`
-	Message *string  `json:"message,omitempty" form:"message,omitempty"`
+	Code    *float32 `form:"code,omitempty" json:"code,omitempty"`
+	Message *string  `form:"message,omitempty" json:"message,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

@@ -14,15 +14,15 @@ import (
 // #/components/schemas/Error
 type Error struct {
 	// A reason code specific to the service and can be used to identify the exact issue. Should be unique within a domain
-	Reason string `json:"reason" form:"reason"`
+	Reason string `form:"reason" json:"reason"`
 	// The underlying http status code
-	Code int32 `json:"code" form:"code"`
+	Code int32 `form:"code" json:"code"`
 	// A simple message in english describing the error and can be returned to the consumer
-	Message string `json:"message" form:"message"`
+	Message string `form:"message" json:"message"`
 	// The domain where the error is originating from as defined by the service
-	Domain string `json:"domain" form:"domain"`
+	Domain string `form:"domain" json:"domain"`
 	// Any additional details to be conveyed as determined by the service. If present, will return map of key value pairs
-	Metadata map[string]string `json:"metadata,omitempty" form:"metadata,omitempty"`
+	Metadata map[string]string `form:"metadata,omitempty" json:"metadata,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -32,13 +32,13 @@ func (s *Error) ApplyDefaults() {
 // #/components/schemas/BaseError
 type BaseError struct {
 	// The underlying http status code
-	Code int32 `json:"code" form:"code"`
+	Code int32 `form:"code" json:"code"`
 	// A simple message in english describing the error and can be returned to the consumer
-	Message string `json:"message" form:"message"`
+	Message string `form:"message" json:"message"`
 	// The domain where the error is originating from as defined by the service
-	Domain string `json:"domain" form:"domain"`
+	Domain string `form:"domain" json:"domain"`
 	// Any additional details to be conveyed as determined by the service. If present, will return map of key value pairs
-	Metadata map[string]string `json:"metadata,omitempty" form:"metadata,omitempty"`
+	Metadata map[string]string `form:"metadata,omitempty" json:"metadata,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

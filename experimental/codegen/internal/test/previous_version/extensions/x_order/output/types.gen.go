@@ -15,8 +15,8 @@ import (
 
 // #/components/schemas/DateInterval
 type DateInterval struct {
-	Start *Date `json:"start,omitempty" form:"start,omitempty"`
-	End   *Date `json:"end,omitempty" form:"end,omitempty"`
+	Start *Date `form:"start,omitempty" json:"start,omitempty"`
+	End   *Date `form:"end,omitempty" json:"end,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -31,9 +31,9 @@ type LowPriorityPort = int
 
 // #/components/schemas/PortInterval
 type PortInterval struct {
-	VeryEnd *LowPriorityPort `json:"very_end,omitempty" form:"very_end,omitempty"`
-	End     Port             `json:"end" form:"end"`
-	Start   Port             `json:"start" form:"start"`
+	VeryEnd *LowPriorityPort `form:"very_end,omitempty" json:"very_end,omitempty"`
+	End     Port             `form:"end" json:"end"`
+	Start   Port             `form:"start" json:"start"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

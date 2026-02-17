@@ -16,8 +16,8 @@ import (
 
 // #/components/schemas/ObjectA
 type ObjectA struct {
-	Name    *string               `json:"name,omitempty" form:"name,omitempty"`
-	ObjectB *ext_cd3e418f.ObjectB `json:"object_b,omitempty" form:"object_b,omitempty"`
+	Name    *string               `form:"name,omitempty" json:"name,omitempty"`
+	ObjectB *ext_cd3e418f.ObjectB `form:"object_b,omitempty" json:"object_b,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -31,9 +31,9 @@ func (s *ObjectA) ApplyDefaults() {
 
 // #/components/schemas/Employee
 type Employee struct {
-	Name       ext_cd3e418f.Name       `json:"name" form:"name"`
-	Address    ext_cd3e418f.Address    `json:"address" form:"address"`
-	Occupation ext_cd3e418f.Occupation `json:"occupation" form:"occupation"`
+	Name       ext_cd3e418f.Name       `form:"name" json:"name"`
+	Address    ext_cd3e418f.Address    `form:"address" json:"address"`
+	Occupation ext_cd3e418f.Occupation `form:"occupation" json:"occupation"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -42,9 +42,9 @@ func (s *Employee) ApplyDefaults() {
 
 // #/paths//defines_models_with_external_fields/post/requestBody/content/application/json/schema
 type DefinesModelsWithExternalFieldsJSONRequest struct {
-	Name       ext_cd3e418f.Name       `json:"name" form:"name"`
-	Address    ext_cd3e418f.Address    `json:"address" form:"address"`
-	Occupation ext_cd3e418f.Occupation `json:"occupation" form:"occupation"`
+	Name       ext_cd3e418f.Name       `form:"name" json:"name"`
+	Address    ext_cd3e418f.Address    `form:"address" json:"address"`
+	Occupation ext_cd3e418f.Occupation `form:"occupation" json:"occupation"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -53,9 +53,9 @@ func (s *DefinesModelsWithExternalFieldsJSONRequest) ApplyDefaults() {
 
 // #/paths//defines_models_with_external_fields/post/responses/200/content/application/json/schema
 type DefinesModelsWithExternalFieldsJSONResponse struct {
-	Name       ext_cd3e418f.Name       `json:"name" form:"name"`
-	Address    ext_cd3e418f.Address    `json:"address" form:"address"`
-	Occupation ext_cd3e418f.Occupation `json:"occupation" form:"occupation"`
+	Name       ext_cd3e418f.Name       `form:"name" json:"name"`
+	Address    ext_cd3e418f.Address    `form:"address" json:"address"`
+	Occupation ext_cd3e418f.Occupation `form:"occupation" json:"occupation"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

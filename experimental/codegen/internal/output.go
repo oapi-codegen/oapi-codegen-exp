@@ -178,27 +178,37 @@ func GenerateStruct(name string, fields []StructField, doc string, tagGen *Struc
 }
 
 // generateFieldTag generates the struct tag for a field.
+// All tags go through the template engine with a simple 2-field context.
+// Extension-driven overrides (JSONIgnore, OmitZero, OmitEmpty) are applied
+// as post-processing on the resulting tag map.
 func generateFieldTag(f StructField, tagGen *StructTagGenerator) string {
-	if tagGen == nil {
-		if f.JSONIgnore {
-			return "`json:\"-\"`"
-		}
-		if f.OmitEmpty {
-			return fmt.Sprintf("`json:\"%s,omitempty\"`", f.JSONName)
-		}
-		return fmt.Sprintf("`json:\"%s\"`", f.JSONName)
-	}
 	info := StructTagInfo{
-		FieldName:   f.JSONName,
-		GoFieldName: f.Name,
-		IsOptional:  !f.Required,
-		IsNullable:  f.Nullable,
-		IsPointer:   f.Pointer,
-		OmitEmpty:   f.OmitEmpty,
-		OmitZero:    f.OmitZero,
-		JSONIgnore:  f.JSONIgnore,
+		FieldName:  f.JSONName,
+		IsOptional: !f.Required,
 	}
-	return tagGen.GenerateTags(info)
+
+	// All tags through the same template engine
+	tags := tagGen.GenerateTagsMap(info)
+
+	// Extension overrides on well-known tags
+	if f.JSONIgnore {
+		tags["json"] = "-"
+		tags["form"] = "-"
+	} else {
+		// OmitEmpty extension override: if extensions explicitly set OmitEmpty
+		// differently from the schema default (!f.Required), adjust tags.
+		if f.OmitEmpty != !f.Required {
+			applyOmitEmptyOverride(tags, f.JSONName, f.OmitEmpty, "json", "form")
+		}
+		// OmitZero (json-specific)
+		if f.OmitZero {
+			if v, ok := tags["json"]; ok {
+				tags["json"] = v + ",omitzero"
+			}
+		}
+	}
+
+	return FormatTagsMap(tags)
 }
 
 // GenerateStructWithAdditionalProps generates a struct with AdditionalProperties field

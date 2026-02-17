@@ -17,9 +17,9 @@ import (
 // Alarm Information
 type Alarm struct {
 	// Identifier of the Alarm.
-	UnderscoreID *UUID `json:"_id,omitempty" form:"_id,omitempty"`
+	UnderscoreID *UUID `form:"_id,omitempty" json:"_id,omitempty"`
 	// Identifier of the Alarm.
-	ID *UUID `json:"id,omitempty" form:"id,omitempty"`
+	ID *UUID `form:"id,omitempty" json:"id,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

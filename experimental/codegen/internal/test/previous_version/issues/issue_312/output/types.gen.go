@@ -14,7 +14,7 @@ import (
 // #/components/schemas/Pet
 type Pet struct {
 	// The name of the pet.
-	Name string `json:"name" form:"name"`
+	Name string `form:"name" json:"name"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -24,7 +24,7 @@ func (s *Pet) ApplyDefaults() {
 // #/components/schemas/PetNames
 type PetNames struct {
 	// The names of the pets.
-	Names []string `json:"names" form:"names"`
+	Names []string `form:"names" json:"names"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -34,9 +34,9 @@ func (s *PetNames) ApplyDefaults() {
 // #/components/schemas/Error
 type Error struct {
 	// Error code
-	Code int32 `json:"code" form:"code"`
+	Code int32 `form:"code" json:"code"`
 	// Error message
-	Message string `json:"message" form:"message"`
+	Message string `form:"message" json:"message"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

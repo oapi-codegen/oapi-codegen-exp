@@ -13,7 +13,7 @@ import (
 
 // #/components/schemas/CamelSchema
 type CamelSchema struct {
-	ID *string `json:"id,omitempty" form:"id,omitempty"`
+	ID *string `form:"id,omitempty" json:"id,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -22,7 +22,7 @@ func (s *CamelSchema) ApplyDefaults() {
 
 // #/components/schemas/pascalSchema
 type PascalSchema struct {
-	ID *string `json:"id,omitempty" form:"id,omitempty"`
+	ID *string `form:"id,omitempty" json:"id,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
@@ -31,9 +31,9 @@ func (s *PascalSchema) ApplyDefaults() {
 
 // #/components/schemas/Foo
 type Foo struct {
-	InternalAttr *string       `json:"internalAttr,omitempty" form:"internalAttr,omitempty"`
-	CamelSchema  *CamelSchema  `json:"CamelSchema,omitempty" form:"CamelSchema,omitempty"`
-	PascalSchema *PascalSchema `json:"pascalSchema,omitempty" form:"pascalSchema,omitempty"`
+	InternalAttr *string       `form:"internalAttr,omitempty" json:"internalAttr,omitempty"`
+	CamelSchema  *CamelSchema  `form:"CamelSchema,omitempty" json:"CamelSchema,omitempty"`
+	PascalSchema *PascalSchema `form:"pascalSchema,omitempty" json:"pascalSchema,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.
