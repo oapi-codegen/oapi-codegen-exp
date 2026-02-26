@@ -431,6 +431,9 @@ Server
 <code>generate</code> flag to enable code generation
 </th>
 <th>
+Required Go Version
+</th>
+<th>
 Example usage
 </th>
 </tr>
@@ -443,6 +446,9 @@ Example usage
 </td>
 <td>
 <code>chi-server</code>
+</td>
+<td>
+1.22+
 </td>
 <td>
 
@@ -473,6 +479,9 @@ To implement this, check out [the Chi docs](#impl-chi).
 <code>echo-server</code>
 </td>
 <td>
+1.22+
+</td>
+<td>
 
 For an Echo server, you will want a configuration file such as:
 
@@ -499,7 +508,9 @@ To implement this, check out [the Echo docs](#impl-echo).
 <td>
 <code>fiber-server</code>
 </td>
-
+<td>
+1.24+
+</td>
 <td>
 
 For a Fiber server, you will want a configuration file such as:
@@ -529,6 +540,9 @@ To implement this, check out [the Fiber docs](#impl-fiber).
 <code>gin-server</code>
 </td>
 <td>
+1.22+
+</td>
+<td>
 
 For a Gin server, you will want a configuration file such as:
 
@@ -556,7 +570,9 @@ To implement this, check out [the Gin docs](#impl-gin).
 <td>
 <code>gorilla-server</code>
 </td>
-
+<td>
+1.22+
+</td>
 <td>
 
 For a gorilla/mux server, you will want a configuration file such as:
@@ -584,7 +600,9 @@ To implement this, check out [the gorilla/mux docs](#impl-gorillamux).
 <td>
 <code>iris-server</code>
 </td>
-
+<td>
+1.22+
+</td>
 <td>
 
 For a Iris server, you will want a configuration file such as:
@@ -612,7 +630,9 @@ To implement this, check out [the Iris docs](#impl-iris).
 <td>
 <code>std-http-server</code>
 </td>
-
+<td>
+1.22+
+</td>
 <td>
 
 To use purely `net/http` (for Go 1.22+), you will want a configuration file such as:

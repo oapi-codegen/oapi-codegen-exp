@@ -34,6 +34,18 @@ const (
 	Second EnumInObjInArrayVal = "second"
 )
 
+// Valid indicates whether the value is a known member of the EnumInObjInArrayVal enum.
+func (e EnumInObjInArrayVal) Valid() bool {
+	switch e {
+	case First:
+		return true
+	case Second:
+		return true
+	default:
+		return false
+	}
+}
+
 // N5StartsWithNumber This schema name starts with a number
 type N5StartsWithNumber = map[string]interface{}
 
@@ -80,7 +92,7 @@ type GenericObject = map[string]interface{}
 // NullableProperties defines model for NullableProperties.
 type NullableProperties struct {
 	Optional            *string `json:"optional,omitempty"`
-	OptionalAndNullable *string `json:"optionalAndNullable"`
+	OptionalAndNullable *string `json:"optionalAndNullable,omitempty"`
 	Required            string  `json:"required"`
 	RequiredAndNullable *string `json:"requiredAndNullable"`
 }
