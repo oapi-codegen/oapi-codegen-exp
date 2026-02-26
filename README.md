@@ -93,7 +93,7 @@ Then, each invocation of `oapi-codegen` would be used like so:
 Alternatively, you can install it as a binary with:
 
 ```sh
-$ go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+$ go install github.com/oapi-codegen/oapi-codegen-exp/v2/cmd/oapi-codegen@latest
 $ oapi-codegen -version
 ```
 
