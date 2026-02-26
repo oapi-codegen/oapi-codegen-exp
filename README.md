@@ -45,7 +45,7 @@ If you are using `v2.3.0` or above, please install like so, using the new module
 
 ```sh
 # for the binary install
-go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+go install github.com/oapi-codegen/oapi-codegen-exp/v2/cmd/oapi-codegen@latest
 ```
 
 ## Install
