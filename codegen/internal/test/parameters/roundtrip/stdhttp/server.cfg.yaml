@@ -1,0 +1,6 @@
+package: stdhttp
+output: server.gen.go
+generation:
+  server: std-http
+  runtime-package:
+    path: github.com/oapi-codegen/oapi-codegen-exp/runtime
