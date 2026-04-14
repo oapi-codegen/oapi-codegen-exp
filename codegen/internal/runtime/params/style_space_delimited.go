@@ -12,15 +12,15 @@ import (
 	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/runtime/types"
 )
 
-// StyleSpaceDelimitedParam serializes a value using spaceDelimited style without exploding.
+// StyleSpaceDelimitedParam serializes a value using spaceDelimited style.
 // Space-delimited style is used for query parameters with array values.
-// Arrays: paramName=a b c (space-separated)
-// Note: Only valid for arrays; objects should use other styles.
-func StyleSpaceDelimitedParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+//
+// Non-explode: paramName=a b c
+// Explode:     paramName=a&paramName=b&paramName=c
+func StyleSpaceDelimitedParam(paramName string, value any, opts ParameterOptions) (string, error) {
 	t := reflect.TypeOf(value)
 	v := reflect.ValueOf(value)
 
-	// Dereference pointers
 	if t.Kind() == reflect.Ptr {
 		if v.IsNil() {
 			return "", fmt.Errorf("value is a nil pointer")
@@ -29,7 +29,6 @@ func StyleSpaceDelimitedParam(paramName string, paramLocation ParamLocation, val
 		t = v.Type()
 	}
 
-	// Check for TextMarshaler (but not time.Time or Date)
 	if tu, ok := value.(encoding.TextMarshaler); ok {
 		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
 		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(types.Date{})) {
@@ -37,7 +36,7 @@ func StyleSpaceDelimitedParam(paramName string, paramLocation ParamLocation, val
 			if err != nil {
 				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
 			}
-			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), paramLocation)), nil
+			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), opts.ParamLocation)), nil
 		}
 	}
 
@@ -48,31 +47,24 @@ func StyleSpaceDelimitedParam(paramName string, paramLocation ParamLocation, val
 		for i := 0; i < n; i++ {
 			sliceVal[i] = v.Index(i).Interface()
 		}
-		return styleSpaceDelimitedSlice(paramName, paramLocation, sliceVal)
-	default:
-		// For primitives, fall back to form style
-		return styleSpaceDelimitedPrimitive(paramName, paramLocation, value)
-	}
-}
-
-func styleSpaceDelimitedPrimitive(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, paramLocation)), nil
-}
-
-func styleSpaceDelimitedSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Space-delimited without explode: paramName=a b c (space becomes %20 when encoded)
-	prefix := fmt.Sprintf("%s=", paramName)
-	parts := make([]string, len(values))
-	for i, v := range values {
-		part, err := primitiveToString(v)
-		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
+		prefix := fmt.Sprintf("%s=", paramName)
+		parts := make([]string, len(sliceVal))
+		for i, sv := range sliceVal {
+			part, err := primitiveToString(sv)
+			if err != nil {
+				return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
+			}
+			parts[i] = escapeParameterString(part, opts.ParamLocation)
 		}
-		parts[i] = escapeParameterString(part, paramLocation)
+		if opts.Explode {
+			return prefix + strings.Join(parts, "&"+prefix), nil
+		}
+		return prefix + strings.Join(parts, " "), nil
+	default:
+		strVal, err := primitiveToString(value)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, opts.ParamLocation)), nil
 	}
-	return prefix + strings.Join(parts, " "), nil
 }

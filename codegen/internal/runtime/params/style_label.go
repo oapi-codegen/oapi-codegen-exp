@@ -15,16 +15,15 @@ import (
 	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/runtime/types"
 )
 
-// StyleLabelParam serializes a value using label style (RFC 6570) without exploding.
-// Label style prefixes values with a dot.
-// Primitives: .value
-// Arrays: .a,b,c
-// Objects: .key1,value1,key2,value2
-func StyleLabelParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+// StyleLabelParam serializes a value using label style (RFC 6570).
+// Label style prefixes values with a dot. Path parameters only.
+//
+// Non-explode: Primitives: .value  Arrays: .a,b,c          Objects: .key1,value1,key2,value2
+// Explode:     Primitives: .value  Arrays: .a.b.c          Objects: .key1=value1.key2=value2
+func StyleLabelParam(paramName string, value any, opts ParameterOptions) (string, error) {
 	t := reflect.TypeOf(value)
 	v := reflect.ValueOf(value)
 
-	// Dereference pointers
 	if t.Kind() == reflect.Ptr {
 		if v.IsNil() {
 			return "", fmt.Errorf("value is a nil pointer")
@@ -33,7 +32,6 @@ func StyleLabelParam(paramName string, paramLocation ParamLocation, value any) (
 		t = v.Type()
 	}
 
-	// Check for TextMarshaler (but not time.Time or Date)
 	if tu, ok := value.(encoding.TextMarshaler); ok {
 		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
 		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(types.Date{})) {
@@ -41,7 +39,7 @@ func StyleLabelParam(paramName string, paramLocation ParamLocation, value any) (
 			if err != nil {
 				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
 			}
-			return "." + escapeParameterString(string(b), paramLocation), nil
+			return "." + escapeParameterString(string(b), opts.ParamLocation), nil
 		}
 	}
 
@@ -52,44 +50,41 @@ func StyleLabelParam(paramName string, paramLocation ParamLocation, value any) (
 		for i := 0; i < n; i++ {
 			sliceVal[i] = v.Index(i).Interface()
 		}
-		return styleLabelSlice(paramName, paramLocation, sliceVal)
+		return styleLabelSlice(paramName, opts, sliceVal)
 	case reflect.Struct:
-		return styleLabelStruct(paramName, paramLocation, value)
+		return styleLabelStruct(paramName, opts, value)
 	case reflect.Map:
-		return styleLabelMap(paramName, paramLocation, value)
+		return styleLabelMap(paramName, opts, value)
 	default:
-		return styleLabelPrimitive(paramLocation, value)
+		strVal, err := primitiveToString(value)
+		if err != nil {
+			return "", err
+		}
+		return "." + escapeParameterString(strVal, opts.ParamLocation), nil
 	}
 }
 
-func styleLabelPrimitive(paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return "." + escapeParameterString(strVal, paramLocation), nil
-}
-
-func styleLabelSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Label without explode: .a,b,c
+func styleLabelSlice(paramName string, opts ParameterOptions, values []any) (string, error) {
 	parts := make([]string, len(values))
 	for i, v := range values {
 		part, err := primitiveToString(v)
 		if err != nil {
 			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
 		}
-		parts[i] = escapeParameterString(part, paramLocation)
+		parts[i] = escapeParameterString(part, opts.ParamLocation)
 	}
-	return "." + strings.Join(parts, ","), nil
+	sep := ","
+	if opts.Explode {
+		sep = "."
+	}
+	return "." + strings.Join(parts, sep), nil
 }
 
-func styleLabelStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	// Check for known types first
+func styleLabelStruct(paramName string, opts ParameterOptions, value any) (string, error) {
 	if timeVal, ok := marshalKnownTypes(value); ok {
-		return "." + escapeParameterString(timeVal, paramLocation), nil
+		return "." + escapeParameterString(timeVal, opts.ParamLocation), nil
 	}
 
-	// Check for json.Marshaler
 	if m, ok := value.(json.Marshaler); ok {
 		buf, err := m.MarshalJSON()
 		if err != nil {
@@ -101,25 +96,32 @@ func styleLabelStruct(paramName string, paramLocation ParamLocation, value any) 
 		if err = e.Decode(&i2); err != nil {
 			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
 		}
-		return StyleLabelParam(paramName, paramLocation, i2)
+		return StyleLabelParam(paramName, i2, opts)
 	}
 
-	// Build field dictionary
 	fieldDict, err := structToFieldDict(value)
 	if err != nil {
 		return "", err
 	}
 
-	// Label style without explode: .key1,value1,key2,value2
+	if opts.Explode {
+		var parts []string
+		for _, k := range sortedKeys(fieldDict) {
+			v := escapeParameterString(fieldDict[k], opts.ParamLocation)
+			parts = append(parts, k+"="+v)
+		}
+		return "." + strings.Join(parts, "."), nil
+	}
+
 	var parts []string
 	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
+		v := escapeParameterString(fieldDict[k], opts.ParamLocation)
 		parts = append(parts, k, v)
 	}
 	return "." + strings.Join(parts, ","), nil
 }
 
-func styleLabelMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
+func styleLabelMap(paramName string, opts ParameterOptions, value any) (string, error) {
 	dict, ok := value.(map[string]any)
 	if !ok {
 		return "", errors.New("map not of type map[string]any")
@@ -134,10 +136,18 @@ func styleLabelMap(paramName string, paramLocation ParamLocation, value any) (st
 		fieldDict[fieldName] = str
 	}
 
-	// Label style without explode: .key1,value1,key2,value2
+	if opts.Explode {
+		var parts []string
+		for _, k := range sortedKeys(fieldDict) {
+			v := escapeParameterString(fieldDict[k], opts.ParamLocation)
+			parts = append(parts, k+"="+v)
+		}
+		return "." + strings.Join(parts, "."), nil
+	}
+
 	var parts []string
 	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
+		v := escapeParameterString(fieldDict[k], opts.ParamLocation)
 		parts = append(parts, k, v)
 	}
 	return "." + strings.Join(parts, ","), nil

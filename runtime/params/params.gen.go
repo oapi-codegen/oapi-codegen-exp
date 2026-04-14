@@ -19,11 +19,11 @@ import (
 	"github.com/oapi-codegen/oapi-codegen-exp/runtime/types"
 )
 
-// BindDeepObjectParam binds a deepObject-style parameter to a destination.
-// DeepObject style is only valid for query parameters and must be exploded.
+// BindDeepObjectQueryParam binds a deepObject-style query parameter to a destination.
+// DeepObject style is only valid for query parameters and is always exploded.
 // Objects: ?paramName[key1]=value1&paramName[key2]=value2 -> struct{Key1, Key2}
 // Nested: ?paramName[outer][inner]=value -> struct{Outer: {Inner: value}}
-func BindDeepObjectParam(paramName string, queryParams url.Values, dest any) error {
+func BindDeepObjectQueryParam(paramName string, queryParams url.Values, dest any, opts ParameterOptions) error {
 	return UnmarshalDeepObject(dest, paramName, queryParams)
 }
 
@@ -149,12 +149,10 @@ func assignPathValues(dst any, pathValues fieldOrValue) error {
 		return nil
 
 	case reflect.Struct:
-		// Check for Binder interface
 		if dst, isBinder := v.Interface().(Binder); isBinder {
 			return dst.Bind(pathValues.value)
 		}
 
-		// Handle Date type
 		if it.ConvertibleTo(reflect.TypeOf(types.Date{})) {
 			var date types.Date
 			var err error
@@ -172,7 +170,6 @@ func assignPathValues(dst any, pathValues fieldOrValue) error {
 			return nil
 		}
 
-		// Handle time.Time type
 		if it.ConvertibleTo(reflect.TypeOf(time.Time{})) {
 			tm, err := time.Parse(time.RFC3339Nano, pathValues.value)
 			if err != nil {
@@ -191,7 +188,6 @@ func assignPathValues(dst any, pathValues fieldOrValue) error {
 			return nil
 		}
 
-		// Regular struct
 		fieldMap, err := fieldIndicesByJsonTag(iv.Interface())
 		if err != nil {
 			return fmt.Errorf("failed enumerating fields: %w", err)
@@ -289,24 +285,30 @@ func sortedFieldOrValueKeys(m map[string]fieldOrValue) []string {
 	return keys
 }
 
-// BindFormParam binds a form-style parameter without explode to a destination.
-// Form style is the default for query and cookie parameters.
-// This function handles a single query parameter value (not url.Values).
-// Arrays: a,b,c -> []string{"a", "b", "c"}
-// Objects: key1,value1,key2,value2 -> struct{Key1, Key2}
-func BindFormParam(paramName string, paramLocation ParamLocation, value string, dest any) error {
+// BindFormParam binds a form-style parameter from a single string value.
+// Used for path, header, and cookie parameters where the value has already
+// been extracted from the request.
+//
+// Non-explode (default for form):
+//
+//	Arrays:  a,b,c -> []string{"a", "b", "c"}
+//	Objects: key1,value1,key2,value2 -> struct{Key1, Key2}
+//
+// Explode:
+//
+//	Primitives and arrays: same comma-separated format
+//	Objects: key1=value1,key2=value2 -> struct{Key1, Key2}
+func BindFormParam(paramName string, value string, dest any, opts ParameterOptions) error {
 	if value == "" {
 		return fmt.Errorf("parameter '%s' is empty, can't bind its value", paramName)
 	}
 
-	// Unescape based on location
 	var err error
-	value, err = unescapeParameterString(value, paramLocation)
+	value, err = unescapeParameterString(value, opts.ParamLocation)
 	if err != nil {
 		return fmt.Errorf("error unescaping parameter '%s': %w", paramName, err)
 	}
 
-	// Check for TextUnmarshaler
 	if tu, ok := dest.(encoding.TextUnmarshaler); ok {
 		return tu.UnmarshalText([]byte(value))
 	}
@@ -317,7 +319,7 @@ func BindFormParam(paramName string, paramLocation ParamLocation, value string, 
 	switch t.Kind() {
 	case reflect.Struct:
 		parts := strings.Split(value, ",")
-		return bindSplitPartsToDestinationStruct(paramName, parts, false, dest)
+		return bindSplitPartsToDestinationStruct(paramName, parts, opts.Explode, dest)
 	case reflect.Slice:
 		parts := strings.Split(value, ",")
 		return bindSplitPartsToDestinationArray(parts, dest)
@@ -326,20 +328,36 @@ func BindFormParam(paramName string, paramLocation ParamLocation, value string, 
 	}
 }
 
-// BindFormExplodeParam binds a form-style parameter with explode to a destination.
-// Form style is the default for query and cookie parameters.
-// This handles the exploded case where arrays come as multiple query params.
-// Arrays: ?param=a&param=b -> []string{"a", "b"} (values passed as slice)
-// Objects: ?key1=value1&key2=value2 -> struct{Key1, Key2} (queryParams passed)
-func BindFormExplodeParam(paramName string, required bool, queryParams url.Values, dest any) error {
+// BindFormQueryParam binds a form-style query parameter from url.Values.
+// The function looks up the parameter by name and handles both exploded
+// and non-exploded formats.
+//
+// Non-explode: ?param=a,b,c (single query key, comma-separated value)
+// Explode:     ?param=a&param=b&param=c (multiple query keys)
+func BindFormQueryParam(paramName string, queryParams url.Values, dest any, opts ParameterOptions) error {
+	if opts.Explode {
+		return bindFormExplodeQuery(paramName, queryParams, dest, opts)
+	}
+	// Non-explode: single value, comma-separated
+	value := queryParams.Get(paramName)
+	if value == "" {
+		if opts.Required {
+			return fmt.Errorf("query parameter '%s' is required", paramName)
+		}
+		return nil
+	}
+	return BindFormParam(paramName, value, dest, opts)
+}
+
+// bindFormExplodeQuery handles the exploded form-style query parameter case.
+func bindFormExplodeQuery(paramName string, queryParams url.Values, dest any, opts ParameterOptions) error {
 	dv := reflect.Indirect(reflect.ValueOf(dest))
 	v := dv
 	var output any
 
-	if required {
+	if opts.Required {
 		output = dest
 	} else {
-		// For optional parameters, allocate if nil
 		if v.IsNil() {
 			t := v.Type()
 			newValue := reflect.New(t.Elem())
@@ -358,7 +376,7 @@ func BindFormExplodeParam(paramName string, required bool, queryParams url.Value
 	switch k {
 	case reflect.Slice:
 		if !found {
-			if required {
+			if opts.Required {
 				return fmt.Errorf("query parameter '%s' is required", paramName)
 			}
 			return nil
@@ -368,7 +386,6 @@ func BindFormExplodeParam(paramName string, required bool, queryParams url.Value
 			return err
 		}
 	case reflect.Struct:
-		// For exploded objects, fields are spread across query params
 		fieldsPresent, err := bindParamsToExplodedObject(paramName, queryParams, output)
 		if err != nil {
 			return err
@@ -377,9 +394,8 @@ func BindFormExplodeParam(paramName string, required bool, queryParams url.Value
 			return nil
 		}
 	default:
-		// Primitive
 		if len(values) == 0 {
-			if required {
+			if opts.Required {
 				return fmt.Errorf("query parameter '%s' is required", paramName)
 			}
 			return nil
@@ -388,7 +404,7 @@ func BindFormExplodeParam(paramName string, required bool, queryParams url.Value
 			return fmt.Errorf("multiple values for single value parameter '%s'", paramName)
 		}
 		if !found {
-			if required {
+			if opts.Required {
 				return fmt.Errorf("query parameter '%s' is required", paramName)
 			}
 			return nil
@@ -399,7 +415,7 @@ func BindFormExplodeParam(paramName string, required bool, queryParams url.Value
 		}
 	}
 
-	if !required {
+	if !opts.Required {
 		dv.Set(reflect.ValueOf(output))
 	}
 	return nil
@@ -460,7 +476,6 @@ func indirectBinder(dest any) (any, reflect.Value, reflect.Type) {
 	}
 	v = reflect.Indirect(v)
 	t := v.Type()
-	// Handle special types like time.Time and Date
 	if t.ConvertibleTo(reflect.TypeOf(time.Time{})) {
 		return dest, reflect.Value{}, nil
 	}
@@ -470,74 +485,31 @@ func indirectBinder(dest any) (any, reflect.Value, reflect.Type) {
 	return nil, v, t
 }
 
-// BindLabelParam binds a label-style parameter without explode to a destination.
-// Label style values are prefixed with a dot.
-// Primitives: .value -> "value"
-// Arrays: .a,b,c -> []string{"a", "b", "c"}
-// Objects: .key1,value1,key2,value2 -> struct{Key1, Key2}
-func BindLabelParam(paramName string, paramLocation ParamLocation, value string, dest any) error {
+// BindLabelParam binds a label-style parameter to a destination.
+// Label style values are prefixed with a dot. Path parameters only.
+//
+// Non-explode:
+//
+//	Primitives: .value          Arrays: .a,b,c          Objects: .key1,value1,key2,value2
+//
+// Explode:
+//
+//	Primitives: .value          Arrays: .a.b.c          Objects: .key1=value1.key2=value2
+func BindLabelParam(paramName string, value string, dest any, opts ParameterOptions) error {
 	if value == "" {
 		return fmt.Errorf("parameter '%s' is empty, can't bind its value", paramName)
 	}
 
-	// Unescape based on location
 	var err error
-	value, err = unescapeParameterString(value, paramLocation)
+	value, err = unescapeParameterString(value, opts.ParamLocation)
 	if err != nil {
 		return fmt.Errorf("error unescaping parameter '%s': %w", paramName, err)
 	}
 
-	// Label style requires leading dot
 	if value[0] != '.' {
 		return fmt.Errorf("invalid format for label parameter '%s', should start with '.'", paramName)
 	}
 
-	// Strip the leading dot and split on comma
-	stripped := value[1:]
-
-	// Check for TextUnmarshaler
-	if tu, ok := dest.(encoding.TextUnmarshaler); ok {
-		return tu.UnmarshalText([]byte(stripped))
-	}
-
-	v := reflect.Indirect(reflect.ValueOf(dest))
-	t := v.Type()
-
-	switch t.Kind() {
-	case reflect.Struct:
-		parts := strings.Split(stripped, ",")
-		return bindSplitPartsToDestinationStruct(paramName, parts, false, dest)
-	case reflect.Slice:
-		parts := strings.Split(stripped, ",")
-		return bindSplitPartsToDestinationArray(parts, dest)
-	default:
-		return BindStringToObject(stripped, dest)
-	}
-}
-
-// BindLabelExplodeParam binds a label-style parameter with explode to a destination.
-// Label style values are prefixed with a dot.
-// Primitives: .value -> "value"
-// Arrays: .a.b.c -> []string{"a", "b", "c"}
-// Objects: .key1=value1.key2=value2 -> struct{Key1, Key2}
-func BindLabelExplodeParam(paramName string, paramLocation ParamLocation, value string, dest any) error {
-	if value == "" {
-		return fmt.Errorf("parameter '%s' is empty, can't bind its value", paramName)
-	}
-
-	// Unescape based on location
-	var err error
-	value, err = unescapeParameterString(value, paramLocation)
-	if err != nil {
-		return fmt.Errorf("error unescaping parameter '%s': %w", paramName, err)
-	}
-
-	// Label style requires leading dot
-	if value[0] != '.' {
-		return fmt.Errorf("invalid format for label parameter '%s', should start with '.'", paramName)
-	}
-
-	// Check for TextUnmarshaler
 	if tu, ok := dest.(encoding.TextUnmarshaler); ok {
 		return tu.UnmarshalText([]byte(value[1:]))
 	}
@@ -545,53 +517,77 @@ func BindLabelExplodeParam(paramName string, paramLocation ParamLocation, value 
 	v := reflect.Indirect(reflect.ValueOf(dest))
 	t := v.Type()
 
+	if opts.Explode {
+		// Explode: split on dot, skip first empty part
+		parts := strings.Split(value, ".")
+		if parts[0] != "" {
+			return fmt.Errorf("invalid format for label parameter '%s', should start with '.'", paramName)
+		}
+		parts = parts[1:]
+
+		switch t.Kind() {
+		case reflect.Struct:
+			return bindSplitPartsToDestinationStruct(paramName, parts, true, dest)
+		case reflect.Slice:
+			return bindSplitPartsToDestinationArray(parts, dest)
+		default:
+			return BindStringToObject(value[1:], dest)
+		}
+	}
+
+	// Non-explode: strip leading dot, split on comma
+	stripped := value[1:]
+
 	switch t.Kind() {
 	case reflect.Struct:
-		// Split on dot (skip first empty part)
-		parts := strings.Split(value, ".")
-		if parts[0] != "" {
-			return fmt.Errorf("invalid format for label parameter '%s', should start with '.'", paramName)
-		}
-		return bindSplitPartsToDestinationStruct(paramName, parts[1:], true, dest)
+		parts := strings.Split(stripped, ",")
+		return bindSplitPartsToDestinationStruct(paramName, parts, false, dest)
 	case reflect.Slice:
-		// Split on dot (skip first empty part)
-		parts := strings.Split(value, ".")
-		if parts[0] != "" {
-			return fmt.Errorf("invalid format for label parameter '%s', should start with '.'", paramName)
-		}
-		return bindSplitPartsToDestinationArray(parts[1:], dest)
+		parts := strings.Split(stripped, ",")
+		return bindSplitPartsToDestinationArray(parts, dest)
 	default:
-		return BindStringToObject(value[1:], dest)
+		return BindStringToObject(stripped, dest)
 	}
 }
 
-// BindMatrixParam binds a matrix-style parameter without explode to a destination.
-// Matrix style values are prefixed with ;paramName=.
-// Primitives: ;paramName=value -> "value"
-// Arrays: ;paramName=a,b,c -> []string{"a", "b", "c"}
-// Objects: ;paramName=key1,value1,key2,value2 -> struct{Key1, Key2}
-func BindMatrixParam(paramName string, paramLocation ParamLocation, value string, dest any) error {
+// BindMatrixParam binds a matrix-style parameter to a destination.
+// Matrix style values are prefixed with semicolons. Path parameters only.
+//
+// Non-explode:
+//
+//	Primitives: ;paramName=value
+//	Arrays:     ;paramName=a,b,c
+//	Objects:    ;paramName=key1,value1,key2,value2
+//
+// Explode:
+//
+//	Primitives: ;paramName=value
+//	Arrays:     ;paramName=a;paramName=b;paramName=c
+//	Objects:    ;key1=value1;key2=value2
+func BindMatrixParam(paramName string, value string, dest any, opts ParameterOptions) error {
 	if value == "" {
 		return fmt.Errorf("parameter '%s' is empty, can't bind its value", paramName)
 	}
 
-	// Unescape based on location
 	var err error
-	value, err = unescapeParameterString(value, paramLocation)
+	value, err = unescapeParameterString(value, opts.ParamLocation)
 	if err != nil {
 		return fmt.Errorf("error unescaping parameter '%s': %w", paramName, err)
 	}
 
-	// Matrix style requires ;paramName= prefix
+	if opts.Explode {
+		return bindMatrixExplode(paramName, value, dest)
+	}
+	return bindMatrixNoExplode(paramName, value, dest)
+}
+
+func bindMatrixNoExplode(paramName string, value string, dest any) error {
 	prefix := ";" + paramName + "="
 	if !strings.HasPrefix(value, prefix) {
 		return fmt.Errorf("expected parameter '%s' to start with %s", paramName, prefix)
 	}
-
-	// Strip the prefix
 	stripped := strings.TrimPrefix(value, prefix)
 
-	// Check for TextUnmarshaler
 	if tu, ok := dest.(encoding.TextUnmarshaler); ok {
 		return tu.UnmarshalText([]byte(stripped))
 	}
@@ -611,34 +607,14 @@ func BindMatrixParam(paramName string, paramLocation ParamLocation, value string
 	}
 }
 
-// BindMatrixExplodeParam binds a matrix-style parameter with explode to a destination.
-// Matrix style values are prefixed with semicolons.
-// Primitives: ;paramName=value -> "value"
-// Arrays: ;paramName=a;paramName=b;paramName=c -> []string{"a", "b", "c"}
-// Objects: ;key1=value1;key2=value2 -> struct{Key1, Key2}
-func BindMatrixExplodeParam(paramName string, paramLocation ParamLocation, value string, dest any) error {
-	if value == "" {
-		return fmt.Errorf("parameter '%s' is empty, can't bind its value", paramName)
-	}
-
-	// Unescape based on location
-	var err error
-	value, err = unescapeParameterString(value, paramLocation)
-	if err != nil {
-		return fmt.Errorf("error unescaping parameter '%s': %w", paramName, err)
-	}
-
-	// Break up on semicolon
+func bindMatrixExplode(paramName string, value string, dest any) error {
 	parts := strings.Split(value, ";")
-	// First part should be empty since we start with ;
 	if parts[0] != "" {
 		return fmt.Errorf("invalid format for matrix parameter '%s', should start with ';'", paramName)
 	}
 	parts = parts[1:]
 
-	// Check for TextUnmarshaler
 	if tu, ok := dest.(encoding.TextUnmarshaler); ok {
-		// For primitives, should be ;paramName=value
 		if len(parts) == 1 {
 			kv := strings.SplitN(parts[0], "=", 2)
 			if len(kv) == 2 && kv[0] == paramName {
@@ -653,10 +629,8 @@ func BindMatrixExplodeParam(paramName string, paramLocation ParamLocation, value
 
 	switch t.Kind() {
 	case reflect.Struct:
-		// For objects, we have key1=value1, key2=value2
 		return bindSplitPartsToDestinationStruct(paramName, parts, true, dest)
 	case reflect.Slice:
-		// For arrays, strip paramName= prefix from each part
 		prefix := paramName + "="
 		values := make([]string, len(parts))
 		for i, part := range parts {
@@ -664,7 +638,6 @@ func BindMatrixExplodeParam(paramName string, paramLocation ParamLocation, value
 		}
 		return bindSplitPartsToDestinationArray(values, dest)
 	default:
-		// Primitive: ;paramName=value
 		if len(parts) == 1 {
 			kv := strings.SplitN(parts[0], "=", 2)
 			if len(kv) == 2 && kv[0] == paramName {
@@ -675,22 +648,31 @@ func BindMatrixExplodeParam(paramName string, paramLocation ParamLocation, value
 	}
 }
 
-// BindPipeDelimitedParam binds a pipeDelimited-style parameter without explode.
-// Pipe-delimited style uses pipe as the separator.
-// Arrays: a|b|c -> []string{"a", "b", "c"}
-func BindPipeDelimitedParam(paramName string, paramLocation ParamLocation, value string, dest any) error {
-	if value == "" {
-		return fmt.Errorf("parameter '%s' is empty, can't bind its value", paramName)
+// BindPipeDelimitedQueryParam binds a pipeDelimited-style query parameter.
+// Pipe-delimited style uses pipes as array separators. Query only.
+//
+// Non-explode: ?param=a|b|c -> []string{"a", "b", "c"}
+// Explode:     ?param=a&param=b -> []string{"a", "b"} (same as form explode)
+func BindPipeDelimitedQueryParam(paramName string, queryParams url.Values, dest any, opts ParameterOptions) error {
+	if opts.Explode {
+		// Exploded pipe-delimited is same as exploded form
+		return BindFormQueryParam(paramName, queryParams, dest, opts)
 	}
 
-	// Unescape based on location
+	value := queryParams.Get(paramName)
+	if value == "" {
+		if opts.Required {
+			return fmt.Errorf("query parameter '%s' is required", paramName)
+		}
+		return nil
+	}
+
 	var err error
-	value, err = unescapeParameterString(value, paramLocation)
+	value, err = unescapeParameterString(value, opts.ParamLocation)
 	if err != nil {
 		return fmt.Errorf("error unescaping parameter '%s': %w", paramName, err)
 	}
 
-	// Check for TextUnmarshaler
 	if tu, ok := dest.(encoding.TextUnmarshaler); ok {
 		return tu.UnmarshalText([]byte(value))
 	}
@@ -707,31 +689,23 @@ func BindPipeDelimitedParam(paramName string, paramLocation ParamLocation, value
 	}
 }
 
-// BindPipeDelimitedExplodeParam binds a pipeDelimited-style parameter with explode.
-// When exploded, arrays come as multiple query params (same as form explode).
-// Arrays: ?param=a&param=b -> []string{"a", "b"}
-func BindPipeDelimitedExplodeParam(paramName string, required bool, queryParams url.Values, dest any) error {
-	// Exploded pipe-delimited is same as exploded form
-	return BindFormExplodeParam(paramName, required, queryParams, dest)
-}
-
-// BindSimpleParam binds a simple-style parameter without explode to a destination.
+// BindSimpleParam binds a simple-style parameter to a destination.
 // Simple style is the default for path and header parameters.
-// Arrays: a,b,c -> []string{"a", "b", "c"}
-// Objects: key1,value1,key2,value2 -> struct{Key1, Key2}
-func BindSimpleParam(paramName string, paramLocation ParamLocation, value string, dest any) error {
+// Only used as a single-value entry point (no query variant needed).
+//
+// Non-explode: Arrays: a,b,c  Objects: key1,value1,key2,value2
+// Explode:     Arrays: a,b,c  Objects: key1=value1,key2=value2
+func BindSimpleParam(paramName string, value string, dest any, opts ParameterOptions) error {
 	if value == "" {
 		return fmt.Errorf("parameter '%s' is empty, can't bind its value", paramName)
 	}
 
-	// Unescape based on location
 	var err error
-	value, err = unescapeParameterString(value, paramLocation)
+	value, err = unescapeParameterString(value, opts.ParamLocation)
 	if err != nil {
 		return fmt.Errorf("error unescaping parameter '%s': %w", paramName, err)
 	}
 
-	// Check for TextUnmarshaler
 	if tu, ok := dest.(encoding.TextUnmarshaler); ok {
 		return tu.UnmarshalText([]byte(value))
 	}
@@ -741,9 +715,8 @@ func BindSimpleParam(paramName string, paramLocation ParamLocation, value string
 
 	switch t.Kind() {
 	case reflect.Struct:
-		// Split on comma and bind as key,value pairs
 		parts := strings.Split(value, ",")
-		return bindSplitPartsToDestinationStruct(paramName, parts, false, dest)
+		return bindSplitPartsToDestinationStruct(paramName, parts, opts.Explode, dest)
 	case reflect.Slice:
 		parts := strings.Split(value, ",")
 		return bindSplitPartsToDestinationArray(parts, dest)
@@ -752,59 +725,31 @@ func BindSimpleParam(paramName string, paramLocation ParamLocation, value string
 	}
 }
 
-// BindSimpleExplodeParam binds a simple-style parameter with explode to a destination.
-// Simple style is the default for path and header parameters.
-// Arrays: a,b,c -> []string{"a", "b", "c"} (same as non-explode)
-// Objects: key1=value1,key2=value2 -> struct{Key1, Key2}
-func BindSimpleExplodeParam(paramName string, paramLocation ParamLocation, value string, dest any) error {
-	if value == "" {
-		return fmt.Errorf("parameter '%s' is empty, can't bind its value", paramName)
+// BindSpaceDelimitedQueryParam binds a spaceDelimited-style query parameter.
+// Space-delimited style uses spaces as array separators. Query only.
+//
+// Non-explode: ?param=a%20b%20c -> []string{"a", "b", "c"}
+// Explode:     ?param=a&param=b -> []string{"a", "b"} (same as form explode)
+func BindSpaceDelimitedQueryParam(paramName string, queryParams url.Values, dest any, opts ParameterOptions) error {
+	if opts.Explode {
+		// Exploded space-delimited is same as exploded form
+		return BindFormQueryParam(paramName, queryParams, dest, opts)
 	}
 
-	// Unescape based on location
+	value := queryParams.Get(paramName)
+	if value == "" {
+		if opts.Required {
+			return fmt.Errorf("query parameter '%s' is required", paramName)
+		}
+		return nil
+	}
+
 	var err error
-	value, err = unescapeParameterString(value, paramLocation)
+	value, err = unescapeParameterString(value, opts.ParamLocation)
 	if err != nil {
 		return fmt.Errorf("error unescaping parameter '%s': %w", paramName, err)
 	}
 
-	// Check for TextUnmarshaler
-	if tu, ok := dest.(encoding.TextUnmarshaler); ok {
-		return tu.UnmarshalText([]byte(value))
-	}
-
-	v := reflect.Indirect(reflect.ValueOf(dest))
-	t := v.Type()
-
-	switch t.Kind() {
-	case reflect.Struct:
-		// Split on comma and bind as key=value pairs
-		parts := strings.Split(value, ",")
-		return bindSplitPartsToDestinationStruct(paramName, parts, true, dest)
-	case reflect.Slice:
-		parts := strings.Split(value, ",")
-		return bindSplitPartsToDestinationArray(parts, dest)
-	default:
-		return BindStringToObject(value, dest)
-	}
-}
-
-// BindSpaceDelimitedParam binds a spaceDelimited-style parameter without explode.
-// Space-delimited style uses space as the separator.
-// Arrays: a b c -> []string{"a", "b", "c"}
-func BindSpaceDelimitedParam(paramName string, paramLocation ParamLocation, value string, dest any) error {
-	if value == "" {
-		return fmt.Errorf("parameter '%s' is empty, can't bind its value", paramName)
-	}
-
-	// Unescape based on location
-	var err error
-	value, err = unescapeParameterString(value, paramLocation)
-	if err != nil {
-		return fmt.Errorf("error unescaping parameter '%s': %w", paramName, err)
-	}
-
-	// Check for TextUnmarshaler
 	if tu, ok := dest.(encoding.TextUnmarshaler); ok {
 		return tu.UnmarshalText([]byte(value))
 	}
@@ -819,14 +764,6 @@ func BindSpaceDelimitedParam(paramName string, paramLocation ParamLocation, valu
 	default:
 		return BindStringToObject(value, dest)
 	}
-}
-
-// BindSpaceDelimitedExplodeParam binds a spaceDelimited-style parameter with explode.
-// When exploded, arrays come as multiple query params (same as form explode).
-// Arrays: ?param=a&param=b -> []string{"a", "b"}
-func BindSpaceDelimitedExplodeParam(paramName string, required bool, queryParams url.Values, dest any) error {
-	// Exploded space-delimited is same as exploded form
-	return BindFormExplodeParam(paramName, required, queryParams, dest)
 }
 
 // ParamLocation indicates where a parameter is located in an HTTP request.
@@ -1091,11 +1028,22 @@ func structToFieldDict(value any) (map[string]string, error) {
 	return fieldDict, nil
 }
 
+// ParameterOptions carries OpenAPI parameter metadata to bind and style
+// functions so they can handle explode, required, type-aware coercions,
+// and location-aware escaping from a single uniform call site.
+type ParameterOptions struct {
+	ParamLocation ParamLocation
+	Explode       bool
+	Required      bool
+	Type          string // OpenAPI type: "string", "integer", "array", "object"
+	Format        string // OpenAPI format: "int32", "date-time", etc.
+}
+
 // StyleDeepObjectParam serializes a value using deepObject style.
 // DeepObject style is only valid for query parameters with object values and must be exploded.
 // Objects: paramName[key1]=value1&paramName[key2]=value2
 // Nested: paramName[outer][inner]=value
-func StyleDeepObjectParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+func StyleDeepObjectParam(paramName string, value any, opts ParameterOptions) (string, error) {
 	// deepObject always requires explode=true
 	return MarshalDeepObject(value, paramName)
 }
@@ -1164,16 +1112,15 @@ func marshalDeepObjectRecursive(in any, path []string) ([]string, error) {
 	return result, nil
 }
 
-// StyleFormParam serializes a value using form style (RFC 6570) without exploding.
+// StyleFormParam serializes a value using form style (RFC 6570).
 // Form style is the default for query and cookie parameters.
-// Primitives: paramName=value
-// Arrays: paramName=a,b,c
-// Objects: paramName=key1,value1,key2,value2
-func StyleFormParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+//
+// Non-explode: Primitives: paramName=value  Arrays: paramName=a,b,c  Objects: paramName=key1,value1,key2,value2
+// Explode:     Primitives: paramName=value  Arrays: paramName=a&paramName=b  Objects: key1=value1&key2=value2
+func StyleFormParam(paramName string, value any, opts ParameterOptions) (string, error) {
 	t := reflect.TypeOf(value)
 	v := reflect.ValueOf(value)
 
-	// Dereference pointers
 	if t.Kind() == reflect.Ptr {
 		if v.IsNil() {
 			return "", fmt.Errorf("value is a nil pointer")
@@ -1182,7 +1129,6 @@ func StyleFormParam(paramName string, paramLocation ParamLocation, value any) (s
 		t = v.Type()
 	}
 
-	// Check for TextMarshaler (but not time.Time or Date)
 	if tu, ok := value.(encoding.TextMarshaler); ok {
 		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
 		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(types.Date{})) {
@@ -1190,7 +1136,7 @@ func StyleFormParam(paramName string, paramLocation ParamLocation, value any) (s
 			if err != nil {
 				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
 			}
-			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), paramLocation)), nil
+			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), opts.ParamLocation)), nil
 		}
 	}
 
@@ -1201,26 +1147,25 @@ func StyleFormParam(paramName string, paramLocation ParamLocation, value any) (s
 		for i := 0; i < n; i++ {
 			sliceVal[i] = v.Index(i).Interface()
 		}
-		return styleFormSlice(paramName, paramLocation, sliceVal)
+		return styleFormSlice(paramName, opts, sliceVal)
 	case reflect.Struct:
-		return styleFormStruct(paramName, paramLocation, value)
+		return styleFormStruct(paramName, opts, value)
 	case reflect.Map:
-		return styleFormMap(paramName, paramLocation, value)
+		return styleFormMap(paramName, opts, value)
 	default:
-		return styleFormPrimitive(paramName, paramLocation, value)
+		return styleFormPrimitive(paramName, opts, value)
 	}
 }
 
-func styleFormPrimitive(paramName string, paramLocation ParamLocation, value any) (string, error) {
+func styleFormPrimitive(paramName string, opts ParameterOptions, value any) (string, error) {
 	strVal, err := primitiveToString(value)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, paramLocation)), nil
+	return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, opts.ParamLocation)), nil
 }
 
-func styleFormSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Form without explode: paramName=a,b,c
+func styleFormSlice(paramName string, opts ParameterOptions, values []any) (string, error) {
 	prefix := fmt.Sprintf("%s=", paramName)
 	parts := make([]string, len(values))
 	for i, v := range values {
@@ -1228,18 +1173,21 @@ func styleFormSlice(paramName string, paramLocation ParamLocation, values []any)
 		if err != nil {
 			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
 		}
-		parts[i] = escapeParameterString(part, paramLocation)
+		parts[i] = escapeParameterString(part, opts.ParamLocation)
 	}
+	if opts.Explode {
+		// paramName=a&paramName=b&paramName=c
+		return prefix + strings.Join(parts, "&"+prefix), nil
+	}
+	// paramName=a,b,c
 	return prefix + strings.Join(parts, ","), nil
 }
 
-func styleFormStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	// Check for known types first
+func styleFormStruct(paramName string, opts ParameterOptions, value any) (string, error) {
 	if timeVal, ok := marshalKnownTypes(value); ok {
-		return fmt.Sprintf("%s=%s", paramName, escapeParameterString(timeVal, paramLocation)), nil
+		return fmt.Sprintf("%s=%s", paramName, escapeParameterString(timeVal, opts.ParamLocation)), nil
 	}
 
-	// Check for json.Marshaler
 	if m, ok := value.(json.Marshaler); ok {
 		buf, err := m.MarshalJSON()
 		if err != nil {
@@ -1251,26 +1199,35 @@ func styleFormStruct(paramName string, paramLocation ParamLocation, value any) (
 		if err = e.Decode(&i2); err != nil {
 			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
 		}
-		return StyleFormParam(paramName, paramLocation, i2)
+		return StyleFormParam(paramName, i2, opts)
 	}
 
-	// Build field dictionary
 	fieldDict, err := structToFieldDict(value)
 	if err != nil {
 		return "", err
 	}
 
-	// Form style without explode: paramName=key1,value1,key2,value2
+	if opts.Explode {
+		// key1=value1&key2=value2
+		var parts []string
+		for _, k := range sortedKeys(fieldDict) {
+			v := escapeParameterString(fieldDict[k], opts.ParamLocation)
+			parts = append(parts, k+"="+v)
+		}
+		return strings.Join(parts, "&"), nil
+	}
+
+	// paramName=key1,value1,key2,value2
 	prefix := fmt.Sprintf("%s=", paramName)
 	var parts []string
 	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
+		v := escapeParameterString(fieldDict[k], opts.ParamLocation)
 		parts = append(parts, k, v)
 	}
 	return prefix + strings.Join(parts, ","), nil
 }
 
-func styleFormMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
+func styleFormMap(paramName string, opts ParameterOptions, value any) (string, error) {
 	dict, ok := value.(map[string]any)
 	if !ok {
 		return "", errors.New("map not of type map[string]any")
@@ -1285,26 +1242,33 @@ func styleFormMap(paramName string, paramLocation ParamLocation, value any) (str
 		fieldDict[fieldName] = str
 	}
 
-	// Form style without explode: paramName=key1,value1,key2,value2
+	if opts.Explode {
+		var parts []string
+		for _, k := range sortedKeys(fieldDict) {
+			v := escapeParameterString(fieldDict[k], opts.ParamLocation)
+			parts = append(parts, k+"="+v)
+		}
+		return strings.Join(parts, "&"), nil
+	}
+
 	prefix := fmt.Sprintf("%s=", paramName)
 	var parts []string
 	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
+		v := escapeParameterString(fieldDict[k], opts.ParamLocation)
 		parts = append(parts, k, v)
 	}
 	return prefix + strings.Join(parts, ","), nil
 }
 
-// StyleFormExplodeParam serializes a value using form style (RFC 6570) with exploding.
-// Form style is the default for query and cookie parameters.
-// Primitives: paramName=value
-// Arrays: paramName=a&paramName=b&paramName=c
-// Objects: key1=value1&key2=value2
-func StyleFormExplodeParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+// StyleLabelParam serializes a value using label style (RFC 6570).
+// Label style prefixes values with a dot. Path parameters only.
+//
+// Non-explode: Primitives: .value  Arrays: .a,b,c          Objects: .key1,value1,key2,value2
+// Explode:     Primitives: .value  Arrays: .a.b.c          Objects: .key1=value1.key2=value2
+func StyleLabelParam(paramName string, value any, opts ParameterOptions) (string, error) {
 	t := reflect.TypeOf(value)
 	v := reflect.ValueOf(value)
 
-	// Dereference pointers
 	if t.Kind() == reflect.Ptr {
 		if v.IsNil() {
 			return "", fmt.Errorf("value is a nil pointer")
@@ -1313,7 +1277,6 @@ func StyleFormExplodeParam(paramName string, paramLocation ParamLocation, value 
 		t = v.Type()
 	}
 
-	// Check for TextMarshaler (but not time.Time or Date)
 	if tu, ok := value.(encoding.TextMarshaler); ok {
 		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
 		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(types.Date{})) {
@@ -1321,7 +1284,7 @@ func StyleFormExplodeParam(paramName string, paramLocation ParamLocation, value 
 			if err != nil {
 				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
 			}
-			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), paramLocation)), nil
+			return "." + escapeParameterString(string(b), opts.ParamLocation), nil
 		}
 	}
 
@@ -1332,45 +1295,41 @@ func StyleFormExplodeParam(paramName string, paramLocation ParamLocation, value 
 		for i := 0; i < n; i++ {
 			sliceVal[i] = v.Index(i).Interface()
 		}
-		return styleFormExplodeSlice(paramName, paramLocation, sliceVal)
+		return styleLabelSlice(paramName, opts, sliceVal)
 	case reflect.Struct:
-		return styleFormExplodeStruct(paramName, paramLocation, value)
+		return styleLabelStruct(paramName, opts, value)
 	case reflect.Map:
-		return styleFormExplodeMap(paramName, paramLocation, value)
+		return styleLabelMap(paramName, opts, value)
 	default:
-		return styleFormExplodePrimitive(paramName, paramLocation, value)
+		strVal, err := primitiveToString(value)
+		if err != nil {
+			return "", err
+		}
+		return "." + escapeParameterString(strVal, opts.ParamLocation), nil
 	}
 }
 
-func styleFormExplodePrimitive(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, paramLocation)), nil
-}
-
-func styleFormExplodeSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Form with explode: paramName=a&paramName=b&paramName=c
-	prefix := fmt.Sprintf("%s=", paramName)
+func styleLabelSlice(paramName string, opts ParameterOptions, values []any) (string, error) {
 	parts := make([]string, len(values))
 	for i, v := range values {
 		part, err := primitiveToString(v)
 		if err != nil {
 			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
 		}
-		parts[i] = escapeParameterString(part, paramLocation)
+		parts[i] = escapeParameterString(part, opts.ParamLocation)
 	}
-	return prefix + strings.Join(parts, "&"+prefix), nil
+	sep := ","
+	if opts.Explode {
+		sep = "."
+	}
+	return "." + strings.Join(parts, sep), nil
 }
 
-func styleFormExplodeStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	// Check for known types first
+func styleLabelStruct(paramName string, opts ParameterOptions, value any) (string, error) {
 	if timeVal, ok := marshalKnownTypes(value); ok {
-		return fmt.Sprintf("%s=%s", paramName, escapeParameterString(timeVal, paramLocation)), nil
+		return "." + escapeParameterString(timeVal, opts.ParamLocation), nil
 	}
 
-	// Check for json.Marshaler
 	if m, ok := value.(json.Marshaler); ok {
 		buf, err := m.MarshalJSON()
 		if err != nil {
@@ -1382,153 +1341,32 @@ func styleFormExplodeStruct(paramName string, paramLocation ParamLocation, value
 		if err = e.Decode(&i2); err != nil {
 			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
 		}
-		return StyleFormExplodeParam(paramName, paramLocation, i2)
+		return StyleLabelParam(paramName, i2, opts)
 	}
 
-	// Build field dictionary
 	fieldDict, err := structToFieldDict(value)
 	if err != nil {
 		return "", err
 	}
 
-	// Form style with explode: key1=value1&key2=value2
+	if opts.Explode {
+		var parts []string
+		for _, k := range sortedKeys(fieldDict) {
+			v := escapeParameterString(fieldDict[k], opts.ParamLocation)
+			parts = append(parts, k+"="+v)
+		}
+		return "." + strings.Join(parts, "."), nil
+	}
+
 	var parts []string
 	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k+"="+v)
-	}
-	return strings.Join(parts, "&"), nil
-}
-
-func styleFormExplodeMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	dict, ok := value.(map[string]any)
-	if !ok {
-		return "", errors.New("map not of type map[string]any")
-	}
-
-	fieldDict := make(map[string]string)
-	for fieldName, val := range dict {
-		str, err := primitiveToString(val)
-		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
-		}
-		fieldDict[fieldName] = str
-	}
-
-	// Form style with explode: key1=value1&key2=value2
-	var parts []string
-	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k+"="+v)
-	}
-	return strings.Join(parts, "&"), nil
-}
-
-// StyleLabelParam serializes a value using label style (RFC 6570) without exploding.
-// Label style prefixes values with a dot.
-// Primitives: .value
-// Arrays: .a,b,c
-// Objects: .key1,value1,key2,value2
-func StyleLabelParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	t := reflect.TypeOf(value)
-	v := reflect.ValueOf(value)
-
-	// Dereference pointers
-	if t.Kind() == reflect.Ptr {
-		if v.IsNil() {
-			return "", fmt.Errorf("value is a nil pointer")
-		}
-		v = reflect.Indirect(v)
-		t = v.Type()
-	}
-
-	// Check for TextMarshaler (but not time.Time or Date)
-	if tu, ok := value.(encoding.TextMarshaler); ok {
-		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
-		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(types.Date{})) {
-			b, err := tu.MarshalText()
-			if err != nil {
-				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
-			}
-			return "." + escapeParameterString(string(b), paramLocation), nil
-		}
-	}
-
-	switch t.Kind() {
-	case reflect.Slice:
-		n := v.Len()
-		sliceVal := make([]any, n)
-		for i := 0; i < n; i++ {
-			sliceVal[i] = v.Index(i).Interface()
-		}
-		return styleLabelSlice(paramName, paramLocation, sliceVal)
-	case reflect.Struct:
-		return styleLabelStruct(paramName, paramLocation, value)
-	case reflect.Map:
-		return styleLabelMap(paramName, paramLocation, value)
-	default:
-		return styleLabelPrimitive(paramLocation, value)
-	}
-}
-
-func styleLabelPrimitive(paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return "." + escapeParameterString(strVal, paramLocation), nil
-}
-
-func styleLabelSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Label without explode: .a,b,c
-	parts := make([]string, len(values))
-	for i, v := range values {
-		part, err := primitiveToString(v)
-		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
-		}
-		parts[i] = escapeParameterString(part, paramLocation)
-	}
-	return "." + strings.Join(parts, ","), nil
-}
-
-func styleLabelStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	// Check for known types first
-	if timeVal, ok := marshalKnownTypes(value); ok {
-		return "." + escapeParameterString(timeVal, paramLocation), nil
-	}
-
-	// Check for json.Marshaler
-	if m, ok := value.(json.Marshaler); ok {
-		buf, err := m.MarshalJSON()
-		if err != nil {
-			return "", fmt.Errorf("failed to marshal to JSON: %w", err)
-		}
-		var i2 any
-		e := json.NewDecoder(bytes.NewReader(buf))
-		e.UseNumber()
-		if err = e.Decode(&i2); err != nil {
-			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
-		}
-		return StyleLabelParam(paramName, paramLocation, i2)
-	}
-
-	// Build field dictionary
-	fieldDict, err := structToFieldDict(value)
-	if err != nil {
-		return "", err
-	}
-
-	// Label style without explode: .key1,value1,key2,value2
-	var parts []string
-	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
+		v := escapeParameterString(fieldDict[k], opts.ParamLocation)
 		parts = append(parts, k, v)
 	}
 	return "." + strings.Join(parts, ","), nil
 }
 
-func styleLabelMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
+func styleLabelMap(paramName string, opts ParameterOptions, value any) (string, error) {
 	dict, ok := value.(map[string]any)
 	if !ok {
 		return "", errors.New("map not of type map[string]any")
@@ -1543,25 +1381,32 @@ func styleLabelMap(paramName string, paramLocation ParamLocation, value any) (st
 		fieldDict[fieldName] = str
 	}
 
-	// Label style without explode: .key1,value1,key2,value2
+	if opts.Explode {
+		var parts []string
+		for _, k := range sortedKeys(fieldDict) {
+			v := escapeParameterString(fieldDict[k], opts.ParamLocation)
+			parts = append(parts, k+"="+v)
+		}
+		return "." + strings.Join(parts, "."), nil
+	}
+
 	var parts []string
 	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
+		v := escapeParameterString(fieldDict[k], opts.ParamLocation)
 		parts = append(parts, k, v)
 	}
 	return "." + strings.Join(parts, ","), nil
 }
 
-// StyleLabelExplodeParam serializes a value using label style (RFC 6570) with exploding.
-// Label style prefixes values with a dot.
-// Primitives: .value
-// Arrays: .a.b.c
-// Objects: .key1=value1.key2=value2
-func StyleLabelExplodeParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+// StyleMatrixParam serializes a value using matrix style (RFC 6570).
+// Matrix style prefixes values with ;paramName=. Path parameters only.
+//
+// Non-explode: Primitives: ;p=val   Arrays: ;p=a,b,c           Objects: ;p=k1,v1,k2,v2
+// Explode:     Primitives: ;p=val   Arrays: ;p=a;p=b;p=c       Objects: ;k1=v1;k2=v2
+func StyleMatrixParam(paramName string, value any, opts ParameterOptions) (string, error) {
 	t := reflect.TypeOf(value)
 	v := reflect.ValueOf(value)
 
-	// Dereference pointers
 	if t.Kind() == reflect.Ptr {
 		if v.IsNil() {
 			return "", fmt.Errorf("value is a nil pointer")
@@ -1570,7 +1415,6 @@ func StyleLabelExplodeParam(paramName string, paramLocation ParamLocation, value
 		t = v.Type()
 	}
 
-	// Check for TextMarshaler (but not time.Time or Date)
 	if tu, ok := value.(encoding.TextMarshaler); ok {
 		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
 		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(types.Date{})) {
@@ -1578,7 +1422,7 @@ func StyleLabelExplodeParam(paramName string, paramLocation ParamLocation, value
 			if err != nil {
 				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
 			}
-			return "." + escapeParameterString(string(b), paramLocation), nil
+			return fmt.Sprintf(";%s=%s", paramName, escapeParameterString(string(b), opts.ParamLocation)), nil
 		}
 	}
 
@@ -1589,154 +1433,21 @@ func StyleLabelExplodeParam(paramName string, paramLocation ParamLocation, value
 		for i := 0; i < n; i++ {
 			sliceVal[i] = v.Index(i).Interface()
 		}
-		return styleLabelExplodeSlice(paramName, paramLocation, sliceVal)
+		return styleMatrixSlice(paramName, opts, sliceVal)
 	case reflect.Struct:
-		return styleLabelExplodeStruct(paramName, paramLocation, value)
+		return styleMatrixStruct(paramName, opts, value)
 	case reflect.Map:
-		return styleLabelExplodeMap(paramName, paramLocation, value)
+		return styleMatrixMap(paramName, opts, value)
 	default:
-		return styleLabelExplodePrimitive(paramLocation, value)
-	}
-}
-
-func styleLabelExplodePrimitive(paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return "." + escapeParameterString(strVal, paramLocation), nil
-}
-
-func styleLabelExplodeSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Label with explode: .a.b.c
-	parts := make([]string, len(values))
-	for i, v := range values {
-		part, err := primitiveToString(v)
+		strVal, err := primitiveToString(value)
 		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
+			return "", err
 		}
-		parts[i] = escapeParameterString(part, paramLocation)
-	}
-	return "." + strings.Join(parts, "."), nil
-}
-
-func styleLabelExplodeStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	// Check for known types first
-	if timeVal, ok := marshalKnownTypes(value); ok {
-		return "." + escapeParameterString(timeVal, paramLocation), nil
-	}
-
-	// Check for json.Marshaler
-	if m, ok := value.(json.Marshaler); ok {
-		buf, err := m.MarshalJSON()
-		if err != nil {
-			return "", fmt.Errorf("failed to marshal to JSON: %w", err)
-		}
-		var i2 any
-		e := json.NewDecoder(bytes.NewReader(buf))
-		e.UseNumber()
-		if err = e.Decode(&i2); err != nil {
-			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
-		}
-		return StyleLabelExplodeParam(paramName, paramLocation, i2)
-	}
-
-	// Build field dictionary
-	fieldDict, err := structToFieldDict(value)
-	if err != nil {
-		return "", err
-	}
-
-	// Label style with explode: .key1=value1.key2=value2
-	var parts []string
-	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k+"="+v)
-	}
-	return "." + strings.Join(parts, "."), nil
-}
-
-func styleLabelExplodeMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	dict, ok := value.(map[string]any)
-	if !ok {
-		return "", errors.New("map not of type map[string]any")
-	}
-
-	fieldDict := make(map[string]string)
-	for fieldName, val := range dict {
-		str, err := primitiveToString(val)
-		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
-		}
-		fieldDict[fieldName] = str
-	}
-
-	// Label style with explode: .key1=value1.key2=value2
-	var parts []string
-	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k+"="+v)
-	}
-	return "." + strings.Join(parts, "."), nil
-}
-
-// StyleMatrixParam serializes a value using matrix style (RFC 6570) without exploding.
-// Matrix style prefixes values with ;paramName=.
-// Primitives: ;paramName=value
-// Arrays: ;paramName=a,b,c
-// Objects: ;paramName=key1,value1,key2,value2
-func StyleMatrixParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	t := reflect.TypeOf(value)
-	v := reflect.ValueOf(value)
-
-	// Dereference pointers
-	if t.Kind() == reflect.Ptr {
-		if v.IsNil() {
-			return "", fmt.Errorf("value is a nil pointer")
-		}
-		v = reflect.Indirect(v)
-		t = v.Type()
-	}
-
-	// Check for TextMarshaler (but not time.Time or Date)
-	if tu, ok := value.(encoding.TextMarshaler); ok {
-		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
-		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(types.Date{})) {
-			b, err := tu.MarshalText()
-			if err != nil {
-				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
-			}
-			return fmt.Sprintf(";%s=%s", paramName, escapeParameterString(string(b), paramLocation)), nil
-		}
-	}
-
-	switch t.Kind() {
-	case reflect.Slice:
-		n := v.Len()
-		sliceVal := make([]any, n)
-		for i := 0; i < n; i++ {
-			sliceVal[i] = v.Index(i).Interface()
-		}
-		return styleMatrixSlice(paramName, paramLocation, sliceVal)
-	case reflect.Struct:
-		return styleMatrixStruct(paramName, paramLocation, value)
-	case reflect.Map:
-		return styleMatrixMap(paramName, paramLocation, value)
-	default:
-		return styleMatrixPrimitive(paramName, paramLocation, value)
+		return fmt.Sprintf(";%s=%s", paramName, escapeParameterString(strVal, opts.ParamLocation)), nil
 	}
 }
 
-func styleMatrixPrimitive(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf(";%s=%s", paramName, escapeParameterString(strVal, paramLocation)), nil
-}
-
-func styleMatrixSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Matrix without explode: ;paramName=a,b,c
+func styleMatrixSlice(paramName string, opts ParameterOptions, values []any) (string, error) {
 	prefix := fmt.Sprintf(";%s=", paramName)
 	parts := make([]string, len(values))
 	for i, v := range values {
@@ -1744,18 +1455,21 @@ func styleMatrixSlice(paramName string, paramLocation ParamLocation, values []an
 		if err != nil {
 			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
 		}
-		parts[i] = escapeParameterString(part, paramLocation)
+		parts[i] = escapeParameterString(part, opts.ParamLocation)
 	}
+	if opts.Explode {
+		// ;paramName=a;paramName=b;paramName=c
+		return prefix + strings.Join(parts, prefix), nil
+	}
+	// ;paramName=a,b,c
 	return prefix + strings.Join(parts, ","), nil
 }
 
-func styleMatrixStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	// Check for known types first
+func styleMatrixStruct(paramName string, opts ParameterOptions, value any) (string, error) {
 	if timeVal, ok := marshalKnownTypes(value); ok {
-		return fmt.Sprintf(";%s=%s", paramName, escapeParameterString(timeVal, paramLocation)), nil
+		return fmt.Sprintf(";%s=%s", paramName, escapeParameterString(timeVal, opts.ParamLocation)), nil
 	}
 
-	// Check for json.Marshaler
 	if m, ok := value.(json.Marshaler); ok {
 		buf, err := m.MarshalJSON()
 		if err != nil {
@@ -1767,26 +1481,35 @@ func styleMatrixStruct(paramName string, paramLocation ParamLocation, value any)
 		if err = e.Decode(&i2); err != nil {
 			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
 		}
-		return StyleMatrixParam(paramName, paramLocation, i2)
+		return StyleMatrixParam(paramName, i2, opts)
 	}
 
-	// Build field dictionary
 	fieldDict, err := structToFieldDict(value)
 	if err != nil {
 		return "", err
 	}
 
-	// Matrix style without explode: ;paramName=key1,value1,key2,value2
+	if opts.Explode {
+		// ;key1=value1;key2=value2
+		var parts []string
+		for _, k := range sortedKeys(fieldDict) {
+			v := escapeParameterString(fieldDict[k], opts.ParamLocation)
+			parts = append(parts, k+"="+v)
+		}
+		return ";" + strings.Join(parts, ";"), nil
+	}
+
+	// ;paramName=key1,value1,key2,value2
 	prefix := fmt.Sprintf(";%s=", paramName)
 	var parts []string
 	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
+		v := escapeParameterString(fieldDict[k], opts.ParamLocation)
 		parts = append(parts, k, v)
 	}
 	return prefix + strings.Join(parts, ","), nil
 }
 
-func styleMatrixMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
+func styleMatrixMap(paramName string, opts ParameterOptions, value any) (string, error) {
 	dict, ok := value.(map[string]any)
 	if !ok {
 		return "", errors.New("map not of type map[string]any")
@@ -1801,154 +1524,33 @@ func styleMatrixMap(paramName string, paramLocation ParamLocation, value any) (s
 		fieldDict[fieldName] = str
 	}
 
-	// Matrix style without explode: ;paramName=key1,value1,key2,value2
+	if opts.Explode {
+		var parts []string
+		for _, k := range sortedKeys(fieldDict) {
+			v := escapeParameterString(fieldDict[k], opts.ParamLocation)
+			parts = append(parts, k+"="+v)
+		}
+		return ";" + strings.Join(parts, ";"), nil
+	}
+
 	prefix := fmt.Sprintf(";%s=", paramName)
 	var parts []string
 	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
+		v := escapeParameterString(fieldDict[k], opts.ParamLocation)
 		parts = append(parts, k, v)
 	}
 	return prefix + strings.Join(parts, ","), nil
 }
 
-// StyleMatrixExplodeParam serializes a value using matrix style (RFC 6570) with exploding.
-// Matrix style prefixes values with ;paramName=.
-// Primitives: ;paramName=value
-// Arrays: ;paramName=a;paramName=b;paramName=c
-// Objects: ;key1=value1;key2=value2
-func StyleMatrixExplodeParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	t := reflect.TypeOf(value)
-	v := reflect.ValueOf(value)
-
-	// Dereference pointers
-	if t.Kind() == reflect.Ptr {
-		if v.IsNil() {
-			return "", fmt.Errorf("value is a nil pointer")
-		}
-		v = reflect.Indirect(v)
-		t = v.Type()
-	}
-
-	// Check for TextMarshaler (but not time.Time or Date)
-	if tu, ok := value.(encoding.TextMarshaler); ok {
-		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
-		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(types.Date{})) {
-			b, err := tu.MarshalText()
-			if err != nil {
-				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
-			}
-			return fmt.Sprintf(";%s=%s", paramName, escapeParameterString(string(b), paramLocation)), nil
-		}
-	}
-
-	switch t.Kind() {
-	case reflect.Slice:
-		n := v.Len()
-		sliceVal := make([]any, n)
-		for i := 0; i < n; i++ {
-			sliceVal[i] = v.Index(i).Interface()
-		}
-		return styleMatrixExplodeSlice(paramName, paramLocation, sliceVal)
-	case reflect.Struct:
-		return styleMatrixExplodeStruct(paramName, paramLocation, value)
-	case reflect.Map:
-		return styleMatrixExplodeMap(paramName, paramLocation, value)
-	default:
-		return styleMatrixExplodePrimitive(paramName, paramLocation, value)
-	}
-}
-
-func styleMatrixExplodePrimitive(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf(";%s=%s", paramName, escapeParameterString(strVal, paramLocation)), nil
-}
-
-func styleMatrixExplodeSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Matrix with explode: ;paramName=a;paramName=b;paramName=c
-	prefix := fmt.Sprintf(";%s=", paramName)
-	parts := make([]string, len(values))
-	for i, v := range values {
-		part, err := primitiveToString(v)
-		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
-		}
-		parts[i] = escapeParameterString(part, paramLocation)
-	}
-	return prefix + strings.Join(parts, prefix), nil
-}
-
-func styleMatrixExplodeStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	// Check for known types first
-	if timeVal, ok := marshalKnownTypes(value); ok {
-		return fmt.Sprintf(";%s=%s", paramName, escapeParameterString(timeVal, paramLocation)), nil
-	}
-
-	// Check for json.Marshaler
-	if m, ok := value.(json.Marshaler); ok {
-		buf, err := m.MarshalJSON()
-		if err != nil {
-			return "", fmt.Errorf("failed to marshal to JSON: %w", err)
-		}
-		var i2 any
-		e := json.NewDecoder(bytes.NewReader(buf))
-		e.UseNumber()
-		if err = e.Decode(&i2); err != nil {
-			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
-		}
-		return StyleMatrixExplodeParam(paramName, paramLocation, i2)
-	}
-
-	// Build field dictionary
-	fieldDict, err := structToFieldDict(value)
-	if err != nil {
-		return "", err
-	}
-
-	// Matrix style with explode: ;key1=value1;key2=value2
-	var parts []string
-	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k+"="+v)
-	}
-	return ";" + strings.Join(parts, ";"), nil
-}
-
-func styleMatrixExplodeMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	dict, ok := value.(map[string]any)
-	if !ok {
-		return "", errors.New("map not of type map[string]any")
-	}
-
-	fieldDict := make(map[string]string)
-	for fieldName, val := range dict {
-		str, err := primitiveToString(val)
-		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
-		}
-		fieldDict[fieldName] = str
-	}
-
-	// Matrix style with explode: ;key1=value1;key2=value2
-	var parts []string
-	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k+"="+v)
-	}
-	return ";" + strings.Join(parts, ";"), nil
-}
-
-// StylePipeDelimitedParam serializes a value using pipeDelimited style without exploding.
+// StylePipeDelimitedParam serializes a value using pipeDelimited style.
 // Pipe-delimited style is used for query parameters with array values.
-// Arrays: paramName=a|b|c
-// Note: Only valid for arrays; objects should use other styles.
-func StylePipeDelimitedParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+//
+// Non-explode: paramName=a|b|c
+// Explode:     paramName=a&paramName=b&paramName=c
+func StylePipeDelimitedParam(paramName string, value any, opts ParameterOptions) (string, error) {
 	t := reflect.TypeOf(value)
 	v := reflect.ValueOf(value)
 
-	// Dereference pointers
 	if t.Kind() == reflect.Ptr {
 		if v.IsNil() {
 			return "", fmt.Errorf("value is a nil pointer")
@@ -1957,7 +1559,6 @@ func StylePipeDelimitedParam(paramName string, paramLocation ParamLocation, valu
 		t = v.Type()
 	}
 
-	// Check for TextMarshaler (but not time.Time or Date)
 	if tu, ok := value.(encoding.TextMarshaler); ok {
 		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
 		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(types.Date{})) {
@@ -1965,7 +1566,7 @@ func StylePipeDelimitedParam(paramName string, paramLocation ParamLocation, valu
 			if err != nil {
 				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
 			}
-			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), paramLocation)), nil
+			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), opts.ParamLocation)), nil
 		}
 	}
 
@@ -1976,109 +1577,37 @@ func StylePipeDelimitedParam(paramName string, paramLocation ParamLocation, valu
 		for i := 0; i < n; i++ {
 			sliceVal[i] = v.Index(i).Interface()
 		}
-		return stylePipeDelimitedSlice(paramName, paramLocation, sliceVal)
-	default:
-		// For primitives, fall back to form style
-		return stylePipeDelimitedPrimitive(paramName, paramLocation, value)
-	}
-}
-
-func stylePipeDelimitedPrimitive(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, paramLocation)), nil
-}
-
-func stylePipeDelimitedSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Pipe-delimited without explode: paramName=a|b|c
-	prefix := fmt.Sprintf("%s=", paramName)
-	parts := make([]string, len(values))
-	for i, v := range values {
-		part, err := primitiveToString(v)
-		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
-		}
-		parts[i] = escapeParameterString(part, paramLocation)
-	}
-	return prefix + strings.Join(parts, "|"), nil
-}
-
-// StylePipeDelimitedExplodeParam serializes a value using pipeDelimited style with exploding.
-// Pipe-delimited style is used for query parameters with array values.
-// Arrays: paramName=a&paramName=b&paramName=c (same as form explode)
-// Note: Only valid for arrays; objects should use other styles.
-func StylePipeDelimitedExplodeParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	t := reflect.TypeOf(value)
-	v := reflect.ValueOf(value)
-
-	// Dereference pointers
-	if t.Kind() == reflect.Ptr {
-		if v.IsNil() {
-			return "", fmt.Errorf("value is a nil pointer")
-		}
-		v = reflect.Indirect(v)
-		t = v.Type()
-	}
-
-	// Check for TextMarshaler (but not time.Time or Date)
-	if tu, ok := value.(encoding.TextMarshaler); ok {
-		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
-		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(types.Date{})) {
-			b, err := tu.MarshalText()
+		prefix := fmt.Sprintf("%s=", paramName)
+		parts := make([]string, len(sliceVal))
+		for i, sv := range sliceVal {
+			part, err := primitiveToString(sv)
 			if err != nil {
-				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
+				return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
 			}
-			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), paramLocation)), nil
+			parts[i] = escapeParameterString(part, opts.ParamLocation)
 		}
-	}
-
-	switch t.Kind() {
-	case reflect.Slice:
-		n := v.Len()
-		sliceVal := make([]any, n)
-		for i := 0; i < n; i++ {
-			sliceVal[i] = v.Index(i).Interface()
+		if opts.Explode {
+			return prefix + strings.Join(parts, "&"+prefix), nil
 		}
-		return stylePipeDelimitedExplodeSlice(paramName, paramLocation, sliceVal)
+		return prefix + strings.Join(parts, "|"), nil
 	default:
-		// For primitives, fall back to form style
-		return stylePipeDelimitedExplodePrimitive(paramName, paramLocation, value)
-	}
-}
-
-func stylePipeDelimitedExplodePrimitive(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, paramLocation)), nil
-}
-
-func stylePipeDelimitedExplodeSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Pipe-delimited with explode: paramName=a&paramName=b&paramName=c
-	prefix := fmt.Sprintf("%s=", paramName)
-	parts := make([]string, len(values))
-	for i, v := range values {
-		part, err := primitiveToString(v)
+		strVal, err := primitiveToString(value)
 		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
+			return "", err
 		}
-		parts[i] = escapeParameterString(part, paramLocation)
+		return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, opts.ParamLocation)), nil
 	}
-	return prefix + strings.Join(parts, "&"+prefix), nil
 }
 
-// StyleSimpleParam serializes a value using simple style (RFC 6570) without exploding.
+// StyleSimpleParam serializes a value using simple style (RFC 6570).
 // Simple style is the default for path and header parameters.
-// Arrays are comma-separated: a,b,c
-// Objects are key,value pairs: key1,value1,key2,value2
-func StyleSimpleParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+//
+// Non-explode: Arrays: a,b,c  Objects: key1,value1,key2,value2
+// Explode:     Arrays: a,b,c  Objects: key1=value1,key2=value2
+func StyleSimpleParam(paramName string, value any, opts ParameterOptions) (string, error) {
 	t := reflect.TypeOf(value)
 	v := reflect.ValueOf(value)
 
-	// Dereference pointers
 	if t.Kind() == reflect.Ptr {
 		if v.IsNil() {
 			return "", fmt.Errorf("value is a nil pointer")
@@ -2087,7 +1616,6 @@ func StyleSimpleParam(paramName string, paramLocation ParamLocation, value any) 
 		t = v.Type()
 	}
 
-	// Check for TextMarshaler (but not time.Time or Date)
 	if tu, ok := value.(encoding.TextMarshaler); ok {
 		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
 		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(types.Date{})) {
@@ -2095,7 +1623,7 @@ func StyleSimpleParam(paramName string, paramLocation ParamLocation, value any) 
 			if err != nil {
 				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
 			}
-			return escapeParameterString(string(b), paramLocation), nil
+			return escapeParameterString(string(b), opts.ParamLocation), nil
 		}
 	}
 
@@ -2106,43 +1634,38 @@ func StyleSimpleParam(paramName string, paramLocation ParamLocation, value any) 
 		for i := 0; i < n; i++ {
 			sliceVal[i] = v.Index(i).Interface()
 		}
-		return styleSimpleSlice(paramName, paramLocation, sliceVal)
+		return styleSimpleSlice(paramName, opts, sliceVal)
 	case reflect.Struct:
-		return styleSimpleStruct(paramName, paramLocation, value)
+		return styleSimpleStruct(paramName, opts, value)
 	case reflect.Map:
-		return styleSimpleMap(paramName, paramLocation, value)
+		return styleSimpleMap(paramName, opts, value)
 	default:
-		return styleSimplePrimitive(paramLocation, value)
+		strVal, err := primitiveToString(value)
+		if err != nil {
+			return "", err
+		}
+		return escapeParameterString(strVal, opts.ParamLocation), nil
 	}
 }
 
-func styleSimplePrimitive(paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return escapeParameterString(strVal, paramLocation), nil
-}
-
-func styleSimpleSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
+func styleSimpleSlice(paramName string, opts ParameterOptions, values []any) (string, error) {
+	// Simple arrays are always comma-separated regardless of explode
 	parts := make([]string, len(values))
 	for i, v := range values {
 		part, err := primitiveToString(v)
 		if err != nil {
 			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
 		}
-		parts[i] = escapeParameterString(part, paramLocation)
+		parts[i] = escapeParameterString(part, opts.ParamLocation)
 	}
 	return strings.Join(parts, ","), nil
 }
 
-func styleSimpleStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	// Check for known types first
+func styleSimpleStruct(paramName string, opts ParameterOptions, value any) (string, error) {
 	if timeVal, ok := marshalKnownTypes(value); ok {
-		return escapeParameterString(timeVal, paramLocation), nil
+		return escapeParameterString(timeVal, opts.ParamLocation), nil
 	}
 
-	// Check for json.Marshaler
 	if m, ok := value.(json.Marshaler); ok {
 		buf, err := m.MarshalJSON()
 		if err != nil {
@@ -2154,25 +1677,27 @@ func styleSimpleStruct(paramName string, paramLocation ParamLocation, value any)
 		if err = e.Decode(&i2); err != nil {
 			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
 		}
-		return StyleSimpleParam(paramName, paramLocation, i2)
+		return StyleSimpleParam(paramName, i2, opts)
 	}
 
-	// Build field dictionary
 	fieldDict, err := structToFieldDict(value)
 	if err != nil {
 		return "", err
 	}
 
-	// Simple style without explode: key1,value1,key2,value2
 	var parts []string
 	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k, v)
+		v := escapeParameterString(fieldDict[k], opts.ParamLocation)
+		if opts.Explode {
+			parts = append(parts, k+"="+v)
+		} else {
+			parts = append(parts, k, v)
+		}
 	}
 	return strings.Join(parts, ","), nil
 }
 
-func styleSimpleMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
+func styleSimpleMap(paramName string, opts ParameterOptions, value any) (string, error) {
 	dict, ok := value.(map[string]any)
 	if !ok {
 		return "", errors.New("map not of type map[string]any")
@@ -2187,151 +1712,27 @@ func styleSimpleMap(paramName string, paramLocation ParamLocation, value any) (s
 		fieldDict[fieldName] = str
 	}
 
-	// Simple style without explode: key1,value1,key2,value2
 	var parts []string
 	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k, v)
+		v := escapeParameterString(fieldDict[k], opts.ParamLocation)
+		if opts.Explode {
+			parts = append(parts, k+"="+v)
+		} else {
+			parts = append(parts, k, v)
+		}
 	}
 	return strings.Join(parts, ","), nil
 }
 
-// StyleSimpleExplodeParam serializes a value using simple style (RFC 6570) with exploding.
-// Simple style is the default for path and header parameters.
-// Arrays are comma-separated: a,b,c (same as non-explode)
-// Objects are key=value pairs: key1=value1,key2=value2
-func StyleSimpleExplodeParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	t := reflect.TypeOf(value)
-	v := reflect.ValueOf(value)
-
-	// Dereference pointers
-	if t.Kind() == reflect.Ptr {
-		if v.IsNil() {
-			return "", fmt.Errorf("value is a nil pointer")
-		}
-		v = reflect.Indirect(v)
-		t = v.Type()
-	}
-
-	// Check for TextMarshaler (but not time.Time or Date)
-	if tu, ok := value.(encoding.TextMarshaler); ok {
-		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
-		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(types.Date{})) {
-			b, err := tu.MarshalText()
-			if err != nil {
-				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
-			}
-			return escapeParameterString(string(b), paramLocation), nil
-		}
-	}
-
-	switch t.Kind() {
-	case reflect.Slice:
-		n := v.Len()
-		sliceVal := make([]any, n)
-		for i := 0; i < n; i++ {
-			sliceVal[i] = v.Index(i).Interface()
-		}
-		return styleSimpleExplodeSlice(paramName, paramLocation, sliceVal)
-	case reflect.Struct:
-		return styleSimpleExplodeStruct(paramName, paramLocation, value)
-	case reflect.Map:
-		return styleSimpleExplodeMap(paramName, paramLocation, value)
-	default:
-		return styleSimpleExplodePrimitive(paramLocation, value)
-	}
-}
-
-func styleSimpleExplodePrimitive(paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return escapeParameterString(strVal, paramLocation), nil
-}
-
-func styleSimpleExplodeSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Exploded simple array is same as non-exploded: comma-separated
-	parts := make([]string, len(values))
-	for i, v := range values {
-		part, err := primitiveToString(v)
-		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
-		}
-		parts[i] = escapeParameterString(part, paramLocation)
-	}
-	return strings.Join(parts, ","), nil
-}
-
-func styleSimpleExplodeStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	// Check for known types first
-	if timeVal, ok := marshalKnownTypes(value); ok {
-		return escapeParameterString(timeVal, paramLocation), nil
-	}
-
-	// Check for json.Marshaler
-	if m, ok := value.(json.Marshaler); ok {
-		buf, err := m.MarshalJSON()
-		if err != nil {
-			return "", fmt.Errorf("failed to marshal to JSON: %w", err)
-		}
-		var i2 any
-		e := json.NewDecoder(bytes.NewReader(buf))
-		e.UseNumber()
-		if err = e.Decode(&i2); err != nil {
-			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
-		}
-		return StyleSimpleExplodeParam(paramName, paramLocation, i2)
-	}
-
-	// Build field dictionary
-	fieldDict, err := structToFieldDict(value)
-	if err != nil {
-		return "", err
-	}
-
-	// Simple style with explode: key1=value1,key2=value2
-	var parts []string
-	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k+"="+v)
-	}
-	return strings.Join(parts, ","), nil
-}
-
-func styleSimpleExplodeMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	dict, ok := value.(map[string]any)
-	if !ok {
-		return "", errors.New("map not of type map[string]any")
-	}
-
-	fieldDict := make(map[string]string)
-	for fieldName, val := range dict {
-		str, err := primitiveToString(val)
-		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
-		}
-		fieldDict[fieldName] = str
-	}
-
-	// Simple style with explode: key1=value1,key2=value2
-	var parts []string
-	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k+"="+v)
-	}
-	return strings.Join(parts, ","), nil
-}
-
-// StyleSpaceDelimitedParam serializes a value using spaceDelimited style without exploding.
+// StyleSpaceDelimitedParam serializes a value using spaceDelimited style.
 // Space-delimited style is used for query parameters with array values.
-// Arrays: paramName=a b c (space-separated)
-// Note: Only valid for arrays; objects should use other styles.
-func StyleSpaceDelimitedParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+//
+// Non-explode: paramName=a b c
+// Explode:     paramName=a&paramName=b&paramName=c
+func StyleSpaceDelimitedParam(paramName string, value any, opts ParameterOptions) (string, error) {
 	t := reflect.TypeOf(value)
 	v := reflect.ValueOf(value)
 
-	// Dereference pointers
 	if t.Kind() == reflect.Ptr {
 		if v.IsNil() {
 			return "", fmt.Errorf("value is a nil pointer")
@@ -2340,7 +1741,6 @@ func StyleSpaceDelimitedParam(paramName string, paramLocation ParamLocation, val
 		t = v.Type()
 	}
 
-	// Check for TextMarshaler (but not time.Time or Date)
 	if tu, ok := value.(encoding.TextMarshaler); ok {
 		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
 		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(types.Date{})) {
@@ -2348,7 +1748,7 @@ func StyleSpaceDelimitedParam(paramName string, paramLocation ParamLocation, val
 			if err != nil {
 				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
 			}
-			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), paramLocation)), nil
+			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), opts.ParamLocation)), nil
 		}
 	}
 
@@ -2359,96 +1759,24 @@ func StyleSpaceDelimitedParam(paramName string, paramLocation ParamLocation, val
 		for i := 0; i < n; i++ {
 			sliceVal[i] = v.Index(i).Interface()
 		}
-		return styleSpaceDelimitedSlice(paramName, paramLocation, sliceVal)
-	default:
-		// For primitives, fall back to form style
-		return styleSpaceDelimitedPrimitive(paramName, paramLocation, value)
-	}
-}
-
-func styleSpaceDelimitedPrimitive(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, paramLocation)), nil
-}
-
-func styleSpaceDelimitedSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Space-delimited without explode: paramName=a b c (space becomes %20 when encoded)
-	prefix := fmt.Sprintf("%s=", paramName)
-	parts := make([]string, len(values))
-	for i, v := range values {
-		part, err := primitiveToString(v)
-		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
-		}
-		parts[i] = escapeParameterString(part, paramLocation)
-	}
-	return prefix + strings.Join(parts, " "), nil
-}
-
-// StyleSpaceDelimitedExplodeParam serializes a value using spaceDelimited style with exploding.
-// Space-delimited style is used for query parameters with array values.
-// Arrays: paramName=a&paramName=b&paramName=c (same as form explode)
-// Note: Only valid for arrays; objects should use other styles.
-func StyleSpaceDelimitedExplodeParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	t := reflect.TypeOf(value)
-	v := reflect.ValueOf(value)
-
-	// Dereference pointers
-	if t.Kind() == reflect.Ptr {
-		if v.IsNil() {
-			return "", fmt.Errorf("value is a nil pointer")
-		}
-		v = reflect.Indirect(v)
-		t = v.Type()
-	}
-
-	// Check for TextMarshaler (but not time.Time or Date)
-	if tu, ok := value.(encoding.TextMarshaler); ok {
-		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
-		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(types.Date{})) {
-			b, err := tu.MarshalText()
+		prefix := fmt.Sprintf("%s=", paramName)
+		parts := make([]string, len(sliceVal))
+		for i, sv := range sliceVal {
+			part, err := primitiveToString(sv)
 			if err != nil {
-				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
+				return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
 			}
-			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), paramLocation)), nil
+			parts[i] = escapeParameterString(part, opts.ParamLocation)
 		}
-	}
-
-	switch t.Kind() {
-	case reflect.Slice:
-		n := v.Len()
-		sliceVal := make([]any, n)
-		for i := 0; i < n; i++ {
-			sliceVal[i] = v.Index(i).Interface()
+		if opts.Explode {
+			return prefix + strings.Join(parts, "&"+prefix), nil
 		}
-		return styleSpaceDelimitedExplodeSlice(paramName, paramLocation, sliceVal)
+		return prefix + strings.Join(parts, " "), nil
 	default:
-		// For primitives, fall back to form style
-		return styleSpaceDelimitedExplodePrimitive(paramName, paramLocation, value)
-	}
-}
-
-func styleSpaceDelimitedExplodePrimitive(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, paramLocation)), nil
-}
-
-func styleSpaceDelimitedExplodeSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Space-delimited with explode: paramName=a&paramName=b&paramName=c
-	prefix := fmt.Sprintf("%s=", paramName)
-	parts := make([]string, len(values))
-	for i, v := range values {
-		part, err := primitiveToString(v)
+		strVal, err := primitiveToString(value)
 		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
+			return "", err
 		}
-		parts[i] = escapeParameterString(part, paramLocation)
+		return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, opts.ParamLocation)), nil
 	}
-	return prefix + strings.Join(parts, "&"+prefix), nil
 }

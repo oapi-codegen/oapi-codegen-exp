@@ -14,7 +14,7 @@ import (
 // DeepObject style is only valid for query parameters with object values and must be exploded.
 // Objects: paramName[key1]=value1&paramName[key2]=value2
 // Nested: paramName[outer][inner]=value
-func StyleDeepObjectParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+func StyleDeepObjectParam(paramName string, value any, opts ParameterOptions) (string, error) {
 	// deepObject always requires explode=true
 	return MarshalDeepObject(value, paramName)
 }
