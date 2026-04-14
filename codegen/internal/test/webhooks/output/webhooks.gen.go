@@ -130,11 +130,12 @@ type MiddlewareFunc func(http.Handler) http.Handler
 // DeregisterWebhook operation middleware
 func (siw *ServerInterfaceWrapper) DeregisterWebhook(w http.ResponseWriter, r *http.Request) {
 	var err error
+	_ = err
 
 	// ------------- Path parameter "id" -------------
 	var id oapiCodegenTypesPkg.UUID
 
-	err = oapiCodegenParamsPkg.BindSimpleParam("id", oapiCodegenParamsPkg.ParamLocationPath, r.PathValue("id"), &id)
+	err = oapiCodegenParamsPkg.BindSimpleParam("id", r.PathValue("id"), &id, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
 		return
@@ -154,11 +155,12 @@ func (siw *ServerInterfaceWrapper) DeregisterWebhook(w http.ResponseWriter, r *h
 // RegisterWebhook operation middleware
 func (siw *ServerInterfaceWrapper) RegisterWebhook(w http.ResponseWriter, r *http.Request) {
 	var err error
+	_ = err
 
 	// ------------- Path parameter "kind" -------------
 	var kind string
 
-	err = oapiCodegenParamsPkg.BindSimpleParam("kind", oapiCodegenParamsPkg.ParamLocationPath, r.PathValue("kind"), &kind)
+	err = oapiCodegenParamsPkg.BindSimpleParam("kind", r.PathValue("kind"), &kind, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
 		return

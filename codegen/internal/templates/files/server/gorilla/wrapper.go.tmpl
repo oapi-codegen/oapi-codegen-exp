@@ -38,7 +38,7 @@ func (siw *ServerInterfaceWrapper) {{ .GoOperationID }}(w http.ResponseWriter, r
 	}
 {{- end }}
 {{- if .IsStyled }}
-	err = {{ .BindFunc }}("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationPath, pathParams["{{ .Name }}"], &{{ .GoVariableName }})
+	err = {{ .BindFunc }}("{{ .Name }}", pathParams["{{ .Name }}"], &{{ .GoVariableName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationPath, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "{{ .Name }}", Err: err})
 		return
@@ -77,13 +77,7 @@ func (siw *ServerInterfaceWrapper) {{ .GoOperationID }}(w http.ResponseWriter, r
 	}{{ end }}
 {{- end }}
 {{- if .IsStyled }}
-{{- if eq .Style "deepObject" }}
-	err = {{ .BindFunc }}("{{ .Name }}", r.URL.Query(), &params.{{ .GoName }})
-{{- else if .Explode }}
-	err = {{ .BindFunc }}("{{ .Name }}", {{ .Required }}, r.URL.Query(), &params.{{ .GoName }})
-{{- else }}
-	err = {{ .BindFunc }}("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationQuery, r.URL.Query().Get("{{ .Name }}"), &params.{{ .GoName }})
-{{- end }}
+	err = {{ .BindFunc }}("{{ .Name }}", r.URL.Query(), &params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationQuery, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "{{ .Name }}", Err: err})
 		return
@@ -112,7 +106,7 @@ func (siw *ServerInterfaceWrapper) {{ .GoOperationID }}(w http.ResponseWriter, r
 		}
 {{- end }}
 {{- if .IsStyled }}
-		err = {{ .BindFunc }}("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationHeader, valueList[0], &{{ .GoVariableName }})
+		err = {{ .BindFunc }}("{{ .Name }}", valueList[0], &{{ .GoVariableName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationHeader, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
 		if err != nil {
 			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "{{ .Name }}", Err: err})
 			return
@@ -149,7 +143,7 @@ func (siw *ServerInterfaceWrapper) {{ .GoOperationID }}(w http.ResponseWriter, r
 {{- end }}
 {{- if .IsStyled }}
 			var value {{ .TypeDecl }}
-			err = {{ runtimeParamsPrefix }}BindFormParam("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationCookie, cookie.Value, &value)
+			err = {{ .BindFunc }}("{{ .Name }}", cookie.Value, &value, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationCookie, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
 			if err != nil {
 				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "{{ .Name }}", Err: err})
 				return

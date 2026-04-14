@@ -284,7 +284,7 @@ func (siw *ServerInterfaceWrapper) GetCookie(w http.ResponseWriter, r *http.Requ
 		var cookie *http.Cookie
 		if cookie, err = r.Cookie("p"); err == nil {
 			var value int32
-			err = oapiCodegenParamsPkg.BindFormParam("p", oapiCodegenParamsPkg.ParamLocationCookie, cookie.Value, &value)
+			err = oapiCodegenParamsPkg.BindFormParam("p", cookie.Value, &value, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationCookie, Explode: false, Required: false, Type: "integer", Format: "int32"})
 			if err != nil {
 				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "p", Err: err})
 				return
@@ -297,7 +297,7 @@ func (siw *ServerInterfaceWrapper) GetCookie(w http.ResponseWriter, r *http.Requ
 		var cookie *http.Cookie
 		if cookie, err = r.Cookie("ep"); err == nil {
 			var value int32
-			err = oapiCodegenParamsPkg.BindFormParam("ep", oapiCodegenParamsPkg.ParamLocationCookie, cookie.Value, &value)
+			err = oapiCodegenParamsPkg.BindFormParam("ep", cookie.Value, &value, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationCookie, Explode: true, Required: false, Type: "integer", Format: "int32"})
 			if err != nil {
 				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ep", Err: err})
 				return
@@ -310,7 +310,7 @@ func (siw *ServerInterfaceWrapper) GetCookie(w http.ResponseWriter, r *http.Requ
 		var cookie *http.Cookie
 		if cookie, err = r.Cookie("ea"); err == nil {
 			var value []int32
-			err = oapiCodegenParamsPkg.BindFormParam("ea", oapiCodegenParamsPkg.ParamLocationCookie, cookie.Value, &value)
+			err = oapiCodegenParamsPkg.BindFormParam("ea", cookie.Value, &value, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationCookie, Explode: true, Required: false, Type: "array", Format: ""})
 			if err != nil {
 				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ea", Err: err})
 				return
@@ -323,7 +323,7 @@ func (siw *ServerInterfaceWrapper) GetCookie(w http.ResponseWriter, r *http.Requ
 		var cookie *http.Cookie
 		if cookie, err = r.Cookie("a"); err == nil {
 			var value []int32
-			err = oapiCodegenParamsPkg.BindFormParam("a", oapiCodegenParamsPkg.ParamLocationCookie, cookie.Value, &value)
+			err = oapiCodegenParamsPkg.BindFormParam("a", cookie.Value, &value, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationCookie, Explode: false, Required: false, Type: "array", Format: ""})
 			if err != nil {
 				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "a", Err: err})
 				return
@@ -336,7 +336,7 @@ func (siw *ServerInterfaceWrapper) GetCookie(w http.ResponseWriter, r *http.Requ
 		var cookie *http.Cookie
 		if cookie, err = r.Cookie("eo"); err == nil {
 			var value any
-			err = oapiCodegenParamsPkg.BindFormParam("eo", oapiCodegenParamsPkg.ParamLocationCookie, cookie.Value, &value)
+			err = oapiCodegenParamsPkg.BindFormParam("eo", cookie.Value, &value, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationCookie, Explode: true, Required: false, Type: "", Format: ""})
 			if err != nil {
 				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "eo", Err: err})
 				return
@@ -349,7 +349,7 @@ func (siw *ServerInterfaceWrapper) GetCookie(w http.ResponseWriter, r *http.Requ
 		var cookie *http.Cookie
 		if cookie, err = r.Cookie("o"); err == nil {
 			var value any
-			err = oapiCodegenParamsPkg.BindFormParam("o", oapiCodegenParamsPkg.ParamLocationCookie, cookie.Value, &value)
+			err = oapiCodegenParamsPkg.BindFormParam("o", cookie.Value, &value, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationCookie, Explode: false, Required: false, Type: "", Format: ""})
 			if err != nil {
 				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "o", Err: err})
 				return
@@ -405,7 +405,7 @@ func (siw *ServerInterfaceWrapper) GetHeader(w http.ResponseWriter, r *http.Requ
 			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Primitive", Count: n})
 			return
 		}
-		err = oapiCodegenParamsPkg.BindSimpleParam("X-Primitive", oapiCodegenParamsPkg.ParamLocationHeader, valueList[0], &xPrimitive)
+		err = oapiCodegenParamsPkg.BindSimpleParam("X-Primitive", valueList[0], &xPrimitive, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: "int32"})
 		if err != nil {
 			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Primitive", Err: err})
 			return
@@ -421,7 +421,7 @@ func (siw *ServerInterfaceWrapper) GetHeader(w http.ResponseWriter, r *http.Requ
 			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Primitive-Exploded", Count: n})
 			return
 		}
-		err = oapiCodegenParamsPkg.BindSimpleExplodeParam("X-Primitive-Exploded", oapiCodegenParamsPkg.ParamLocationHeader, valueList[0], &xPrimitiveExploded)
+		err = oapiCodegenParamsPkg.BindSimpleParam("X-Primitive-Exploded", valueList[0], &xPrimitiveExploded, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationHeader, Explode: true, Required: false, Type: "integer", Format: "int32"})
 		if err != nil {
 			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Primitive-Exploded", Err: err})
 			return
@@ -437,7 +437,7 @@ func (siw *ServerInterfaceWrapper) GetHeader(w http.ResponseWriter, r *http.Requ
 			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Array-Exploded", Count: n})
 			return
 		}
-		err = oapiCodegenParamsPkg.BindSimpleExplodeParam("X-Array-Exploded", oapiCodegenParamsPkg.ParamLocationHeader, valueList[0], &xArrayExploded)
+		err = oapiCodegenParamsPkg.BindSimpleParam("X-Array-Exploded", valueList[0], &xArrayExploded, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationHeader, Explode: true, Required: false, Type: "array", Format: ""})
 		if err != nil {
 			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Array-Exploded", Err: err})
 			return
@@ -453,7 +453,7 @@ func (siw *ServerInterfaceWrapper) GetHeader(w http.ResponseWriter, r *http.Requ
 			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Array", Count: n})
 			return
 		}
-		err = oapiCodegenParamsPkg.BindSimpleParam("X-Array", oapiCodegenParamsPkg.ParamLocationHeader, valueList[0], &xArray)
+		err = oapiCodegenParamsPkg.BindSimpleParam("X-Array", valueList[0], &xArray, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationHeader, Explode: false, Required: false, Type: "array", Format: ""})
 		if err != nil {
 			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Array", Err: err})
 			return
@@ -469,7 +469,7 @@ func (siw *ServerInterfaceWrapper) GetHeader(w http.ResponseWriter, r *http.Requ
 			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Object-Exploded", Count: n})
 			return
 		}
-		err = oapiCodegenParamsPkg.BindSimpleExplodeParam("X-Object-Exploded", oapiCodegenParamsPkg.ParamLocationHeader, valueList[0], &xObjectExploded)
+		err = oapiCodegenParamsPkg.BindSimpleParam("X-Object-Exploded", valueList[0], &xObjectExploded, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationHeader, Explode: true, Required: false, Type: "", Format: ""})
 		if err != nil {
 			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Object-Exploded", Err: err})
 			return
@@ -485,7 +485,7 @@ func (siw *ServerInterfaceWrapper) GetHeader(w http.ResponseWriter, r *http.Requ
 			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Object", Count: n})
 			return
 		}
-		err = oapiCodegenParamsPkg.BindSimpleParam("X-Object", oapiCodegenParamsPkg.ParamLocationHeader, valueList[0], &xObject)
+		err = oapiCodegenParamsPkg.BindSimpleParam("X-Object", valueList[0], &xObject, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationHeader, Explode: false, Required: false, Type: "", Format: ""})
 		if err != nil {
 			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Object", Err: err})
 			return
@@ -723,7 +723,7 @@ func (siw *ServerInterfaceWrapper) GetDeepObject(w http.ResponseWriter, r *http.
 		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "deepObj"})
 		return
 	}
-	err = oapiCodegenParamsPkg.BindDeepObjectParam("deepObj", r.URL.Query(), &params.DeepObj)
+	err = oapiCodegenParamsPkg.BindDeepObjectQueryParam("deepObj", r.URL.Query(), &params.DeepObj, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationQuery, Explode: true, Required: true, Type: "", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "deepObj", Err: err})
 		return
@@ -749,49 +749,49 @@ func (siw *ServerInterfaceWrapper) GetQueryForm(w http.ResponseWriter, r *http.R
 	var params GetQueryFormParams
 
 	// ------------- Optional query parameter "ea" -------------
-	err = oapiCodegenParamsPkg.BindFormExplodeParam("ea", false, r.URL.Query(), &params.Ea)
+	err = oapiCodegenParamsPkg.BindFormQueryParam("ea", r.URL.Query(), &params.Ea, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationQuery, Explode: true, Required: false, Type: "array", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ea", Err: err})
 		return
 	}
 
 	// ------------- Optional query parameter "a" -------------
-	err = oapiCodegenParamsPkg.BindFormParam("a", oapiCodegenParamsPkg.ParamLocationQuery, r.URL.Query().Get("a"), &params.A)
+	err = oapiCodegenParamsPkg.BindFormQueryParam("a", r.URL.Query(), &params.A, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationQuery, Explode: false, Required: false, Type: "array", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "a", Err: err})
 		return
 	}
 
 	// ------------- Optional query parameter "eo" -------------
-	err = oapiCodegenParamsPkg.BindFormExplodeParam("eo", false, r.URL.Query(), &params.Eo)
+	err = oapiCodegenParamsPkg.BindFormQueryParam("eo", r.URL.Query(), &params.Eo, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationQuery, Explode: true, Required: false, Type: "", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "eo", Err: err})
 		return
 	}
 
 	// ------------- Optional query parameter "o" -------------
-	err = oapiCodegenParamsPkg.BindFormParam("o", oapiCodegenParamsPkg.ParamLocationQuery, r.URL.Query().Get("o"), &params.O)
+	err = oapiCodegenParamsPkg.BindFormQueryParam("o", r.URL.Query(), &params.O, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationQuery, Explode: false, Required: false, Type: "", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "o", Err: err})
 		return
 	}
 
 	// ------------- Optional query parameter "ep" -------------
-	err = oapiCodegenParamsPkg.BindFormExplodeParam("ep", false, r.URL.Query(), &params.Ep)
+	err = oapiCodegenParamsPkg.BindFormQueryParam("ep", r.URL.Query(), &params.Ep, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationQuery, Explode: true, Required: false, Type: "integer", Format: "int32"})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ep", Err: err})
 		return
 	}
 
 	// ------------- Optional query parameter "p" -------------
-	err = oapiCodegenParamsPkg.BindFormParam("p", oapiCodegenParamsPkg.ParamLocationQuery, r.URL.Query().Get("p"), &params.P)
+	err = oapiCodegenParamsPkg.BindFormQueryParam("p", r.URL.Query(), &params.P, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationQuery, Explode: false, Required: false, Type: "integer", Format: "int32"})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "p", Err: err})
 		return
 	}
 
 	// ------------- Optional query parameter "ps" -------------
-	err = oapiCodegenParamsPkg.BindFormExplodeParam("ps", false, r.URL.Query(), &params.Ps)
+	err = oapiCodegenParamsPkg.BindFormQueryParam("ps", r.URL.Query(), &params.Ps, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationQuery, Explode: true, Required: false, Type: "string", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ps", Err: err})
 		return
@@ -855,7 +855,7 @@ func (siw *ServerInterfaceWrapper) GetSimpleExplodePrimitive(w http.ResponseWrit
 	// ------------- Path parameter "param" -------------
 	var param int32
 
-	err = oapiCodegenParamsPkg.BindSimpleExplodeParam("param", oapiCodegenParamsPkg.ParamLocationPath, r.PathValue("param"), &param)
+	err = oapiCodegenParamsPkg.BindSimpleParam("param", r.PathValue("param"), &param, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: true, Required: true, Type: "integer", Format: "int32"})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "param", Err: err})
 		return
@@ -880,7 +880,7 @@ func (siw *ServerInterfaceWrapper) GetSimpleNoExplodeArray(w http.ResponseWriter
 	// ------------- Path parameter "param" -------------
 	var param []int32
 
-	err = oapiCodegenParamsPkg.BindSimpleParam("param", oapiCodegenParamsPkg.ParamLocationPath, r.PathValue("param"), &param)
+	err = oapiCodegenParamsPkg.BindSimpleParam("param", r.PathValue("param"), &param, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "array", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "param", Err: err})
 		return
@@ -905,7 +905,7 @@ func (siw *ServerInterfaceWrapper) GetSimpleNoExplodeObject(w http.ResponseWrite
 	// ------------- Path parameter "param" -------------
 	var param any
 
-	err = oapiCodegenParamsPkg.BindSimpleParam("param", oapiCodegenParamsPkg.ParamLocationPath, r.PathValue("param"), &param)
+	err = oapiCodegenParamsPkg.BindSimpleParam("param", r.PathValue("param"), &param, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "param", Err: err})
 		return
@@ -930,7 +930,7 @@ func (siw *ServerInterfaceWrapper) GetSimplePrimitive(w http.ResponseWriter, r *
 	// ------------- Path parameter "param" -------------
 	var param int32
 
-	err = oapiCodegenParamsPkg.BindSimpleParam("param", oapiCodegenParamsPkg.ParamLocationPath, r.PathValue("param"), &param)
+	err = oapiCodegenParamsPkg.BindSimpleParam("param", r.PathValue("param"), &param, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int32"})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "param", Err: err})
 		return

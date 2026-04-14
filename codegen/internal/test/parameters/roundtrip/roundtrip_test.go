@@ -35,7 +35,7 @@ func testImpl(t *testing.T, handler http.Handler) {
 
 	expectedComplexObject := client.ComplexObject{
 		Object:  expectedObject,
-		Id:      12345,
+		ID:      12345,
 		IsAdmin: true,
 	}
 

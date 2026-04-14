@@ -148,8 +148,8 @@ func GetOpenAPISpecJSON() ([]byte, error) {
 
 // ErrNullableNotSpecified is returned when trying to get a value from an unspecified Nullable.
 
-// BindDeepObjectParam binds a deepObject-style parameter to a destination.
-// DeepObject style is only valid for query parameters and must be exploded.
+// BindDeepObjectQueryParam binds a deepObject-style query parameter to a destination.
+// DeepObject style is only valid for query parameters and is always exploded.
 // Objects: ?paramName[key1]=value1&paramName[key2]=value2 -> struct{Key1, Key2}
 // Nested: ?paramName[outer][inner]=value -> struct{Outer: {Inner: value}}
 
@@ -161,155 +161,85 @@ func GetOpenAPISpecJSON() ([]byte, error) {
 
 // Reconstruct subscript paths
 
-// Check for Binder interface
+// BindFormParam binds a form-style parameter from a single string value.
+// Used for path, header, and cookie parameters where the value has already
+// been extracted from the request.
+//
+// Non-explode (default for form):
+//
+//	Arrays:  a,b,c -> []string{"a", "b", "c"}
+//	Objects: key1,value1,key2,value2 -> struct{Key1, Key2}
+//
+// Explode:
+//
+//	Primitives and arrays: same comma-separated format
+//	Objects: key1=value1,key2=value2 -> struct{Key1, Key2}
 
-// Handle Date type
+// BindFormQueryParam binds a form-style query parameter from url.Values.
+// The function looks up the parameter by name and handles both exploded
+// and non-exploded formats.
+//
+// Non-explode: ?param=a,b,c (single query key, comma-separated value)
+// Explode:     ?param=a&param=b&param=c (multiple query keys)
 
-// Handle time.Time type
+// Non-explode: single value, comma-separated
 
-// Regular struct
-
-// BindFormParam binds a form-style parameter without explode to a destination.
-// Form style is the default for query and cookie parameters.
-// This function handles a single query parameter value (not url.Values).
-// Arrays: a,b,c -> []string{"a", "b", "c"}
-// Objects: key1,value1,key2,value2 -> struct{Key1, Key2}
-
-// Unescape based on location
-
-// Check for TextUnmarshaler
-
-// BindFormExplodeParam binds a form-style parameter with explode to a destination.
-// Form style is the default for query and cookie parameters.
-// This handles the exploded case where arrays come as multiple query params.
-// Arrays: ?param=a&param=b -> []string{"a", "b"} (values passed as slice)
-// Objects: ?key1=value1&key2=value2 -> struct{Key1, Key2} (queryParams passed)
-
-// For optional parameters, allocate if nil
-
-// For exploded objects, fields are spread across query params
-
-// Primitive
+// bindFormExplodeQuery handles the exploded form-style query parameter case.
 
 // bindParamsToExplodedObject binds query params to struct fields for exploded objects.
 
 // indirectBinder checks if dest implements Binder and returns reflect values.
 
-// Handle special types like time.Time and Date
+// BindLabelParam binds a label-style parameter to a destination.
+// Label style values are prefixed with a dot. Path parameters only.
+//
+// Non-explode:
+//
+//	Primitives: .value          Arrays: .a,b,c          Objects: .key1,value1,key2,value2
+//
+// Explode:
+//
+//	Primitives: .value          Arrays: .a.b.c          Objects: .key1=value1.key2=value2
 
-// BindLabelParam binds a label-style parameter without explode to a destination.
-// Label style values are prefixed with a dot.
-// Primitives: .value -> "value"
-// Arrays: .a,b,c -> []string{"a", "b", "c"}
-// Objects: .key1,value1,key2,value2 -> struct{Key1, Key2}
+// Explode: split on dot, skip first empty part
 
-// Unescape based on location
+// Non-explode: strip leading dot, split on comma
 
-// Label style requires leading dot
+// BindMatrixParam binds a matrix-style parameter to a destination.
+// Matrix style values are prefixed with semicolons. Path parameters only.
+//
+// Non-explode:
+//
+//	Primitives: ;paramName=value
+//	Arrays:     ;paramName=a,b,c
+//	Objects:    ;paramName=key1,value1,key2,value2
+//
+// Explode:
+//
+//	Primitives: ;paramName=value
+//	Arrays:     ;paramName=a;paramName=b;paramName=c
+//	Objects:    ;key1=value1;key2=value2
 
-// Strip the leading dot and split on comma
-
-// Check for TextUnmarshaler
-
-// BindLabelExplodeParam binds a label-style parameter with explode to a destination.
-// Label style values are prefixed with a dot.
-// Primitives: .value -> "value"
-// Arrays: .a.b.c -> []string{"a", "b", "c"}
-// Objects: .key1=value1.key2=value2 -> struct{Key1, Key2}
-
-// Unescape based on location
-
-// Label style requires leading dot
-
-// Check for TextUnmarshaler
-
-// Split on dot (skip first empty part)
-
-// Split on dot (skip first empty part)
-
-// BindMatrixParam binds a matrix-style parameter without explode to a destination.
-// Matrix style values are prefixed with ;paramName=.
-// Primitives: ;paramName=value -> "value"
-// Arrays: ;paramName=a,b,c -> []string{"a", "b", "c"}
-// Objects: ;paramName=key1,value1,key2,value2 -> struct{Key1, Key2}
-
-// Unescape based on location
-
-// Matrix style requires ;paramName= prefix
-
-// Strip the prefix
-
-// Check for TextUnmarshaler
-
-// BindMatrixExplodeParam binds a matrix-style parameter with explode to a destination.
-// Matrix style values are prefixed with semicolons.
-// Primitives: ;paramName=value -> "value"
-// Arrays: ;paramName=a;paramName=b;paramName=c -> []string{"a", "b", "c"}
-// Objects: ;key1=value1;key2=value2 -> struct{Key1, Key2}
-
-// Unescape based on location
-
-// Break up on semicolon
-
-// First part should be empty since we start with ;
-
-// Check for TextUnmarshaler
-
-// For primitives, should be ;paramName=value
-
-// For objects, we have key1=value1, key2=value2
-
-// For arrays, strip paramName= prefix from each part
-
-// Primitive: ;paramName=value
-
-// BindPipeDelimitedParam binds a pipeDelimited-style parameter without explode.
-// Pipe-delimited style uses pipe as the separator.
-// Arrays: a|b|c -> []string{"a", "b", "c"}
-
-// Unescape based on location
-
-// Check for TextUnmarshaler
-
-// BindPipeDelimitedExplodeParam binds a pipeDelimited-style parameter with explode.
-// When exploded, arrays come as multiple query params (same as form explode).
-// Arrays: ?param=a&param=b -> []string{"a", "b"}
+// BindPipeDelimitedQueryParam binds a pipeDelimited-style query parameter.
+// Pipe-delimited style uses pipes as array separators. Query only.
+//
+// Non-explode: ?param=a|b|c -> []string{"a", "b", "c"}
+// Explode:     ?param=a&param=b -> []string{"a", "b"} (same as form explode)
 
 // Exploded pipe-delimited is same as exploded form
 
-// BindSimpleParam binds a simple-style parameter without explode to a destination.
+// BindSimpleParam binds a simple-style parameter to a destination.
 // Simple style is the default for path and header parameters.
-// Arrays: a,b,c -> []string{"a", "b", "c"}
-// Objects: key1,value1,key2,value2 -> struct{Key1, Key2}
+// Only used as a single-value entry point (no query variant needed).
+//
+// Non-explode: Arrays: a,b,c  Objects: key1,value1,key2,value2
+// Explode:     Arrays: a,b,c  Objects: key1=value1,key2=value2
 
-// Unescape based on location
-
-// Check for TextUnmarshaler
-
-// Split on comma and bind as key,value pairs
-
-// BindSimpleExplodeParam binds a simple-style parameter with explode to a destination.
-// Simple style is the default for path and header parameters.
-// Arrays: a,b,c -> []string{"a", "b", "c"} (same as non-explode)
-// Objects: key1=value1,key2=value2 -> struct{Key1, Key2}
-
-// Unescape based on location
-
-// Check for TextUnmarshaler
-
-// Split on comma and bind as key=value pairs
-
-// BindSpaceDelimitedParam binds a spaceDelimited-style parameter without explode.
-// Space-delimited style uses space as the separator.
-// Arrays: a b c -> []string{"a", "b", "c"}
-
-// Unescape based on location
-
-// Check for TextUnmarshaler
-
-// BindSpaceDelimitedExplodeParam binds a spaceDelimited-style parameter with explode.
-// When exploded, arrays come as multiple query params (same as form explode).
-// Arrays: ?param=a&param=b -> []string{"a", "b"}
+// BindSpaceDelimitedQueryParam binds a spaceDelimited-style query parameter.
+// Space-delimited style uses spaces as array separators. Query only.
+//
+// Non-explode: ?param=a%20b%20c -> []string{"a", "b", "c"}
+// Explode:     ?param=a&param=b -> []string{"a", "b"} (same as form explode)
 
 // Exploded space-delimited is same as exploded form
 
@@ -355,6 +285,13 @@ func GetOpenAPISpecJSON() ([]byte, error) {
 
 // Skip nil optional fields
 
+// ParameterOptions carries OpenAPI parameter metadata to bind and style
+// functions so they can handle explode, required, type-aware coercions,
+// and location-aware escaping from a single uniform call site.
+
+// OpenAPI type: "string", "integer", "array", "object"
+// OpenAPI format: "int32", "date-time", etc.
+
 // StyleDeepObjectParam serializes a value using deepObject style.
 // DeepObject style is only valid for query parameters with object values and must be exploded.
 // Objects: paramName[key1]=value1&paramName[key2]=value2
@@ -374,229 +311,59 @@ func GetOpenAPISpecJSON() ([]byte, error) {
 
 // Concrete value: turn path into [a][b][c] format
 
-// StyleFormParam serializes a value using form style (RFC 6570) without exploding.
+// StyleFormParam serializes a value using form style (RFC 6570).
 // Form style is the default for query and cookie parameters.
-// Primitives: paramName=value
-// Arrays: paramName=a,b,c
-// Objects: paramName=key1,value1,key2,value2
+//
+// Non-explode: Primitives: paramName=value  Arrays: paramName=a,b,c  Objects: paramName=key1,value1,key2,value2
+// Explode:     Primitives: paramName=value  Arrays: paramName=a&paramName=b  Objects: key1=value1&key2=value2
 
-// Dereference pointers
+// paramName=a&paramName=b&paramName=c
 
-// Check for TextMarshaler (but not time.Time or Date)
+// paramName=a,b,c
 
-// Form without explode: paramName=a,b,c
+// key1=value1&key2=value2
 
-// Check for known types first
+// paramName=key1,value1,key2,value2
 
-// Check for json.Marshaler
+// StyleLabelParam serializes a value using label style (RFC 6570).
+// Label style prefixes values with a dot. Path parameters only.
+//
+// Non-explode: Primitives: .value  Arrays: .a,b,c          Objects: .key1,value1,key2,value2
+// Explode:     Primitives: .value  Arrays: .a.b.c          Objects: .key1=value1.key2=value2
 
-// Build field dictionary
+// StyleMatrixParam serializes a value using matrix style (RFC 6570).
+// Matrix style prefixes values with ;paramName=. Path parameters only.
+//
+// Non-explode: Primitives: ;p=val   Arrays: ;p=a,b,c           Objects: ;p=k1,v1,k2,v2
+// Explode:     Primitives: ;p=val   Arrays: ;p=a;p=b;p=c       Objects: ;k1=v1;k2=v2
 
-// Form style without explode: paramName=key1,value1,key2,value2
+// ;paramName=a;paramName=b;paramName=c
 
-// Form style without explode: paramName=key1,value1,key2,value2
+// ;paramName=a,b,c
 
-// StyleFormExplodeParam serializes a value using form style (RFC 6570) with exploding.
-// Form style is the default for query and cookie parameters.
-// Primitives: paramName=value
-// Arrays: paramName=a&paramName=b&paramName=c
-// Objects: key1=value1&key2=value2
+// ;key1=value1;key2=value2
 
-// Dereference pointers
+// ;paramName=key1,value1,key2,value2
 
-// Check for TextMarshaler (but not time.Time or Date)
-
-// Form with explode: paramName=a&paramName=b&paramName=c
-
-// Check for known types first
-
-// Check for json.Marshaler
-
-// Build field dictionary
-
-// Form style with explode: key1=value1&key2=value2
-
-// Form style with explode: key1=value1&key2=value2
-
-// StyleLabelParam serializes a value using label style (RFC 6570) without exploding.
-// Label style prefixes values with a dot.
-// Primitives: .value
-// Arrays: .a,b,c
-// Objects: .key1,value1,key2,value2
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// Label without explode: .a,b,c
-
-// Check for known types first
-
-// Check for json.Marshaler
-
-// Build field dictionary
-
-// Label style without explode: .key1,value1,key2,value2
-
-// Label style without explode: .key1,value1,key2,value2
-
-// StyleLabelExplodeParam serializes a value using label style (RFC 6570) with exploding.
-// Label style prefixes values with a dot.
-// Primitives: .value
-// Arrays: .a.b.c
-// Objects: .key1=value1.key2=value2
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// Label with explode: .a.b.c
-
-// Check for known types first
-
-// Check for json.Marshaler
-
-// Build field dictionary
-
-// Label style with explode: .key1=value1.key2=value2
-
-// Label style with explode: .key1=value1.key2=value2
-
-// StyleMatrixParam serializes a value using matrix style (RFC 6570) without exploding.
-// Matrix style prefixes values with ;paramName=.
-// Primitives: ;paramName=value
-// Arrays: ;paramName=a,b,c
-// Objects: ;paramName=key1,value1,key2,value2
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// Matrix without explode: ;paramName=a,b,c
-
-// Check for known types first
-
-// Check for json.Marshaler
-
-// Build field dictionary
-
-// Matrix style without explode: ;paramName=key1,value1,key2,value2
-
-// Matrix style without explode: ;paramName=key1,value1,key2,value2
-
-// StyleMatrixExplodeParam serializes a value using matrix style (RFC 6570) with exploding.
-// Matrix style prefixes values with ;paramName=.
-// Primitives: ;paramName=value
-// Arrays: ;paramName=a;paramName=b;paramName=c
-// Objects: ;key1=value1;key2=value2
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// Matrix with explode: ;paramName=a;paramName=b;paramName=c
-
-// Check for known types first
-
-// Check for json.Marshaler
-
-// Build field dictionary
-
-// Matrix style with explode: ;key1=value1;key2=value2
-
-// Matrix style with explode: ;key1=value1;key2=value2
-
-// StylePipeDelimitedParam serializes a value using pipeDelimited style without exploding.
+// StylePipeDelimitedParam serializes a value using pipeDelimited style.
 // Pipe-delimited style is used for query parameters with array values.
-// Arrays: paramName=a|b|c
-// Note: Only valid for arrays; objects should use other styles.
+//
+// Non-explode: paramName=a|b|c
+// Explode:     paramName=a&paramName=b&paramName=c
 
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// For primitives, fall back to form style
-
-// Pipe-delimited without explode: paramName=a|b|c
-
-// StylePipeDelimitedExplodeParam serializes a value using pipeDelimited style with exploding.
-// Pipe-delimited style is used for query parameters with array values.
-// Arrays: paramName=a&paramName=b&paramName=c (same as form explode)
-// Note: Only valid for arrays; objects should use other styles.
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// For primitives, fall back to form style
-
-// Pipe-delimited with explode: paramName=a&paramName=b&paramName=c
-
-// StyleSimpleParam serializes a value using simple style (RFC 6570) without exploding.
+// StyleSimpleParam serializes a value using simple style (RFC 6570).
 // Simple style is the default for path and header parameters.
-// Arrays are comma-separated: a,b,c
-// Objects are key,value pairs: key1,value1,key2,value2
+//
+// Non-explode: Arrays: a,b,c  Objects: key1,value1,key2,value2
+// Explode:     Arrays: a,b,c  Objects: key1=value1,key2=value2
 
-// Dereference pointers
+// Simple arrays are always comma-separated regardless of explode
 
-// Check for TextMarshaler (but not time.Time or Date)
-
-// Check for known types first
-
-// Check for json.Marshaler
-
-// Build field dictionary
-
-// Simple style without explode: key1,value1,key2,value2
-
-// Simple style without explode: key1,value1,key2,value2
-
-// StyleSimpleExplodeParam serializes a value using simple style (RFC 6570) with exploding.
-// Simple style is the default for path and header parameters.
-// Arrays are comma-separated: a,b,c (same as non-explode)
-// Objects are key=value pairs: key1=value1,key2=value2
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// Exploded simple array is same as non-exploded: comma-separated
-
-// Check for known types first
-
-// Check for json.Marshaler
-
-// Build field dictionary
-
-// Simple style with explode: key1=value1,key2=value2
-
-// Simple style with explode: key1=value1,key2=value2
-
-// StyleSpaceDelimitedParam serializes a value using spaceDelimited style without exploding.
+// StyleSpaceDelimitedParam serializes a value using spaceDelimited style.
 // Space-delimited style is used for query parameters with array values.
-// Arrays: paramName=a b c (space-separated)
-// Note: Only valid for arrays; objects should use other styles.
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// For primitives, fall back to form style
-
-// Space-delimited without explode: paramName=a b c (space becomes %20 when encoded)
-
-// StyleSpaceDelimitedExplodeParam serializes a value using spaceDelimited style with exploding.
-// Space-delimited style is used for query parameters with array values.
-// Arrays: paramName=a&paramName=b&paramName=c (same as form explode)
-// Note: Only valid for arrays; objects should use other styles.
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// For primitives, fall back to form style
-
-// Space-delimited with explode: paramName=a&paramName=b&paramName=c
+//
+// Non-explode: paramName=a b c
+// Explode:     paramName=a&paramName=b&paramName=c
 
 // JSONMerge merges two JSON-encoded objects. Fields from patch override
 // fields in base. Both arguments must be valid JSON objects (or nil/null).

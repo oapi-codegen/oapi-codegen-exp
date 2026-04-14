@@ -8,19 +8,19 @@ import (
 )
 
 func TestStyleFormParam_Primitive(t *testing.T) {
-	result, err := StyleFormParam("color", ParamLocationQuery, "blue")
+	result, err := StyleFormParam("color", "blue", ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 	assert.Equal(t, "color=blue", result)
 }
 
 func TestStyleFormParam_Int(t *testing.T) {
-	result, err := StyleFormParam("count", ParamLocationQuery, 5)
+	result, err := StyleFormParam("count", 5, ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 	assert.Equal(t, "count=5", result)
 }
 
 func TestStyleFormParam_StringSlice(t *testing.T) {
-	result, err := StyleFormParam("tags", ParamLocationQuery, []string{"a", "b", "c"})
+	result, err := StyleFormParam("tags", []string{"a", "b", "c"}, ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 	assert.Equal(t, "tags=a,b,c", result)
 }
@@ -30,33 +30,33 @@ func TestStyleFormParam_Struct(t *testing.T) {
 		Color string `json:"color"`
 		Size  int    `json:"size"`
 	}
-	result, err := StyleFormParam("filter", ParamLocationQuery, obj{Color: "red", Size: 10})
+	result, err := StyleFormParam("filter", obj{Color: "red", Size: 10}, ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 	assert.Equal(t, "filter=color,red,size,10", result)
 }
 
 func TestStyleFormParam_Roundtrip_Primitive(t *testing.T) {
-	styled, err := StyleFormParam("color", ParamLocationQuery, "blue")
+	styled, err := StyleFormParam("color", "blue", ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 	// Form style: "color=blue" — the value part is "blue"
 	assert.Equal(t, "color=blue", styled)
 
 	// BindFormParam takes just the value (after splitting on =)
 	var result string
-	err = BindFormParam("color", ParamLocationQuery, "blue", &result)
+	err = BindFormParam("color", "blue", &result, ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 	assert.Equal(t, "blue", result)
 }
 
 func TestStyleFormParam_Roundtrip_StringSlice(t *testing.T) {
 	original := []string{"x", "y", "z"}
-	styled, err := StyleFormParam("items", ParamLocationQuery, original)
+	styled, err := StyleFormParam("items", original, ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 	assert.Equal(t, "items=x,y,z", styled)
 
 	// BindFormParam takes the value part
 	var result []string
-	err = BindFormParam("items", ParamLocationQuery, "x,y,z", &result)
+	err = BindFormParam("items", "x,y,z", &result, ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 	assert.Equal(t, original, result)
 }
@@ -67,13 +67,13 @@ func TestStyleFormParam_Roundtrip_Struct(t *testing.T) {
 		Size  string `json:"size"`
 	}
 	original := obj{Color: "blue", Size: "large"}
-	styled, err := StyleFormParam("filter", ParamLocationQuery, original)
+	styled, err := StyleFormParam("filter", original, ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 	assert.Equal(t, "filter=color,blue,size,large", styled)
 
 	// BindFormParam takes the value part
 	var result obj
-	err = BindFormParam("filter", ParamLocationQuery, "color,blue,size,large", &result)
+	err = BindFormParam("filter", "color,blue,size,large", &result, ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 	assert.Equal(t, original, result)
 }

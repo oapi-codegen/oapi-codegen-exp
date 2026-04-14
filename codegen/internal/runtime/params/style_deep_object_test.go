@@ -13,7 +13,7 @@ func TestStyleDeepObjectParam_Struct(t *testing.T) {
 		Color string `json:"color"`
 		Size  int    `json:"size"`
 	}
-	result, err := StyleDeepObjectParam("filter", ParamLocationQuery, obj{Color: "red", Size: 10})
+	result, err := StyleDeepObjectParam("filter", obj{Color: "red", Size: 10}, ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 	assert.Equal(t, "filter[color]=red&filter[size]=10", result)
 }
@@ -26,10 +26,10 @@ func TestStyleDeepObjectParam_NestedStruct(t *testing.T) {
 		Name    string `json:"name"`
 		Address inner  `json:"address"`
 	}
-	result, err := StyleDeepObjectParam("user", ParamLocationQuery, outer{
+	result, err := StyleDeepObjectParam("user", outer{
 		Name:    "alice",
 		Address: inner{City: "NYC"},
-	})
+	}, ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 	assert.Equal(t, "user[address][city]=NYC&user[name]=alice", result)
 }
@@ -40,7 +40,7 @@ func TestStyleDeepObjectParam_Roundtrip_Struct(t *testing.T) {
 		Size  int    `json:"size"`
 	}
 	original := obj{Color: "blue", Size: 42}
-	styled, err := StyleDeepObjectParam("filter", ParamLocationQuery, original)
+	styled, err := StyleDeepObjectParam("filter", original, ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 
 	// Parse to url.Values
@@ -48,7 +48,7 @@ func TestStyleDeepObjectParam_Roundtrip_Struct(t *testing.T) {
 	require.NoError(t, err)
 
 	var result obj
-	err = BindDeepObjectParam("filter", vals, &result)
+	err = BindDeepObjectQueryParam("filter", vals, &result, ParameterOptions{})
 	require.NoError(t, err)
 	assert.Equal(t, original, result)
 }
@@ -65,7 +65,7 @@ func TestStyleDeepObjectParam_Roundtrip_NestedStruct(t *testing.T) {
 		Name:    "alice",
 		Address: inner{City: "NYC"},
 	}
-	styled, err := StyleDeepObjectParam("user", ParamLocationQuery, original)
+	styled, err := StyleDeepObjectParam("user", original, ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 
 	// Parse to url.Values
@@ -73,7 +73,7 @@ func TestStyleDeepObjectParam_Roundtrip_NestedStruct(t *testing.T) {
 	require.NoError(t, err)
 
 	var result outer
-	err = BindDeepObjectParam("user", vals, &result)
+	err = BindDeepObjectQueryParam("user", vals, &result, ParameterOptions{})
 	require.NoError(t, err)
 	assert.Equal(t, original, result)
 }
@@ -82,7 +82,7 @@ func TestStyleDeepObjectParam_WithSlice(t *testing.T) {
 	type obj struct {
 		Tags []string `json:"tags"`
 	}
-	result, err := StyleDeepObjectParam("filter", ParamLocationQuery, obj{Tags: []string{"a", "b"}})
+	result, err := StyleDeepObjectParam("filter", obj{Tags: []string{"a", "b"}}, ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 	assert.Equal(t, "filter[tags][0]=a&filter[tags][1]=b", result)
 }
@@ -92,14 +92,14 @@ func TestStyleDeepObjectParam_Roundtrip_WithSlice(t *testing.T) {
 		Tags []string `json:"tags"`
 	}
 	original := obj{Tags: []string{"a", "b"}}
-	styled, err := StyleDeepObjectParam("filter", ParamLocationQuery, original)
+	styled, err := StyleDeepObjectParam("filter", original, ParameterOptions{ParamLocation: ParamLocationQuery})
 	require.NoError(t, err)
 
 	vals, err := url.ParseQuery(styled)
 	require.NoError(t, err)
 
 	var result obj
-	err = BindDeepObjectParam("filter", vals, &result)
+	err = BindDeepObjectQueryParam("filter", vals, &result, ParameterOptions{})
 	require.NoError(t, err)
 	assert.Equal(t, original, result)
 }

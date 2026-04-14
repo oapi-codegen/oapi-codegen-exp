@@ -231,8 +231,8 @@ func (g *operationGatherer) gatherParameter(param *v3.Parameter) (*ParameterDesc
 		required = *param.Required
 	}
 
-	styleFunc := ComputeStyleFunc(style, explode)
-	bindFunc := ComputeBindFunc(style, explode)
+	styleFunc := ComputeStyleFunc(style)
+	bindFunc := ComputeBindFunc(style, param.In)
 
 	// When a runtime package is configured, prefix function names so generated
 	// code references them from the runtime package (e.g., "params.StyleSimpleParam").

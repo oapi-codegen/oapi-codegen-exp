@@ -1105,7 +1105,7 @@ func NewPostFooRequestWithBody(server string, params *PostFooParams, contentType
 	if params != nil {
 		queryValues := reqURL.Query()
 		if params.Bar != nil {
-			if queryFrag, err := oapiCodegenParamsPkg.StyleFormExplodeParam("bar", oapiCodegenParamsPkg.ParamLocationQuery, *params.Bar); err != nil {
+			if queryFrag, err := oapiCodegenParamsPkg.StyleFormParam("bar", *params.Bar, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationQuery, Explode: true, Required: false, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1444,7 +1444,7 @@ func NewPatchResourceRequestWithBody(server string, id string, contentType strin
 	var err error
 
 	var pathParam0 string
-	pathParam0, err = oapiCodegenParamsPkg.StyleSimpleParam("id", oapiCodegenParamsPkg.ParamLocationPath, id)
+	pathParam0, err = oapiCodegenParamsPkg.StyleSimpleParam("id", id, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
 	if err != nil {
 		return nil, err
 	}

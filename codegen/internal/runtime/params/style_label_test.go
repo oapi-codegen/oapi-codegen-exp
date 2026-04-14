@@ -8,19 +8,19 @@ import (
 )
 
 func TestStyleLabelParam_Primitive(t *testing.T) {
-	result, err := StyleLabelParam("id", ParamLocationPath, 5)
+	result, err := StyleLabelParam("id", 5, ParameterOptions{ParamLocation: ParamLocationPath})
 	require.NoError(t, err)
 	assert.Equal(t, ".5", result)
 }
 
 func TestStyleLabelParam_String(t *testing.T) {
-	result, err := StyleLabelParam("color", ParamLocationPath, "blue")
+	result, err := StyleLabelParam("color", "blue", ParameterOptions{ParamLocation: ParamLocationPath})
 	require.NoError(t, err)
 	assert.Equal(t, ".blue", result)
 }
 
 func TestStyleLabelParam_StringSlice(t *testing.T) {
-	result, err := StyleLabelParam("tags", ParamLocationPath, []string{"a", "b", "c"})
+	result, err := StyleLabelParam("tags", []string{"a", "b", "c"}, ParameterOptions{ParamLocation: ParamLocationPath})
 	require.NoError(t, err)
 	assert.Equal(t, ".a,b,c", result)
 }
@@ -30,28 +30,28 @@ func TestStyleLabelParam_Struct(t *testing.T) {
 		Color string `json:"color"`
 		Size  int    `json:"size"`
 	}
-	result, err := StyleLabelParam("filter", ParamLocationPath, obj{Color: "red", Size: 10})
+	result, err := StyleLabelParam("filter", obj{Color: "red", Size: 10}, ParameterOptions{ParamLocation: ParamLocationPath})
 	require.NoError(t, err)
 	assert.Equal(t, ".color,red,size,10", result)
 }
 
 func TestStyleLabelParam_Roundtrip_Primitive(t *testing.T) {
-	styled, err := StyleLabelParam("id", ParamLocationPath, 42)
+	styled, err := StyleLabelParam("id", 42, ParameterOptions{ParamLocation: ParamLocationPath})
 	require.NoError(t, err)
 
 	var result int
-	err = BindLabelParam("id", ParamLocationPath, styled, &result)
+	err = BindLabelParam("id", styled, &result, ParameterOptions{ParamLocation: ParamLocationPath})
 	require.NoError(t, err)
 	assert.Equal(t, 42, result)
 }
 
 func TestStyleLabelParam_Roundtrip_StringSlice(t *testing.T) {
 	original := []string{"x", "y", "z"}
-	styled, err := StyleLabelParam("items", ParamLocationPath, original)
+	styled, err := StyleLabelParam("items", original, ParameterOptions{ParamLocation: ParamLocationPath})
 	require.NoError(t, err)
 
 	var result []string
-	err = BindLabelParam("items", ParamLocationPath, styled, &result)
+	err = BindLabelParam("items", styled, &result, ParameterOptions{ParamLocation: ParamLocationPath})
 	require.NoError(t, err)
 	assert.Equal(t, original, result)
 }
@@ -62,23 +62,23 @@ func TestStyleLabelParam_Roundtrip_Struct(t *testing.T) {
 		Size  string `json:"size"`
 	}
 	original := obj{Color: "blue", Size: "large"}
-	styled, err := StyleLabelParam("filter", ParamLocationPath, original)
+	styled, err := StyleLabelParam("filter", original, ParameterOptions{ParamLocation: ParamLocationPath})
 	require.NoError(t, err)
 
 	var result obj
-	err = BindLabelParam("filter", ParamLocationPath, styled, &result)
+	err = BindLabelParam("filter", styled, &result, ParameterOptions{ParamLocation: ParamLocationPath})
 	require.NoError(t, err)
 	assert.Equal(t, original, result)
 }
 
 func TestStyleLabelExplodeParam_Primitive(t *testing.T) {
-	result, err := StyleLabelExplodeParam("id", ParamLocationPath, 5)
+	result, err := StyleLabelParam("id", 5, ParameterOptions{ParamLocation: ParamLocationPath, Explode: true})
 	require.NoError(t, err)
 	assert.Equal(t, ".5", result)
 }
 
 func TestStyleLabelExplodeParam_StringSlice(t *testing.T) {
-	result, err := StyleLabelExplodeParam("tags", ParamLocationPath, []string{"a", "b", "c"})
+	result, err := StyleLabelParam("tags", []string{"a", "b", "c"}, ParameterOptions{ParamLocation: ParamLocationPath, Explode: true})
 	require.NoError(t, err)
 	assert.Equal(t, ".a.b.c", result)
 }
@@ -88,28 +88,28 @@ func TestStyleLabelExplodeParam_Struct(t *testing.T) {
 		Color string `json:"color"`
 		Size  int    `json:"size"`
 	}
-	result, err := StyleLabelExplodeParam("filter", ParamLocationPath, obj{Color: "red", Size: 10})
+	result, err := StyleLabelParam("filter", obj{Color: "red", Size: 10}, ParameterOptions{ParamLocation: ParamLocationPath, Explode: true})
 	require.NoError(t, err)
 	assert.Equal(t, ".color=red.size=10", result)
 }
 
 func TestStyleLabelExplodeParam_Roundtrip_Primitive(t *testing.T) {
-	styled, err := StyleLabelExplodeParam("id", ParamLocationPath, 42)
+	styled, err := StyleLabelParam("id", 42, ParameterOptions{ParamLocation: ParamLocationPath, Explode: true})
 	require.NoError(t, err)
 
 	var result int
-	err = BindLabelExplodeParam("id", ParamLocationPath, styled, &result)
+	err = BindLabelParam("id", styled, &result, ParameterOptions{ParamLocation: ParamLocationPath, Explode: true})
 	require.NoError(t, err)
 	assert.Equal(t, 42, result)
 }
 
 func TestStyleLabelExplodeParam_Roundtrip_StringSlice(t *testing.T) {
 	original := []string{"x", "y", "z"}
-	styled, err := StyleLabelExplodeParam("items", ParamLocationPath, original)
+	styled, err := StyleLabelParam("items", original, ParameterOptions{ParamLocation: ParamLocationPath, Explode: true})
 	require.NoError(t, err)
 
 	var result []string
-	err = BindLabelExplodeParam("items", ParamLocationPath, styled, &result)
+	err = BindLabelParam("items", styled, &result, ParameterOptions{ParamLocation: ParamLocationPath, Explode: true})
 	require.NoError(t, err)
 	assert.Equal(t, original, result)
 }
@@ -120,11 +120,11 @@ func TestStyleLabelExplodeParam_Roundtrip_Struct(t *testing.T) {
 		Size  string `json:"size"`
 	}
 	original := obj{Color: "blue", Size: "large"}
-	styled, err := StyleLabelExplodeParam("filter", ParamLocationPath, original)
+	styled, err := StyleLabelParam("filter", original, ParameterOptions{ParamLocation: ParamLocationPath, Explode: true})
 	require.NoError(t, err)
 
 	var result obj
-	err = BindLabelExplodeParam("filter", ParamLocationPath, styled, &result)
+	err = BindLabelParam("filter", styled, &result, ParameterOptions{ParamLocation: ParamLocationPath, Explode: true})
 	require.NoError(t, err)
 	assert.Equal(t, original, result)
 }

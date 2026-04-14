@@ -11,12 +11,12 @@ import (
 	"strings"
 	"sync"
 
-	ext_795da88e "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/overlays/packageA/output"
+	ext_6d18165d "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/overlays/packageA/output"
 )
 
 // #/components/schemas/Container
 type Container struct {
-	ObjectA *ext_795da88e.ObjectA `form:"object_a,omitempty" json:"object_a,omitempty"`
+	ObjectA *ext_6d18165d.ObjectA `form:"object_a,omitempty" json:"object_a,omitempty"`
 	ObjectB *any                  `form:"object_b,omitempty" json:"object_b,omitempty"`
 }
 

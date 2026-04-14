@@ -11,16 +11,16 @@ import (
 	"strings"
 	"sync"
 
-	ext_5326ee7e "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/removed_ref/output/spec_ext"
+	ext_308843ba "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/removed_ref/output/spec_ext"
 )
 
 // #/components/schemas/DirectBar
-type DirectBar = ext_5326ee7e.Foo
+type DirectBar = ext_308843ba.Foo
 
 // #/components/schemas/PackedBar
 type PackedBar struct {
 	ID      *string           `form:"id,omitempty" json:"id,omitempty"`
-	Core    *ext_5326ee7e.Foo `form:"core,omitempty" json:"core,omitempty"`
+	Core    *ext_308843ba.Foo `form:"core,omitempty" json:"core,omitempty"`
 	Directd *DirectBar        `form:"directd,omitempty" json:"directd,omitempty"`
 }
 
@@ -35,7 +35,7 @@ func (s *PackedBar) ApplyDefaults() {
 
 // #/paths//noTrouble/post/responses/200/content/application/json/schema
 type PostNoTrouble200Response struct {
-	DirectFoo   *ext_5326ee7e.Foo `form:"directFoo,omitempty" json:"directFoo,omitempty"`
+	DirectFoo   *ext_308843ba.Foo `form:"directFoo,omitempty" json:"directFoo,omitempty"`
 	DirectBar   *DirectBar        `form:"directBar,omitempty" json:"directBar,omitempty"`
 	IndirectFoo *PackedBar        `form:"indirectFoo,omitempty" json:"indirectFoo,omitempty"`
 	Name        *string           `form:"name,omitempty" json:"name,omitempty"`

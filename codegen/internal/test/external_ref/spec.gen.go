@@ -11,14 +11,14 @@ import (
 	"strings"
 	"sync"
 
-	ext_55025e84 "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/packagea"
-	ext_cd3e418f "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/packageb"
+	ext_720a0b32 "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/packagea"
+	ext_f78891b2 "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/packageb"
 )
 
 // #/components/schemas/Container
 type Container struct {
-	ObjectA *ext_55025e84.ObjectA `form:"object_a,omitempty" json:"object_a,omitempty"`
-	ObjectB *ext_cd3e418f.ObjectB `form:"object_b,omitempty" json:"object_b,omitempty"`
+	ObjectA *ext_720a0b32.ObjectA `form:"object_a,omitempty" json:"object_a,omitempty"`
+	ObjectB *ext_f78891b2.ObjectB `form:"object_b,omitempty" json:"object_b,omitempty"`
 }
 
 // ApplyDefaults sets default values for fields that are nil.

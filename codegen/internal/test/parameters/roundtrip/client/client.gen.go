@@ -712,7 +712,7 @@ func NewGetCookieRequest(server string, params *GetCookieParams) (*http.Request,
 	if params != nil {
 		if params.P != nil {
 			var cookieParam0 string
-			cookieParam0, err = StyleSimpleParam("p", ParamLocationCookie, *params.P)
+			cookieParam0, err = StyleFormParam("p", *params.P, ParameterOptions{ParamLocation: ParamLocationCookie, Explode: false, Required: false, Type: "integer", Format: "int32"})
 			if err != nil {
 				return nil, err
 			}
@@ -724,7 +724,7 @@ func NewGetCookieRequest(server string, params *GetCookieParams) (*http.Request,
 		}
 		if params.Ep != nil {
 			var cookieParam1 string
-			cookieParam1, err = StyleSimpleParam("ep", ParamLocationCookie, *params.Ep)
+			cookieParam1, err = StyleFormParam("ep", *params.Ep, ParameterOptions{ParamLocation: ParamLocationCookie, Explode: true, Required: false, Type: "integer", Format: "int32"})
 			if err != nil {
 				return nil, err
 			}
@@ -736,7 +736,7 @@ func NewGetCookieRequest(server string, params *GetCookieParams) (*http.Request,
 		}
 		if params.Ea != nil {
 			var cookieParam2 string
-			cookieParam2, err = StyleSimpleParam("ea", ParamLocationCookie, *params.Ea)
+			cookieParam2, err = StyleFormParam("ea", *params.Ea, ParameterOptions{ParamLocation: ParamLocationCookie, Explode: true, Required: false, Type: "array", Format: ""})
 			if err != nil {
 				return nil, err
 			}
@@ -748,7 +748,7 @@ func NewGetCookieRequest(server string, params *GetCookieParams) (*http.Request,
 		}
 		if params.A != nil {
 			var cookieParam3 string
-			cookieParam3, err = StyleSimpleParam("a", ParamLocationCookie, *params.A)
+			cookieParam3, err = StyleFormParam("a", *params.A, ParameterOptions{ParamLocation: ParamLocationCookie, Explode: false, Required: false, Type: "array", Format: ""})
 			if err != nil {
 				return nil, err
 			}
@@ -760,7 +760,7 @@ func NewGetCookieRequest(server string, params *GetCookieParams) (*http.Request,
 		}
 		if params.Eo != nil {
 			var cookieParam4 string
-			cookieParam4, err = StyleSimpleParam("eo", ParamLocationCookie, *params.Eo)
+			cookieParam4, err = StyleFormParam("eo", *params.Eo, ParameterOptions{ParamLocation: ParamLocationCookie, Explode: true, Required: false, Type: "", Format: ""})
 			if err != nil {
 				return nil, err
 			}
@@ -772,7 +772,7 @@ func NewGetCookieRequest(server string, params *GetCookieParams) (*http.Request,
 		}
 		if params.O != nil {
 			var cookieParam5 string
-			cookieParam5, err = StyleSimpleParam("o", ParamLocationCookie, *params.O)
+			cookieParam5, err = StyleFormParam("o", *params.O, ParameterOptions{ParamLocation: ParamLocationCookie, Explode: false, Required: false, Type: "", Format: ""})
 			if err != nil {
 				return nil, err
 			}
@@ -828,7 +828,7 @@ func NewGetHeaderRequest(server string, params *GetHeaderParams) (*http.Request,
 	if params != nil {
 		if params.XPrimitive != nil {
 			var headerParam0 string
-			headerParam0, err = StyleSimpleParam("X-Primitive", ParamLocationHeader, *params.XPrimitive)
+			headerParam0, err = StyleSimpleParam("X-Primitive", *params.XPrimitive, ParameterOptions{ParamLocation: ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: "int32"})
 			if err != nil {
 				return nil, err
 			}
@@ -836,7 +836,7 @@ func NewGetHeaderRequest(server string, params *GetHeaderParams) (*http.Request,
 		}
 		if params.XPrimitiveExploded != nil {
 			var headerParam1 string
-			headerParam1, err = StyleSimpleExplodeParam("X-Primitive-Exploded", ParamLocationHeader, *params.XPrimitiveExploded)
+			headerParam1, err = StyleSimpleParam("X-Primitive-Exploded", *params.XPrimitiveExploded, ParameterOptions{ParamLocation: ParamLocationHeader, Explode: true, Required: false, Type: "integer", Format: "int32"})
 			if err != nil {
 				return nil, err
 			}
@@ -844,7 +844,7 @@ func NewGetHeaderRequest(server string, params *GetHeaderParams) (*http.Request,
 		}
 		if params.XArrayExploded != nil {
 			var headerParam2 string
-			headerParam2, err = StyleSimpleExplodeParam("X-Array-Exploded", ParamLocationHeader, *params.XArrayExploded)
+			headerParam2, err = StyleSimpleParam("X-Array-Exploded", *params.XArrayExploded, ParameterOptions{ParamLocation: ParamLocationHeader, Explode: true, Required: false, Type: "array", Format: ""})
 			if err != nil {
 				return nil, err
 			}
@@ -852,7 +852,7 @@ func NewGetHeaderRequest(server string, params *GetHeaderParams) (*http.Request,
 		}
 		if params.XArray != nil {
 			var headerParam3 string
-			headerParam3, err = StyleSimpleParam("X-Array", ParamLocationHeader, *params.XArray)
+			headerParam3, err = StyleSimpleParam("X-Array", *params.XArray, ParameterOptions{ParamLocation: ParamLocationHeader, Explode: false, Required: false, Type: "array", Format: ""})
 			if err != nil {
 				return nil, err
 			}
@@ -860,7 +860,7 @@ func NewGetHeaderRequest(server string, params *GetHeaderParams) (*http.Request,
 		}
 		if params.XObjectExploded != nil {
 			var headerParam4 string
-			headerParam4, err = StyleSimpleExplodeParam("X-Object-Exploded", ParamLocationHeader, *params.XObjectExploded)
+			headerParam4, err = StyleSimpleParam("X-Object-Exploded", *params.XObjectExploded, ParameterOptions{ParamLocation: ParamLocationHeader, Explode: true, Required: false, Type: "", Format: ""})
 			if err != nil {
 				return nil, err
 			}
@@ -868,7 +868,7 @@ func NewGetHeaderRequest(server string, params *GetHeaderParams) (*http.Request,
 		}
 		if params.XObject != nil {
 			var headerParam5 string
-			headerParam5, err = StyleSimpleParam("X-Object", ParamLocationHeader, *params.XObject)
+			headerParam5, err = StyleSimpleParam("X-Object", *params.XObject, ParameterOptions{ParamLocation: ParamLocationHeader, Explode: false, Required: false, Type: "", Format: ""})
 			if err != nil {
 				return nil, err
 			}
@@ -1264,7 +1264,7 @@ func NewGetDeepObjectRequest(server string, params *GetDeepObjectParams) (*http.
 
 	if params != nil {
 		queryValues := reqURL.Query()
-		if queryFrag, err := StyleDeepObjectParam("deepObj", ParamLocationQuery, params.DeepObj); err != nil {
+		if queryFrag, err := StyleDeepObjectParam("deepObj", params.DeepObj, ParameterOptions{ParamLocation: ParamLocationQuery, Explode: true, Required: true, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -1308,7 +1308,7 @@ func NewGetQueryFormRequest(server string, params *GetQueryFormParams) (*http.Re
 	if params != nil {
 		queryValues := reqURL.Query()
 		if params.Ea != nil {
-			if queryFrag, err := StyleFormExplodeParam("ea", ParamLocationQuery, *params.Ea); err != nil {
+			if queryFrag, err := StyleFormParam("ea", *params.Ea, ParameterOptions{ParamLocation: ParamLocationQuery, Explode: true, Required: false, Type: "array", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1321,7 +1321,7 @@ func NewGetQueryFormRequest(server string, params *GetQueryFormParams) (*http.Re
 			}
 		}
 		if params.A != nil {
-			if queryFrag, err := StyleFormParam("a", ParamLocationQuery, *params.A); err != nil {
+			if queryFrag, err := StyleFormParam("a", *params.A, ParameterOptions{ParamLocation: ParamLocationQuery, Explode: false, Required: false, Type: "array", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1334,7 +1334,7 @@ func NewGetQueryFormRequest(server string, params *GetQueryFormParams) (*http.Re
 			}
 		}
 		if params.Eo != nil {
-			if queryFrag, err := StyleFormExplodeParam("eo", ParamLocationQuery, *params.Eo); err != nil {
+			if queryFrag, err := StyleFormParam("eo", *params.Eo, ParameterOptions{ParamLocation: ParamLocationQuery, Explode: true, Required: false, Type: "", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1347,7 +1347,7 @@ func NewGetQueryFormRequest(server string, params *GetQueryFormParams) (*http.Re
 			}
 		}
 		if params.O != nil {
-			if queryFrag, err := StyleFormParam("o", ParamLocationQuery, *params.O); err != nil {
+			if queryFrag, err := StyleFormParam("o", *params.O, ParameterOptions{ParamLocation: ParamLocationQuery, Explode: false, Required: false, Type: "", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1360,7 +1360,7 @@ func NewGetQueryFormRequest(server string, params *GetQueryFormParams) (*http.Re
 			}
 		}
 		if params.Ep != nil {
-			if queryFrag, err := StyleFormExplodeParam("ep", ParamLocationQuery, *params.Ep); err != nil {
+			if queryFrag, err := StyleFormParam("ep", *params.Ep, ParameterOptions{ParamLocation: ParamLocationQuery, Explode: true, Required: false, Type: "integer", Format: "int32"}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1373,7 +1373,7 @@ func NewGetQueryFormRequest(server string, params *GetQueryFormParams) (*http.Re
 			}
 		}
 		if params.P != nil {
-			if queryFrag, err := StyleFormParam("p", ParamLocationQuery, *params.P); err != nil {
+			if queryFrag, err := StyleFormParam("p", *params.P, ParameterOptions{ParamLocation: ParamLocationQuery, Explode: false, Required: false, Type: "integer", Format: "int32"}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1386,7 +1386,7 @@ func NewGetQueryFormRequest(server string, params *GetQueryFormParams) (*http.Re
 			}
 		}
 		if params.Ps != nil {
-			if queryFrag, err := StyleFormExplodeParam("ps", ParamLocationQuery, *params.Ps); err != nil {
+			if queryFrag, err := StyleFormParam("ps", *params.Ps, ParameterOptions{ParamLocation: ParamLocationQuery, Explode: true, Required: false, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1475,7 +1475,7 @@ func NewGetSimpleExplodePrimitiveRequest(server string, param int32) (*http.Requ
 	var err error
 
 	var pathParam0 string
-	pathParam0, err = StyleSimpleExplodeParam("param", ParamLocationPath, param)
+	pathParam0, err = StyleSimpleParam("param", param, ParameterOptions{ParamLocation: ParamLocationPath, Explode: true, Required: true, Type: "integer", Format: "int32"})
 	if err != nil {
 		return nil, err
 	}
@@ -1508,7 +1508,7 @@ func NewGetSimpleNoExplodeArrayRequest(server string, param []int32) (*http.Requ
 	var err error
 
 	var pathParam0 string
-	pathParam0, err = StyleSimpleParam("param", ParamLocationPath, param)
+	pathParam0, err = StyleSimpleParam("param", param, ParameterOptions{ParamLocation: ParamLocationPath, Explode: false, Required: true, Type: "array", Format: ""})
 	if err != nil {
 		return nil, err
 	}
@@ -1541,7 +1541,7 @@ func NewGetSimpleNoExplodeObjectRequest(server string, param any) (*http.Request
 	var err error
 
 	var pathParam0 string
-	pathParam0, err = StyleSimpleParam("param", ParamLocationPath, param)
+	pathParam0, err = StyleSimpleParam("param", param, ParameterOptions{ParamLocation: ParamLocationPath, Explode: false, Required: true, Type: "", Format: ""})
 	if err != nil {
 		return nil, err
 	}
@@ -1574,7 +1574,7 @@ func NewGetSimplePrimitiveRequest(server string, param int32) (*http.Request, er
 	var err error
 
 	var pathParam0 string
-	pathParam0, err = StyleSimpleParam("param", ParamLocationPath, param)
+	pathParam0, err = StyleSimpleParam("param", param, ParameterOptions{ParamLocation: ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int32"})
 	if err != nil {
 		return nil, err
 	}
@@ -1695,8 +1695,8 @@ func (d Date) Format(layout string) string {
 
 type UUID = uuid.UUID
 
-// BindDeepObjectParam binds a deepObject-style parameter to a destination.
-// DeepObject style is only valid for query parameters and must be exploded.
+// BindDeepObjectQueryParam binds a deepObject-style query parameter to a destination.
+// DeepObject style is only valid for query parameters and is always exploded.
 // Objects: ?paramName[key1]=value1&paramName[key2]=value2 -> struct{Key1, Key2}
 // Nested: ?paramName[outer][inner]=value -> struct{Outer: {Inner: value}}
 
@@ -1708,155 +1708,85 @@ type UUID = uuid.UUID
 
 // Reconstruct subscript paths
 
-// Check for Binder interface
+// BindFormParam binds a form-style parameter from a single string value.
+// Used for path, header, and cookie parameters where the value has already
+// been extracted from the request.
+//
+// Non-explode (default for form):
+//
+//	Arrays:  a,b,c -> []string{"a", "b", "c"}
+//	Objects: key1,value1,key2,value2 -> struct{Key1, Key2}
+//
+// Explode:
+//
+//	Primitives and arrays: same comma-separated format
+//	Objects: key1=value1,key2=value2 -> struct{Key1, Key2}
 
-// Handle Date type
+// BindFormQueryParam binds a form-style query parameter from url.Values.
+// The function looks up the parameter by name and handles both exploded
+// and non-exploded formats.
+//
+// Non-explode: ?param=a,b,c (single query key, comma-separated value)
+// Explode:     ?param=a&param=b&param=c (multiple query keys)
 
-// Handle time.Time type
+// Non-explode: single value, comma-separated
 
-// Regular struct
-
-// BindFormParam binds a form-style parameter without explode to a destination.
-// Form style is the default for query and cookie parameters.
-// This function handles a single query parameter value (not url.Values).
-// Arrays: a,b,c -> []string{"a", "b", "c"}
-// Objects: key1,value1,key2,value2 -> struct{Key1, Key2}
-
-// Unescape based on location
-
-// Check for TextUnmarshaler
-
-// BindFormExplodeParam binds a form-style parameter with explode to a destination.
-// Form style is the default for query and cookie parameters.
-// This handles the exploded case where arrays come as multiple query params.
-// Arrays: ?param=a&param=b -> []string{"a", "b"} (values passed as slice)
-// Objects: ?key1=value1&key2=value2 -> struct{Key1, Key2} (queryParams passed)
-
-// For optional parameters, allocate if nil
-
-// For exploded objects, fields are spread across query params
-
-// Primitive
+// bindFormExplodeQuery handles the exploded form-style query parameter case.
 
 // bindParamsToExplodedObject binds query params to struct fields for exploded objects.
 
 // indirectBinder checks if dest implements Binder and returns reflect values.
 
-// Handle special types like time.Time and Date
+// BindLabelParam binds a label-style parameter to a destination.
+// Label style values are prefixed with a dot. Path parameters only.
+//
+// Non-explode:
+//
+//	Primitives: .value          Arrays: .a,b,c          Objects: .key1,value1,key2,value2
+//
+// Explode:
+//
+//	Primitives: .value          Arrays: .a.b.c          Objects: .key1=value1.key2=value2
 
-// BindLabelParam binds a label-style parameter without explode to a destination.
-// Label style values are prefixed with a dot.
-// Primitives: .value -> "value"
-// Arrays: .a,b,c -> []string{"a", "b", "c"}
-// Objects: .key1,value1,key2,value2 -> struct{Key1, Key2}
+// Explode: split on dot, skip first empty part
 
-// Unescape based on location
+// Non-explode: strip leading dot, split on comma
 
-// Label style requires leading dot
+// BindMatrixParam binds a matrix-style parameter to a destination.
+// Matrix style values are prefixed with semicolons. Path parameters only.
+//
+// Non-explode:
+//
+//	Primitives: ;paramName=value
+//	Arrays:     ;paramName=a,b,c
+//	Objects:    ;paramName=key1,value1,key2,value2
+//
+// Explode:
+//
+//	Primitives: ;paramName=value
+//	Arrays:     ;paramName=a;paramName=b;paramName=c
+//	Objects:    ;key1=value1;key2=value2
 
-// Strip the leading dot and split on comma
-
-// Check for TextUnmarshaler
-
-// BindLabelExplodeParam binds a label-style parameter with explode to a destination.
-// Label style values are prefixed with a dot.
-// Primitives: .value -> "value"
-// Arrays: .a.b.c -> []string{"a", "b", "c"}
-// Objects: .key1=value1.key2=value2 -> struct{Key1, Key2}
-
-// Unescape based on location
-
-// Label style requires leading dot
-
-// Check for TextUnmarshaler
-
-// Split on dot (skip first empty part)
-
-// Split on dot (skip first empty part)
-
-// BindMatrixParam binds a matrix-style parameter without explode to a destination.
-// Matrix style values are prefixed with ;paramName=.
-// Primitives: ;paramName=value -> "value"
-// Arrays: ;paramName=a,b,c -> []string{"a", "b", "c"}
-// Objects: ;paramName=key1,value1,key2,value2 -> struct{Key1, Key2}
-
-// Unescape based on location
-
-// Matrix style requires ;paramName= prefix
-
-// Strip the prefix
-
-// Check for TextUnmarshaler
-
-// BindMatrixExplodeParam binds a matrix-style parameter with explode to a destination.
-// Matrix style values are prefixed with semicolons.
-// Primitives: ;paramName=value -> "value"
-// Arrays: ;paramName=a;paramName=b;paramName=c -> []string{"a", "b", "c"}
-// Objects: ;key1=value1;key2=value2 -> struct{Key1, Key2}
-
-// Unescape based on location
-
-// Break up on semicolon
-
-// First part should be empty since we start with ;
-
-// Check for TextUnmarshaler
-
-// For primitives, should be ;paramName=value
-
-// For objects, we have key1=value1, key2=value2
-
-// For arrays, strip paramName= prefix from each part
-
-// Primitive: ;paramName=value
-
-// BindPipeDelimitedParam binds a pipeDelimited-style parameter without explode.
-// Pipe-delimited style uses pipe as the separator.
-// Arrays: a|b|c -> []string{"a", "b", "c"}
-
-// Unescape based on location
-
-// Check for TextUnmarshaler
-
-// BindPipeDelimitedExplodeParam binds a pipeDelimited-style parameter with explode.
-// When exploded, arrays come as multiple query params (same as form explode).
-// Arrays: ?param=a&param=b -> []string{"a", "b"}
+// BindPipeDelimitedQueryParam binds a pipeDelimited-style query parameter.
+// Pipe-delimited style uses pipes as array separators. Query only.
+//
+// Non-explode: ?param=a|b|c -> []string{"a", "b", "c"}
+// Explode:     ?param=a&param=b -> []string{"a", "b"} (same as form explode)
 
 // Exploded pipe-delimited is same as exploded form
 
-// BindSimpleParam binds a simple-style parameter without explode to a destination.
+// BindSimpleParam binds a simple-style parameter to a destination.
 // Simple style is the default for path and header parameters.
-// Arrays: a,b,c -> []string{"a", "b", "c"}
-// Objects: key1,value1,key2,value2 -> struct{Key1, Key2}
+// Only used as a single-value entry point (no query variant needed).
+//
+// Non-explode: Arrays: a,b,c  Objects: key1,value1,key2,value2
+// Explode:     Arrays: a,b,c  Objects: key1=value1,key2=value2
 
-// Unescape based on location
-
-// Check for TextUnmarshaler
-
-// Split on comma and bind as key,value pairs
-
-// BindSimpleExplodeParam binds a simple-style parameter with explode to a destination.
-// Simple style is the default for path and header parameters.
-// Arrays: a,b,c -> []string{"a", "b", "c"} (same as non-explode)
-// Objects: key1=value1,key2=value2 -> struct{Key1, Key2}
-
-// Unescape based on location
-
-// Check for TextUnmarshaler
-
-// Split on comma and bind as key=value pairs
-
-// BindSpaceDelimitedParam binds a spaceDelimited-style parameter without explode.
-// Space-delimited style uses space as the separator.
-// Arrays: a b c -> []string{"a", "b", "c"}
-
-// Unescape based on location
-
-// Check for TextUnmarshaler
-
-// BindSpaceDelimitedExplodeParam binds a spaceDelimited-style parameter with explode.
-// When exploded, arrays come as multiple query params (same as form explode).
-// Arrays: ?param=a&param=b -> []string{"a", "b"}
+// BindSpaceDelimitedQueryParam binds a spaceDelimited-style query parameter.
+// Space-delimited style uses spaces as array separators. Query only.
+//
+// Non-explode: ?param=a%20b%20c -> []string{"a", "b", "c"}
+// Explode:     ?param=a&param=b -> []string{"a", "b"} (same as form explode)
 
 // Exploded space-delimited is same as exploded form
 
@@ -2026,11 +1956,22 @@ func structToFieldDict(value any) (map[string]string, error) {
 	return fieldDict, nil
 }
 
+// ParameterOptions carries OpenAPI parameter metadata to bind and style
+// functions so they can handle explode, required, type-aware coercions,
+// and location-aware escaping from a single uniform call site.
+type ParameterOptions struct {
+	ParamLocation ParamLocation
+	Explode       bool
+	Required      bool
+	Type          string // OpenAPI type: "string", "integer", "array", "object"
+	Format        string // OpenAPI format: "int32", "date-time", etc.
+}
+
 // StyleDeepObjectParam serializes a value using deepObject style.
 // DeepObject style is only valid for query parameters with object values and must be exploded.
 // Objects: paramName[key1]=value1&paramName[key2]=value2
 // Nested: paramName[outer][inner]=value
-func StyleDeepObjectParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+func StyleDeepObjectParam(paramName string, value any, opts ParameterOptions) (string, error) {
 	// deepObject always requires explode=true
 	return MarshalDeepObject(value, paramName)
 }
@@ -2099,16 +2040,15 @@ func marshalDeepObjectRecursive(in any, path []string) ([]string, error) {
 	return result, nil
 }
 
-// StyleFormParam serializes a value using form style (RFC 6570) without exploding.
+// StyleFormParam serializes a value using form style (RFC 6570).
 // Form style is the default for query and cookie parameters.
-// Primitives: paramName=value
-// Arrays: paramName=a,b,c
-// Objects: paramName=key1,value1,key2,value2
-func StyleFormParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+//
+// Non-explode: Primitives: paramName=value  Arrays: paramName=a,b,c  Objects: paramName=key1,value1,key2,value2
+// Explode:     Primitives: paramName=value  Arrays: paramName=a&paramName=b  Objects: key1=value1&key2=value2
+func StyleFormParam(paramName string, value any, opts ParameterOptions) (string, error) {
 	t := reflect.TypeOf(value)
 	v := reflect.ValueOf(value)
 
-	// Dereference pointers
 	if t.Kind() == reflect.Ptr {
 		if v.IsNil() {
 			return "", fmt.Errorf("value is a nil pointer")
@@ -2117,7 +2057,6 @@ func StyleFormParam(paramName string, paramLocation ParamLocation, value any) (s
 		t = v.Type()
 	}
 
-	// Check for TextMarshaler (but not time.Time or Date)
 	if tu, ok := value.(encoding.TextMarshaler); ok {
 		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
 		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(Date{})) {
@@ -2125,7 +2064,7 @@ func StyleFormParam(paramName string, paramLocation ParamLocation, value any) (s
 			if err != nil {
 				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
 			}
-			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), paramLocation)), nil
+			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), opts.ParamLocation)), nil
 		}
 	}
 
@@ -2136,26 +2075,25 @@ func StyleFormParam(paramName string, paramLocation ParamLocation, value any) (s
 		for i := 0; i < n; i++ {
 			sliceVal[i] = v.Index(i).Interface()
 		}
-		return styleFormSlice(paramName, paramLocation, sliceVal)
+		return styleFormSlice(paramName, opts, sliceVal)
 	case reflect.Struct:
-		return styleFormStruct(paramName, paramLocation, value)
+		return styleFormStruct(paramName, opts, value)
 	case reflect.Map:
-		return styleFormMap(paramName, paramLocation, value)
+		return styleFormMap(paramName, opts, value)
 	default:
-		return styleFormPrimitive(paramName, paramLocation, value)
+		return styleFormPrimitive(paramName, opts, value)
 	}
 }
 
-func styleFormPrimitive(paramName string, paramLocation ParamLocation, value any) (string, error) {
+func styleFormPrimitive(paramName string, opts ParameterOptions, value any) (string, error) {
 	strVal, err := primitiveToString(value)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, paramLocation)), nil
+	return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, opts.ParamLocation)), nil
 }
 
-func styleFormSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Form without explode: paramName=a,b,c
+func styleFormSlice(paramName string, opts ParameterOptions, values []any) (string, error) {
 	prefix := fmt.Sprintf("%s=", paramName)
 	parts := make([]string, len(values))
 	for i, v := range values {
@@ -2163,18 +2101,21 @@ func styleFormSlice(paramName string, paramLocation ParamLocation, values []any)
 		if err != nil {
 			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
 		}
-		parts[i] = escapeParameterString(part, paramLocation)
+		parts[i] = escapeParameterString(part, opts.ParamLocation)
 	}
+	if opts.Explode {
+		// paramName=a&paramName=b&paramName=c
+		return prefix + strings.Join(parts, "&"+prefix), nil
+	}
+	// paramName=a,b,c
 	return prefix + strings.Join(parts, ","), nil
 }
 
-func styleFormStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	// Check for known types first
+func styleFormStruct(paramName string, opts ParameterOptions, value any) (string, error) {
 	if timeVal, ok := marshalKnownTypes(value); ok {
-		return fmt.Sprintf("%s=%s", paramName, escapeParameterString(timeVal, paramLocation)), nil
+		return fmt.Sprintf("%s=%s", paramName, escapeParameterString(timeVal, opts.ParamLocation)), nil
 	}
 
-	// Check for json.Marshaler
 	if m, ok := value.(json.Marshaler); ok {
 		buf, err := m.MarshalJSON()
 		if err != nil {
@@ -2186,26 +2127,35 @@ func styleFormStruct(paramName string, paramLocation ParamLocation, value any) (
 		if err = e.Decode(&i2); err != nil {
 			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
 		}
-		return StyleFormParam(paramName, paramLocation, i2)
+		return StyleFormParam(paramName, i2, opts)
 	}
 
-	// Build field dictionary
 	fieldDict, err := structToFieldDict(value)
 	if err != nil {
 		return "", err
 	}
 
-	// Form style without explode: paramName=key1,value1,key2,value2
+	if opts.Explode {
+		// key1=value1&key2=value2
+		var parts []string
+		for _, k := range sortedKeys(fieldDict) {
+			v := escapeParameterString(fieldDict[k], opts.ParamLocation)
+			parts = append(parts, k+"="+v)
+		}
+		return strings.Join(parts, "&"), nil
+	}
+
+	// paramName=key1,value1,key2,value2
 	prefix := fmt.Sprintf("%s=", paramName)
 	var parts []string
 	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
+		v := escapeParameterString(fieldDict[k], opts.ParamLocation)
 		parts = append(parts, k, v)
 	}
 	return prefix + strings.Join(parts, ","), nil
 }
 
-func styleFormMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
+func styleFormMap(paramName string, opts ParameterOptions, value any) (string, error) {
 	dict, ok := value.(map[string]any)
 	if !ok {
 		return "", errors.New("map not of type map[string]any")
@@ -2220,268 +2170,59 @@ func styleFormMap(paramName string, paramLocation ParamLocation, value any) (str
 		fieldDict[fieldName] = str
 	}
 
-	// Form style without explode: paramName=key1,value1,key2,value2
+	if opts.Explode {
+		var parts []string
+		for _, k := range sortedKeys(fieldDict) {
+			v := escapeParameterString(fieldDict[k], opts.ParamLocation)
+			parts = append(parts, k+"="+v)
+		}
+		return strings.Join(parts, "&"), nil
+	}
+
 	prefix := fmt.Sprintf("%s=", paramName)
 	var parts []string
 	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
+		v := escapeParameterString(fieldDict[k], opts.ParamLocation)
 		parts = append(parts, k, v)
 	}
 	return prefix + strings.Join(parts, ","), nil
 }
 
-// StyleFormExplodeParam serializes a value using form style (RFC 6570) with exploding.
-// Form style is the default for query and cookie parameters.
-// Primitives: paramName=value
-// Arrays: paramName=a&paramName=b&paramName=c
-// Objects: key1=value1&key2=value2
-func StyleFormExplodeParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	t := reflect.TypeOf(value)
-	v := reflect.ValueOf(value)
+// StyleLabelParam serializes a value using label style (RFC 6570).
+// Label style prefixes values with a dot. Path parameters only.
+//
+// Non-explode: Primitives: .value  Arrays: .a,b,c          Objects: .key1,value1,key2,value2
+// Explode:     Primitives: .value  Arrays: .a.b.c          Objects: .key1=value1.key2=value2
 
-	// Dereference pointers
-	if t.Kind() == reflect.Ptr {
-		if v.IsNil() {
-			return "", fmt.Errorf("value is a nil pointer")
-		}
-		v = reflect.Indirect(v)
-		t = v.Type()
-	}
+// StyleMatrixParam serializes a value using matrix style (RFC 6570).
+// Matrix style prefixes values with ;paramName=. Path parameters only.
+//
+// Non-explode: Primitives: ;p=val   Arrays: ;p=a,b,c           Objects: ;p=k1,v1,k2,v2
+// Explode:     Primitives: ;p=val   Arrays: ;p=a;p=b;p=c       Objects: ;k1=v1;k2=v2
 
-	// Check for TextMarshaler (but not time.Time or Date)
-	if tu, ok := value.(encoding.TextMarshaler); ok {
-		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
-		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(Date{})) {
-			b, err := tu.MarshalText()
-			if err != nil {
-				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
-			}
-			return fmt.Sprintf("%s=%s", paramName, escapeParameterString(string(b), paramLocation)), nil
-		}
-	}
+// ;paramName=a;paramName=b;paramName=c
 
-	switch t.Kind() {
-	case reflect.Slice:
-		n := v.Len()
-		sliceVal := make([]any, n)
-		for i := 0; i < n; i++ {
-			sliceVal[i] = v.Index(i).Interface()
-		}
-		return styleFormExplodeSlice(paramName, paramLocation, sliceVal)
-	case reflect.Struct:
-		return styleFormExplodeStruct(paramName, paramLocation, value)
-	case reflect.Map:
-		return styleFormExplodeMap(paramName, paramLocation, value)
-	default:
-		return styleFormExplodePrimitive(paramName, paramLocation, value)
-	}
-}
+// ;paramName=a,b,c
 
-func styleFormExplodePrimitive(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s=%s", paramName, escapeParameterString(strVal, paramLocation)), nil
-}
+// ;key1=value1;key2=value2
 
-func styleFormExplodeSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Form with explode: paramName=a&paramName=b&paramName=c
-	prefix := fmt.Sprintf("%s=", paramName)
-	parts := make([]string, len(values))
-	for i, v := range values {
-		part, err := primitiveToString(v)
-		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
-		}
-		parts[i] = escapeParameterString(part, paramLocation)
-	}
-	return prefix + strings.Join(parts, "&"+prefix), nil
-}
+// ;paramName=key1,value1,key2,value2
 
-func styleFormExplodeStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	// Check for known types first
-	if timeVal, ok := marshalKnownTypes(value); ok {
-		return fmt.Sprintf("%s=%s", paramName, escapeParameterString(timeVal, paramLocation)), nil
-	}
-
-	// Check for json.Marshaler
-	if m, ok := value.(json.Marshaler); ok {
-		buf, err := m.MarshalJSON()
-		if err != nil {
-			return "", fmt.Errorf("failed to marshal to JSON: %w", err)
-		}
-		var i2 any
-		e := json.NewDecoder(bytes.NewReader(buf))
-		e.UseNumber()
-		if err = e.Decode(&i2); err != nil {
-			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
-		}
-		return StyleFormExplodeParam(paramName, paramLocation, i2)
-	}
-
-	// Build field dictionary
-	fieldDict, err := structToFieldDict(value)
-	if err != nil {
-		return "", err
-	}
-
-	// Form style with explode: key1=value1&key2=value2
-	var parts []string
-	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k+"="+v)
-	}
-	return strings.Join(parts, "&"), nil
-}
-
-func styleFormExplodeMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	dict, ok := value.(map[string]any)
-	if !ok {
-		return "", errors.New("map not of type map[string]any")
-	}
-
-	fieldDict := make(map[string]string)
-	for fieldName, val := range dict {
-		str, err := primitiveToString(val)
-		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
-		}
-		fieldDict[fieldName] = str
-	}
-
-	// Form style with explode: key1=value1&key2=value2
-	var parts []string
-	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k+"="+v)
-	}
-	return strings.Join(parts, "&"), nil
-}
-
-// StyleLabelParam serializes a value using label style (RFC 6570) without exploding.
-// Label style prefixes values with a dot.
-// Primitives: .value
-// Arrays: .a,b,c
-// Objects: .key1,value1,key2,value2
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// Label without explode: .a,b,c
-
-// Check for known types first
-
-// Check for json.Marshaler
-
-// Build field dictionary
-
-// Label style without explode: .key1,value1,key2,value2
-
-// Label style without explode: .key1,value1,key2,value2
-
-// StyleLabelExplodeParam serializes a value using label style (RFC 6570) with exploding.
-// Label style prefixes values with a dot.
-// Primitives: .value
-// Arrays: .a.b.c
-// Objects: .key1=value1.key2=value2
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// Label with explode: .a.b.c
-
-// Check for known types first
-
-// Check for json.Marshaler
-
-// Build field dictionary
-
-// Label style with explode: .key1=value1.key2=value2
-
-// Label style with explode: .key1=value1.key2=value2
-
-// StyleMatrixParam serializes a value using matrix style (RFC 6570) without exploding.
-// Matrix style prefixes values with ;paramName=.
-// Primitives: ;paramName=value
-// Arrays: ;paramName=a,b,c
-// Objects: ;paramName=key1,value1,key2,value2
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// Matrix without explode: ;paramName=a,b,c
-
-// Check for known types first
-
-// Check for json.Marshaler
-
-// Build field dictionary
-
-// Matrix style without explode: ;paramName=key1,value1,key2,value2
-
-// Matrix style without explode: ;paramName=key1,value1,key2,value2
-
-// StyleMatrixExplodeParam serializes a value using matrix style (RFC 6570) with exploding.
-// Matrix style prefixes values with ;paramName=.
-// Primitives: ;paramName=value
-// Arrays: ;paramName=a;paramName=b;paramName=c
-// Objects: ;key1=value1;key2=value2
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// Matrix with explode: ;paramName=a;paramName=b;paramName=c
-
-// Check for known types first
-
-// Check for json.Marshaler
-
-// Build field dictionary
-
-// Matrix style with explode: ;key1=value1;key2=value2
-
-// Matrix style with explode: ;key1=value1;key2=value2
-
-// StylePipeDelimitedParam serializes a value using pipeDelimited style without exploding.
+// StylePipeDelimitedParam serializes a value using pipeDelimited style.
 // Pipe-delimited style is used for query parameters with array values.
-// Arrays: paramName=a|b|c
-// Note: Only valid for arrays; objects should use other styles.
+//
+// Non-explode: paramName=a|b|c
+// Explode:     paramName=a&paramName=b&paramName=c
 
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// For primitives, fall back to form style
-
-// Pipe-delimited without explode: paramName=a|b|c
-
-// StylePipeDelimitedExplodeParam serializes a value using pipeDelimited style with exploding.
-// Pipe-delimited style is used for query parameters with array values.
-// Arrays: paramName=a&paramName=b&paramName=c (same as form explode)
-// Note: Only valid for arrays; objects should use other styles.
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// For primitives, fall back to form style
-
-// Pipe-delimited with explode: paramName=a&paramName=b&paramName=c
-
-// StyleSimpleParam serializes a value using simple style (RFC 6570) without exploding.
+// StyleSimpleParam serializes a value using simple style (RFC 6570).
 // Simple style is the default for path and header parameters.
-// Arrays are comma-separated: a,b,c
-// Objects are key,value pairs: key1,value1,key2,value2
-func StyleSimpleParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
+//
+// Non-explode: Arrays: a,b,c  Objects: key1,value1,key2,value2
+// Explode:     Arrays: a,b,c  Objects: key1=value1,key2=value2
+func StyleSimpleParam(paramName string, value any, opts ParameterOptions) (string, error) {
 	t := reflect.TypeOf(value)
 	v := reflect.ValueOf(value)
 
-	// Dereference pointers
 	if t.Kind() == reflect.Ptr {
 		if v.IsNil() {
 			return "", fmt.Errorf("value is a nil pointer")
@@ -2490,7 +2231,6 @@ func StyleSimpleParam(paramName string, paramLocation ParamLocation, value any) 
 		t = v.Type()
 	}
 
-	// Check for TextMarshaler (but not time.Time or Date)
 	if tu, ok := value.(encoding.TextMarshaler); ok {
 		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
 		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(Date{})) {
@@ -2498,7 +2238,7 @@ func StyleSimpleParam(paramName string, paramLocation ParamLocation, value any) 
 			if err != nil {
 				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
 			}
-			return escapeParameterString(string(b), paramLocation), nil
+			return escapeParameterString(string(b), opts.ParamLocation), nil
 		}
 	}
 
@@ -2509,43 +2249,38 @@ func StyleSimpleParam(paramName string, paramLocation ParamLocation, value any) 
 		for i := 0; i < n; i++ {
 			sliceVal[i] = v.Index(i).Interface()
 		}
-		return styleSimpleSlice(paramName, paramLocation, sliceVal)
+		return styleSimpleSlice(paramName, opts, sliceVal)
 	case reflect.Struct:
-		return styleSimpleStruct(paramName, paramLocation, value)
+		return styleSimpleStruct(paramName, opts, value)
 	case reflect.Map:
-		return styleSimpleMap(paramName, paramLocation, value)
+		return styleSimpleMap(paramName, opts, value)
 	default:
-		return styleSimplePrimitive(paramLocation, value)
+		strVal, err := primitiveToString(value)
+		if err != nil {
+			return "", err
+		}
+		return escapeParameterString(strVal, opts.ParamLocation), nil
 	}
 }
 
-func styleSimplePrimitive(paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return escapeParameterString(strVal, paramLocation), nil
-}
-
-func styleSimpleSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
+func styleSimpleSlice(paramName string, opts ParameterOptions, values []any) (string, error) {
+	// Simple arrays are always comma-separated regardless of explode
 	parts := make([]string, len(values))
 	for i, v := range values {
 		part, err := primitiveToString(v)
 		if err != nil {
 			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
 		}
-		parts[i] = escapeParameterString(part, paramLocation)
+		parts[i] = escapeParameterString(part, opts.ParamLocation)
 	}
 	return strings.Join(parts, ","), nil
 }
 
-func styleSimpleStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	// Check for known types first
+func styleSimpleStruct(paramName string, opts ParameterOptions, value any) (string, error) {
 	if timeVal, ok := marshalKnownTypes(value); ok {
-		return escapeParameterString(timeVal, paramLocation), nil
+		return escapeParameterString(timeVal, opts.ParamLocation), nil
 	}
 
-	// Check for json.Marshaler
 	if m, ok := value.(json.Marshaler); ok {
 		buf, err := m.MarshalJSON()
 		if err != nil {
@@ -2557,25 +2292,27 @@ func styleSimpleStruct(paramName string, paramLocation ParamLocation, value any)
 		if err = e.Decode(&i2); err != nil {
 			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
 		}
-		return StyleSimpleParam(paramName, paramLocation, i2)
+		return StyleSimpleParam(paramName, i2, opts)
 	}
 
-	// Build field dictionary
 	fieldDict, err := structToFieldDict(value)
 	if err != nil {
 		return "", err
 	}
 
-	// Simple style without explode: key1,value1,key2,value2
 	var parts []string
 	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k, v)
+		v := escapeParameterString(fieldDict[k], opts.ParamLocation)
+		if opts.Explode {
+			parts = append(parts, k+"="+v)
+		} else {
+			parts = append(parts, k, v)
+		}
 	}
 	return strings.Join(parts, ","), nil
 }
 
-func styleSimpleMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
+func styleSimpleMap(paramName string, opts ParameterOptions, value any) (string, error) {
 	dict, ok := value.(map[string]any)
 	if !ok {
 		return "", errors.New("map not of type map[string]any")
@@ -2590,167 +2327,23 @@ func styleSimpleMap(paramName string, paramLocation ParamLocation, value any) (s
 		fieldDict[fieldName] = str
 	}
 
-	// Simple style without explode: key1,value1,key2,value2
 	var parts []string
 	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k, v)
+		v := escapeParameterString(fieldDict[k], opts.ParamLocation)
+		if opts.Explode {
+			parts = append(parts, k+"="+v)
+		} else {
+			parts = append(parts, k, v)
+		}
 	}
 	return strings.Join(parts, ","), nil
 }
 
-// StyleSimpleExplodeParam serializes a value using simple style (RFC 6570) with exploding.
-// Simple style is the default for path and header parameters.
-// Arrays are comma-separated: a,b,c (same as non-explode)
-// Objects are key=value pairs: key1=value1,key2=value2
-func StyleSimpleExplodeParam(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	t := reflect.TypeOf(value)
-	v := reflect.ValueOf(value)
-
-	// Dereference pointers
-	if t.Kind() == reflect.Ptr {
-		if v.IsNil() {
-			return "", fmt.Errorf("value is a nil pointer")
-		}
-		v = reflect.Indirect(v)
-		t = v.Type()
-	}
-
-	// Check for TextMarshaler (but not time.Time or Date)
-	if tu, ok := value.(encoding.TextMarshaler); ok {
-		innerT := reflect.Indirect(reflect.ValueOf(value)).Type()
-		if !innerT.ConvertibleTo(reflect.TypeOf(time.Time{})) && !innerT.ConvertibleTo(reflect.TypeOf(Date{})) {
-			b, err := tu.MarshalText()
-			if err != nil {
-				return "", fmt.Errorf("error marshaling '%s' as text: %w", value, err)
-			}
-			return escapeParameterString(string(b), paramLocation), nil
-		}
-	}
-
-	switch t.Kind() {
-	case reflect.Slice:
-		n := v.Len()
-		sliceVal := make([]any, n)
-		for i := 0; i < n; i++ {
-			sliceVal[i] = v.Index(i).Interface()
-		}
-		return styleSimpleExplodeSlice(paramName, paramLocation, sliceVal)
-	case reflect.Struct:
-		return styleSimpleExplodeStruct(paramName, paramLocation, value)
-	case reflect.Map:
-		return styleSimpleExplodeMap(paramName, paramLocation, value)
-	default:
-		return styleSimpleExplodePrimitive(paramLocation, value)
-	}
-}
-
-func styleSimpleExplodePrimitive(paramLocation ParamLocation, value any) (string, error) {
-	strVal, err := primitiveToString(value)
-	if err != nil {
-		return "", err
-	}
-	return escapeParameterString(strVal, paramLocation), nil
-}
-
-func styleSimpleExplodeSlice(paramName string, paramLocation ParamLocation, values []any) (string, error) {
-	// Exploded simple array is same as non-exploded: comma-separated
-	parts := make([]string, len(values))
-	for i, v := range values {
-		part, err := primitiveToString(v)
-		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
-		}
-		parts[i] = escapeParameterString(part, paramLocation)
-	}
-	return strings.Join(parts, ","), nil
-}
-
-func styleSimpleExplodeStruct(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	// Check for known types first
-	if timeVal, ok := marshalKnownTypes(value); ok {
-		return escapeParameterString(timeVal, paramLocation), nil
-	}
-
-	// Check for json.Marshaler
-	if m, ok := value.(json.Marshaler); ok {
-		buf, err := m.MarshalJSON()
-		if err != nil {
-			return "", fmt.Errorf("failed to marshal to JSON: %w", err)
-		}
-		var i2 any
-		e := json.NewDecoder(bytes.NewReader(buf))
-		e.UseNumber()
-		if err = e.Decode(&i2); err != nil {
-			return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
-		}
-		return StyleSimpleExplodeParam(paramName, paramLocation, i2)
-	}
-
-	// Build field dictionary
-	fieldDict, err := structToFieldDict(value)
-	if err != nil {
-		return "", err
-	}
-
-	// Simple style with explode: key1=value1,key2=value2
-	var parts []string
-	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k+"="+v)
-	}
-	return strings.Join(parts, ","), nil
-}
-
-func styleSimpleExplodeMap(paramName string, paramLocation ParamLocation, value any) (string, error) {
-	dict, ok := value.(map[string]any)
-	if !ok {
-		return "", errors.New("map not of type map[string]any")
-	}
-
-	fieldDict := make(map[string]string)
-	for fieldName, val := range dict {
-		str, err := primitiveToString(val)
-		if err != nil {
-			return "", fmt.Errorf("error formatting '%s': %w", paramName, err)
-		}
-		fieldDict[fieldName] = str
-	}
-
-	// Simple style with explode: key1=value1,key2=value2
-	var parts []string
-	for _, k := range sortedKeys(fieldDict) {
-		v := escapeParameterString(fieldDict[k], paramLocation)
-		parts = append(parts, k+"="+v)
-	}
-	return strings.Join(parts, ","), nil
-}
-
-// StyleSpaceDelimitedParam serializes a value using spaceDelimited style without exploding.
+// StyleSpaceDelimitedParam serializes a value using spaceDelimited style.
 // Space-delimited style is used for query parameters with array values.
-// Arrays: paramName=a b c (space-separated)
-// Note: Only valid for arrays; objects should use other styles.
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// For primitives, fall back to form style
-
-// Space-delimited without explode: paramName=a b c (space becomes %20 when encoded)
-
-// StyleSpaceDelimitedExplodeParam serializes a value using spaceDelimited style with exploding.
-// Space-delimited style is used for query parameters with array values.
-// Arrays: paramName=a&paramName=b&paramName=c (same as form explode)
-// Note: Only valid for arrays; objects should use other styles.
-
-// Dereference pointers
-
-// Check for TextMarshaler (but not time.Time or Date)
-
-// For primitives, fall back to form style
-
-// Space-delimited with explode: paramName=a&paramName=b&paramName=c
+//
+// Non-explode: paramName=a b c
+// Explode:     paramName=a&paramName=b&paramName=c
 
 // JSONMerge merges two JSON-encoded objects. Fields from patch override
 // fields in base. Both arguments must be valid JSON objects (or nil/null).

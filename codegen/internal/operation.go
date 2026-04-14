@@ -171,6 +171,30 @@ func (p *ParameterDescriptor) HasOptionalPointer() bool {
 	return true
 }
 
+// SchemaType returns the first OpenAPI type string for this parameter's schema
+// (e.g., "string", "integer", "array", "object"), or empty string if unavailable.
+func (p *ParameterDescriptor) SchemaType() string {
+	if p.Spec != nil && p.Spec.Schema != nil {
+		if schema := p.Spec.Schema.Schema(); schema != nil {
+			if len(schema.Type) > 0 {
+				return schema.Type[0]
+			}
+		}
+	}
+	return ""
+}
+
+// SchemaFormat returns the OpenAPI format string for this parameter's schema
+// (e.g., "int32", "date-time"), or empty string if unavailable.
+func (p *ParameterDescriptor) SchemaFormat() string {
+	if p.Spec != nil && p.Spec.Schema != nil {
+		if schema := p.Spec.Schema.Schema(); schema != nil {
+			return schema.Format
+		}
+	}
+	return ""
+}
+
 // RequestBodyDescriptor describes a request body for a specific content type.
 type RequestBodyDescriptor struct {
 	ContentType string // "application/json", "multipart/form-data", etc.
@@ -247,23 +271,16 @@ type SecurityRequirement struct {
 // Helper functions for computing descriptor fields
 
 // ComputeStyleFunc returns the style function name for a parameter.
-func ComputeStyleFunc(style string, explode bool) string {
-	base := "Style" + ToCamelCase(style)
-	// deepObject always requires explode=true per OpenAPI spec,
-	// so there is no separate "Explode" variant.
-	if explode && style != "deepObject" {
-		return base + "ExplodeParam"
-	}
-	return base + "Param"
+func ComputeStyleFunc(style string) string {
+	return "Style" + ToCamelCase(style) + "Param"
 }
 
 // ComputeBindFunc returns the bind function name for a parameter.
-func ComputeBindFunc(style string, explode bool) string {
+// Query parameters use a separate entry point that takes url.Values.
+func ComputeBindFunc(style string, location string) string {
 	base := "Bind" + ToCamelCase(style)
-	// deepObject always requires explode=true per OpenAPI spec,
-	// so there is no separate "Explode" variant.
-	if explode && style != "deepObject" {
-		return base + "ExplodeParam"
+	if location == "query" {
+		return base + "QueryParam"
 	}
 	return base + "Param"
 }

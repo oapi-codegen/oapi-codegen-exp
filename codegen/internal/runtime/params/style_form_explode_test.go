@@ -9,19 +9,19 @@ import (
 )
 
 func TestStyleFormExplodeParam_Primitive(t *testing.T) {
-	result, err := StyleFormExplodeParam("color", ParamLocationQuery, "blue")
+	result, err := StyleFormParam("color", "blue", ParameterOptions{ParamLocation: ParamLocationQuery, Explode: true})
 	require.NoError(t, err)
 	assert.Equal(t, "color=blue", result)
 }
 
 func TestStyleFormExplodeParam_Int(t *testing.T) {
-	result, err := StyleFormExplodeParam("count", ParamLocationQuery, 5)
+	result, err := StyleFormParam("count", 5, ParameterOptions{ParamLocation: ParamLocationQuery, Explode: true})
 	require.NoError(t, err)
 	assert.Equal(t, "count=5", result)
 }
 
 func TestStyleFormExplodeParam_StringSlice(t *testing.T) {
-	result, err := StyleFormExplodeParam("tags", ParamLocationQuery, []string{"a", "b", "c"})
+	result, err := StyleFormParam("tags", []string{"a", "b", "c"}, ParameterOptions{ParamLocation: ParamLocationQuery, Explode: true})
 	require.NoError(t, err)
 	assert.Equal(t, "tags=a&tags=b&tags=c", result)
 }
@@ -31,13 +31,13 @@ func TestStyleFormExplodeParam_Struct(t *testing.T) {
 		Color string `json:"color"`
 		Size  int    `json:"size"`
 	}
-	result, err := StyleFormExplodeParam("filter", ParamLocationQuery, obj{Color: "red", Size: 10})
+	result, err := StyleFormParam("filter", obj{Color: "red", Size: 10}, ParameterOptions{ParamLocation: ParamLocationQuery, Explode: true})
 	require.NoError(t, err)
 	assert.Equal(t, "color=red&size=10", result)
 }
 
 func TestStyleFormExplodeParam_Roundtrip_Primitive(t *testing.T) {
-	styled, err := StyleFormExplodeParam("color", ParamLocationQuery, "blue")
+	styled, err := StyleFormParam("color", "blue", ParameterOptions{ParamLocation: ParamLocationQuery, Explode: true})
 	require.NoError(t, err)
 
 	// Parse to url.Values
@@ -45,14 +45,14 @@ func TestStyleFormExplodeParam_Roundtrip_Primitive(t *testing.T) {
 	require.NoError(t, err)
 
 	var result string
-	err = BindFormExplodeParam("color", true, vals, &result)
+	err = BindFormQueryParam("color", vals, &result, ParameterOptions{Explode: true, Required: true})
 	require.NoError(t, err)
 	assert.Equal(t, "blue", result)
 }
 
 func TestStyleFormExplodeParam_Roundtrip_StringSlice(t *testing.T) {
 	original := []string{"a", "b", "c"}
-	styled, err := StyleFormExplodeParam("items", ParamLocationQuery, original)
+	styled, err := StyleFormParam("items", original, ParameterOptions{ParamLocation: ParamLocationQuery, Explode: true})
 	require.NoError(t, err)
 
 	// Parse to url.Values
@@ -60,7 +60,7 @@ func TestStyleFormExplodeParam_Roundtrip_StringSlice(t *testing.T) {
 	require.NoError(t, err)
 
 	var result []string
-	err = BindFormExplodeParam("items", true, vals, &result)
+	err = BindFormQueryParam("items", vals, &result, ParameterOptions{Explode: true, Required: true})
 	require.NoError(t, err)
 	assert.Equal(t, original, result)
 }
@@ -71,7 +71,7 @@ func TestStyleFormExplodeParam_Roundtrip_Struct(t *testing.T) {
 		Size  string `json:"size"`
 	}
 	original := obj{Color: "blue", Size: "large"}
-	styled, err := StyleFormExplodeParam("filter", ParamLocationQuery, original)
+	styled, err := StyleFormParam("filter", original, ParameterOptions{ParamLocation: ParamLocationQuery, Explode: true})
 	require.NoError(t, err)
 
 	// Parse to url.Values
@@ -79,7 +79,7 @@ func TestStyleFormExplodeParam_Roundtrip_Struct(t *testing.T) {
 	require.NoError(t, err)
 
 	var result obj
-	err = BindFormExplodeParam("filter", true, vals, &result)
+	err = BindFormQueryParam("filter", vals, &result, ParameterOptions{Explode: true, Required: true})
 	require.NoError(t, err)
 	assert.Equal(t, original, result)
 }
@@ -88,7 +88,7 @@ func TestBindFormExplodeParam_OptionalMissing(t *testing.T) {
 	vals := url.Values{}
 
 	var result *string
-	err := BindFormExplodeParam("missing", false, vals, &result)
+	err := BindFormQueryParam("missing", vals, &result, ParameterOptions{Explode: true})
 	require.NoError(t, err)
 	assert.Nil(t, result)
 }
@@ -97,7 +97,7 @@ func TestBindFormExplodeParam_RequiredMissing(t *testing.T) {
 	vals := url.Values{}
 
 	var result string
-	err := BindFormExplodeParam("required", true, vals, &result)
+	err := BindFormQueryParam("required", vals, &result, ParameterOptions{Explode: true, Required: true})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "required")
 }
