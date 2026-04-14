@@ -45,7 +45,7 @@ func {{ .GoOperationID }}{{ $.Prefix }}Handler(si {{ $.Prefix }}ReceiverInterfac
 		}{{ end }}
 {{- end }}
 {{- if .IsStyled }}
-		err = {{ .BindFunc }}("{{ .Name }}", ctx.Request().URL.Query(), &params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationQuery, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
+		err = {{ runtimeParamsPrefix }}BindQueryParameter("{{ .Name }}", ctx.Request().URL.Query(), &params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{Style: "{{ .Style }}", ParamLocation: {{ runtimeParamsPrefix }}ParamLocationQuery, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}", AllowReserved: {{ .AllowReserved }}})
 		if err != nil {
 			ctx.StatusCode(http.StatusBadRequest)
 			_, _ = ctx.WriteString(fmt.Sprintf("Invalid format for parameter {{ .Name }}: %s", err))
@@ -63,7 +63,7 @@ func {{ .GoOperationID }}{{ $.Prefix }}Handler(si {{ $.Prefix }}ReceiverInterfac
 				return
 			}
 {{- if .IsStyled }}
-			err = {{ .BindFunc }}("{{ .Name }}", valueList[0], &{{ .GoVariableName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationHeader, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
+			err = {{ runtimeParamsPrefix }}BindParameter("{{ .Name }}", valueList[0], &{{ .GoVariableName }}, {{ runtimeParamsPrefix }}ParameterOptions{Style: "{{ .Style }}", ParamLocation: {{ runtimeParamsPrefix }}ParamLocationHeader, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}", AllowReserved: {{ .AllowReserved }}})
 			if err != nil {
 				ctx.StatusCode(http.StatusBadRequest)
 				_, _ = ctx.WriteString(fmt.Sprintf("Invalid format for parameter {{ .Name }}: %s", err))

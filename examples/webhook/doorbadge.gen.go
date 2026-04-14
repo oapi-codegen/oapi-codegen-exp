@@ -156,7 +156,7 @@ func (siw *ServerInterfaceWrapper) DeregisterWebhook(w http.ResponseWriter, r *h
 	// ------------- Path parameter "id" -------------
 	var id oapiCodegenTypesPkg.UUID
 
-	err = oapiCodegenParamsPkg.BindSimpleParam("id", r.PathValue("id"), &id, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	err = oapiCodegenParamsPkg.BindParameter("id", r.PathValue("id"), &id, oapiCodegenParamsPkg.ParameterOptions{Style: "simple", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", AllowReserved: false})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
 		return
@@ -181,7 +181,7 @@ func (siw *ServerInterfaceWrapper) RegisterWebhook(w http.ResponseWriter, r *htt
 	// ------------- Path parameter "kind" -------------
 	var kind string
 
-	err = oapiCodegenParamsPkg.BindSimpleParam("kind", r.PathValue("kind"), &kind, oapiCodegenParamsPkg.ParameterOptions{ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
+	err = oapiCodegenParamsPkg.BindParameter("kind", r.PathValue("kind"), &kind, oapiCodegenParamsPkg.ParameterOptions{Style: "simple", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", AllowReserved: false})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
 		return

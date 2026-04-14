@@ -52,7 +52,7 @@ func {{ .GoOperationID }}{{ $.Prefix }}Handler(si {{ $.Prefix }}ReceiverInterfac
 		}{{ end }}
 {{- end }}
 {{- if .IsStyled }}
-		err = {{ .BindFunc }}("{{ .Name }}", r.URL.Query(), &params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationQuery, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
+		err = {{ runtimeParamsPrefix }}BindQueryParameter("{{ .Name }}", r.URL.Query(), &params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{Style: "{{ .Style }}", ParamLocation: {{ runtimeParamsPrefix }}ParamLocationQuery, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}", AllowReserved: {{ .AllowReserved }}})
 		if err != nil {
 			errHandler(w, r, &InvalidParamFormatError{ParamName: "{{ .Name }}", Err: err})
 			return
@@ -68,7 +68,7 @@ func {{ .GoOperationID }}{{ $.Prefix }}Handler(si {{ $.Prefix }}ReceiverInterfac
 				return
 			}
 {{- if .IsStyled }}
-			err = {{ .BindFunc }}("{{ .Name }}", valueList[0], &{{ .GoVariableName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationHeader, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
+			err = {{ runtimeParamsPrefix }}BindParameter("{{ .Name }}", valueList[0], &{{ .GoVariableName }}, {{ runtimeParamsPrefix }}ParameterOptions{Style: "{{ .Style }}", ParamLocation: {{ runtimeParamsPrefix }}ParamLocationHeader, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}", AllowReserved: {{ .AllowReserved }}})
 			if err != nil {
 				errHandler(w, r, &InvalidParamFormatError{ParamName: "{{ .Name }}", Err: err})
 				return

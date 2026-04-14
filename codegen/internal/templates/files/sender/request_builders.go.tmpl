@@ -50,7 +50,7 @@ func {{ requestBuilderName $ . }}({{ requestBuilderParams $ . }}{{ if $hasParams
 	}
 	pathParam{{ $idx }} = string(pathParamBuf{{ $idx }})
 	{{- else if .IsStyled }}
-	pathParam{{ $idx }}, err = {{ .StyleFunc }}("{{ .Name }}", {{ .GoVariableName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationPath, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
+	pathParam{{ $idx }}, err = {{ runtimeParamsPrefix }}StyleParameter("{{ .Name }}", {{ .GoVariableName }}, {{ runtimeParamsPrefix }}ParameterOptions{Style: "{{ .Style }}", ParamLocation: {{ runtimeParamsPrefix }}ParamLocationPath, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}", AllowReserved: {{ .AllowReserved }}})
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func {{ requestBuilderName $ . }}({{ requestBuilderParams $ . }}{{ if $hasParams
 			queryValues.Add("{{ .Name }}", string(queryParamBuf))
 		}
 		{{- else if .IsStyled }}
-		if queryFrag, err := {{ .StyleFunc }}("{{ .Name }}", {{ if .HasOptionalPointer }}*{{ end }}params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationQuery, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"}); err != nil {
+		if queryFrag, err := {{ runtimeParamsPrefix }}StyleParameter("{{ .Name }}", {{ if .HasOptionalPointer }}*{{ end }}params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{Style: "{{ .Style }}", ParamLocation: {{ runtimeParamsPrefix }}ParamLocationQuery, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}", AllowReserved: {{ .AllowReserved }}}); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -139,7 +139,7 @@ func {{ requestBuilderName $ . }}({{ requestBuilderParams $ . }}{{ if $hasParams
 		}
 		headerParam{{ $idx }} = string(headerParamBuf{{ $idx }})
 		{{- else if .IsStyled }}
-		headerParam{{ $idx }}, err = {{ .StyleFunc }}("{{ .Name }}", {{ if .HasOptionalPointer }}*{{ end }}params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationHeader, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
+		headerParam{{ $idx }}, err = {{ runtimeParamsPrefix }}StyleParameter("{{ .Name }}", {{ if .HasOptionalPointer }}*{{ end }}params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{Style: "{{ .Style }}", ParamLocation: {{ runtimeParamsPrefix }}ParamLocationHeader, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}", AllowReserved: {{ .AllowReserved }}})
 		if err != nil {
 			return nil, err
 		}
@@ -169,7 +169,7 @@ func {{ requestBuilderName $ . }}({{ requestBuilderParams $ . }}{{ if $hasParams
 		}
 		cookieParam{{ $idx }} = url.QueryEscape(string(cookieParamBuf{{ $idx }}))
 		{{- else if .IsStyled }}
-		cookieParam{{ $idx }}, err = {{ .StyleFunc }}("{{ .Name }}", {{ if .HasOptionalPointer }}*{{ end }}params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationCookie, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
+		cookieParam{{ $idx }}, err = {{ runtimeParamsPrefix }}StyleParameter("{{ .Name }}", {{ if .HasOptionalPointer }}*{{ end }}params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{Style: "{{ .Style }}", ParamLocation: {{ runtimeParamsPrefix }}ParamLocationCookie, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}", AllowReserved: {{ .AllowReserved }}})
 		if err != nil {
 			return nil, err
 		}

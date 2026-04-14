@@ -130,22 +130,22 @@ func TestDate_UnmarshalText_InvalidFormat(t *testing.T) {
 
 func TestEscapeParameterString(t *testing.T) {
 	t.Run("query location escapes", func(t *testing.T) {
-		result := escapeParameterString("hello world", ParamLocationQuery)
+		result := escapeParameterString("hello world", ParamLocationQuery, false)
 		assert.Equal(t, "hello+world", result)
 	})
 
 	t.Run("path location escapes", func(t *testing.T) {
-		result := escapeParameterString("hello world", ParamLocationPath)
+		result := escapeParameterString("hello world", ParamLocationPath, false)
 		assert.Equal(t, "hello%20world", result)
 	})
 
 	t.Run("header location no escaping", func(t *testing.T) {
-		result := escapeParameterString("hello world", ParamLocationHeader)
+		result := escapeParameterString("hello world", ParamLocationHeader, false)
 		assert.Equal(t, "hello world", result)
 	})
 
 	t.Run("cookie location no escaping", func(t *testing.T) {
-		result := escapeParameterString("hello world", ParamLocationCookie)
+		result := escapeParameterString("hello world", ParamLocationCookie, false)
 		assert.Equal(t, "hello world", result)
 	})
 }

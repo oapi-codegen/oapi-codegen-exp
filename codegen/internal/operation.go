@@ -131,10 +131,6 @@ type ParameterDescriptor struct {
 	Schema   *SchemaDescriptor
 	TypeDecl string // Go type declaration (e.g., "string", "[]int", "*MyType")
 
-	// Precomputed function names for templates
-	StyleFunc string // "StyleSimpleParam", "StyleFormExplodeParam", etc.
-	BindFunc  string // "BindSimpleParam", "BindFormExplodeParam", etc.
-
 	// Encoding modes
 	IsStyled      bool // Uses style/explode serialization (most common)
 	IsPassThrough bool // No styling, just pass the string through
@@ -193,6 +189,15 @@ func (p *ParameterDescriptor) SchemaFormat() string {
 		}
 	}
 	return ""
+}
+
+// AllowReserved returns whether this parameter's value may contain RFC 3986
+// reserved characters without percent-encoding.
+func (p *ParameterDescriptor) AllowReserved() bool {
+	if p.Spec != nil {
+		return p.Spec.AllowReserved
+	}
+	return false
 }
 
 // RequestBodyDescriptor describes a request body for a specific content type.
@@ -269,21 +274,6 @@ type SecurityRequirement struct {
 }
 
 // Helper functions for computing descriptor fields
-
-// ComputeStyleFunc returns the style function name for a parameter.
-func ComputeStyleFunc(style string) string {
-	return "Style" + ToCamelCase(style) + "Param"
-}
-
-// ComputeBindFunc returns the bind function name for a parameter.
-// Query parameters use a separate entry point that takes url.Values.
-func ComputeBindFunc(style string, location string) string {
-	base := "Bind" + ToCamelCase(style)
-	if location == "query" {
-		return base + "QueryParam"
-	}
-	return base + "Param"
-}
 
 // ComputeBodyNameTag returns the name tag for a content type.
 func ComputeBodyNameTag(contentType string) string {

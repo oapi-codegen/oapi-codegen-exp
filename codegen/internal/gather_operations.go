@@ -231,16 +231,6 @@ func (g *operationGatherer) gatherParameter(param *v3.Parameter) (*ParameterDesc
 		required = *param.Required
 	}
 
-	styleFunc := ComputeStyleFunc(style)
-	bindFunc := ComputeBindFunc(style, param.In)
-
-	// When a runtime package is configured, prefix function names so generated
-	// code references them from the runtime package (e.g., "params.StyleSimpleParam").
-	if g.ctx != nil && g.ctx.RuntimeParamsPrefix() != "" {
-		styleFunc = g.ctx.RuntimeParamsPrefix() + styleFunc
-		bindFunc = g.ctx.RuntimeParamsPrefix() + bindFunc
-	}
-
 	desc := &ParameterDescriptor{
 		Name:     param.Name,
 		GoName:   goName,
@@ -252,9 +242,6 @@ func (g *operationGatherer) gatherParameter(param *v3.Parameter) (*ParameterDesc
 
 		Schema:   schemaDesc,
 		TypeDecl: typeDecl,
-
-		StyleFunc: styleFunc,
-		BindFunc:  bindFunc,
 
 		IsStyled:      isStyled,
 		IsPassThrough: isPassThrough,

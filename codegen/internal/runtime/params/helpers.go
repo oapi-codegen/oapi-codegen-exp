@@ -5,6 +5,7 @@ package params
 import (
 	"bytes"
 	"encoding"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -32,6 +33,17 @@ const (
 // Binder is an interface for types that can bind themselves from a string value.
 type Binder interface {
 	Bind(value string) error
+}
+
+// MissingRequiredParameterError is returned when a required parameter is not
+// present in the request. Upper layers can use errors.As to detect this and
+// produce an appropriate HTTP error response.
+type MissingRequiredParameterError struct {
+	ParamName string
+}
+
+func (e *MissingRequiredParameterError) Error() string {
+	return fmt.Sprintf("parameter '%s' is required", e.ParamName)
 }
 
 // primitiveToString converts a primitive value to a string representation.
@@ -118,17 +130,57 @@ func marshalKnownTypes(value any) (string, bool) {
 	return "", false
 }
 
+// escapeParameterName escapes a parameter name for use in query strings and
+// paths. This ensures characters like [] in parameter names (e.g. user_ids[])
+// are properly percent-encoded per RFC 3986.
+func escapeParameterName(name string, paramLocation ParamLocation) string {
+	// Parameter names should always be encoded regardless of allowReserved,
+	// which only applies to values per the OpenAPI spec.
+	return escapeParameterString(name, paramLocation, false)
+}
+
 // escapeParameterString escapes a parameter value based on its location.
 // Query and path parameters need URL escaping; headers and cookies do not.
-func escapeParameterString(value string, paramLocation ParamLocation) string {
+// When allowReserved is true and the location is query, RFC 3986 reserved
+// characters are left unencoded per the OpenAPI allowReserved specification.
+func escapeParameterString(value string, paramLocation ParamLocation, allowReserved bool) string {
 	switch paramLocation {
 	case ParamLocationQuery:
+		if allowReserved {
+			return escapeQueryAllowReserved(value)
+		}
 		return url.QueryEscape(value)
 	case ParamLocationPath:
 		return url.PathEscape(value)
 	default:
 		return value
 	}
+}
+
+// escapeQueryAllowReserved percent-encodes a query parameter value while
+// leaving RFC 3986 reserved characters (:/?#[]@!$&'()*+,;=) unencoded, as
+// specified by OpenAPI's allowReserved parameter option.
+func escapeQueryAllowReserved(value string) string {
+	const reserved = `:/?#[]@!$&'()*+,;=`
+
+	var buf strings.Builder
+	for _, b := range []byte(value) {
+		if isUnreserved(b) || strings.IndexByte(reserved, b) >= 0 {
+			buf.WriteByte(b)
+		} else {
+			fmt.Fprintf(&buf, "%%%02X", b)
+		}
+	}
+	return buf.String()
+}
+
+// isUnreserved reports whether the byte is an RFC 3986 unreserved character:
+// ALPHA / DIGIT / "-" / "." / "_" / "~"
+func isUnreserved(c byte) bool {
+	return (c >= 'A' && c <= 'Z') ||
+		(c >= 'a' && c <= 'z') ||
+		(c >= '0' && c <= '9') ||
+		c == '-' || c == '.' || c == '_' || c == '~'
 }
 
 // unescapeParameterString unescapes a parameter value based on its location.
@@ -247,6 +299,144 @@ func bindSplitPartsToDestinationStruct(paramName string, parts []string, explode
 	}
 	jsonParam := "{" + strings.Join(fields, ",") + "}"
 	return json.Unmarshal([]byte(jsonParam), dest)
+}
+
+// splitStyledParameter splits a styled parameter string value into parts based
+// on the OpenAPI style. The object flag indicates whether the destination is a
+// struct/map (affects matrix explode handling).
+func splitStyledParameter(style string, explode bool, object bool, paramName string, value string) ([]string, error) {
+	switch style {
+	case "simple":
+		// In the simple case, we always split on comma
+		return strings.Split(value, ","), nil
+	case "label":
+		if explode {
+			// Exploded: .a.b.c or .key=value.key=value
+			parts := strings.Split(value, ".")
+			if parts[0] != "" {
+				return nil, fmt.Errorf("invalid format for label parameter '%s', should start with '.'", paramName)
+			}
+			return parts[1:], nil
+		}
+		// Unexploded: .a,b,c
+		if value[0] != '.' {
+			return nil, fmt.Errorf("invalid format for label parameter '%s', should start with '.'", paramName)
+		}
+		return strings.Split(value[1:], ","), nil
+	case "matrix":
+		if explode {
+			// Exploded: ;a;b;c or ;key=value;key=value
+			parts := strings.Split(value, ";")
+			if parts[0] != "" {
+				return nil, fmt.Errorf("invalid format for matrix parameter '%s', should start with ';'", paramName)
+			}
+			parts = parts[1:]
+			if !object {
+				prefix := paramName + "="
+				for i := range parts {
+					parts[i] = strings.TrimPrefix(parts[i], prefix)
+				}
+			}
+			return parts, nil
+		}
+		// Unexploded: ;paramName=a,b,c
+		prefix := ";" + paramName + "="
+		if !strings.HasPrefix(value, prefix) {
+			return nil, fmt.Errorf("expected parameter '%s' to start with %s", paramName, prefix)
+		}
+		return strings.Split(strings.TrimPrefix(value, prefix), ","), nil
+	case "form":
+		if explode {
+			parts := strings.Split(value, "&")
+			if !object {
+				prefix := paramName + "="
+				for i := range parts {
+					parts[i] = strings.TrimPrefix(parts[i], prefix)
+				}
+			}
+			return parts, nil
+		}
+		parts := strings.Split(value, ",")
+		prefix := paramName + "="
+		for i := range parts {
+			parts[i] = strings.TrimPrefix(parts[i], prefix)
+		}
+		return parts, nil
+	}
+
+	return nil, fmt.Errorf("unhandled parameter style: %s", style)
+}
+
+// findRawQueryParam extracts values for a named parameter from a raw
+// (undecoded) query string. The parameter key is decoded for comparison
+// purposes, but the returned values remain in their original encoded form.
+func findRawQueryParam(rawQuery, paramName string) (values []string, found bool) {
+	for rawQuery != "" {
+		var part string
+		if i := strings.IndexByte(rawQuery, '&'); i >= 0 {
+			part = rawQuery[:i]
+			rawQuery = rawQuery[i+1:]
+		} else {
+			part = rawQuery
+			rawQuery = ""
+		}
+		if part == "" {
+			continue
+		}
+		key := part
+		var val string
+		if i := strings.IndexByte(part, '='); i >= 0 {
+			key = part[:i]
+			val = part[i+1:]
+		}
+		decodedKey, err := url.QueryUnescape(key)
+		if err != nil {
+			// Skip malformed keys.
+			continue
+		}
+		if decodedKey == paramName {
+			values = append(values, val)
+			found = true
+		}
+	}
+	return values, found
+}
+
+// isByteSlice reports whether t is []byte (or equivalently []uint8).
+func isByteSlice(t reflect.Type) bool {
+	return t.Kind() == reflect.Slice && t.Elem().Kind() == reflect.Uint8
+}
+
+// base64Decode decodes s as base64.
+//
+// Per OpenAPI 3.0, format: byte uses RFC 4648 Section 4 (standard alphabet,
+// padded). We use padding presence to select the right decoder, rather than
+// blindly cascading (which can produce corrupt output when RawStdEncoding
+// silently accepts padded input and treats '=' as data).
+func base64Decode(s string) ([]byte, error) {
+	if s == "" {
+		return []byte{}, nil
+	}
+
+	if strings.ContainsRune(s, '=') {
+		if strings.ContainsAny(s, "-_") {
+			return base64Decode1(base64.URLEncoding, s)
+		}
+		return base64Decode1(base64.StdEncoding, s)
+	}
+
+	if strings.ContainsAny(s, "-_") {
+		return base64Decode1(base64.RawURLEncoding, s)
+	}
+	return base64Decode1(base64.RawStdEncoding, s)
+}
+
+func base64Decode1(enc *base64.Encoding, s string) ([]byte, error) {
+	b, err := enc.DecodeString(s)
+	if err != nil {
+		return nil, fmt.Errorf("failed to base64-decode string %q: %w", s, err)
+	}
+	return b, nil
 }
 
 // structToFieldDict converts a struct to a map of field names to string values.

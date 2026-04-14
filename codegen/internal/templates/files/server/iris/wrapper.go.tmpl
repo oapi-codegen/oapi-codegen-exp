@@ -31,7 +31,7 @@ func (w *ServerInterfaceWrapper) {{ .GoOperationID }}(ctx iris.Context) {
 	}
 {{- end }}
 {{- if .IsStyled }}
-	err = {{ .BindFunc }}("{{ .Name }}", ctx.Params().Get("{{ .Name }}"), &{{ .GoVariableName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationPath, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
+	err = {{ runtimeParamsPrefix }}BindParameter("{{ .Name }}", ctx.Params().Get("{{ .Name }}"), &{{ .GoVariableName }}, {{ runtimeParamsPrefix }}ParameterOptions{Style: "{{ .Style }}", ParamLocation: {{ runtimeParamsPrefix }}ParamLocationPath, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}", AllowReserved: {{ .AllowReserved }}})
 	if err != nil {
 		ctx.StatusCode(http.StatusBadRequest)
 		ctx.WriteString(fmt.Sprintf("Invalid format for parameter {{ .Name }}: %s", err))
@@ -50,7 +50,7 @@ func (w *ServerInterfaceWrapper) {{ .GoOperationID }}(ctx iris.Context) {
 {{ range .QueryParams }}
 	// ------------- {{ if .Required }}Required{{ else }}Optional{{ end }} query parameter "{{ .Name }}" -------------
 {{- if .IsStyled }}
-	err = {{ .BindFunc }}("{{ .Name }}", ctx.Request().URL.Query(), &params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationQuery, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
+	err = {{ runtimeParamsPrefix }}BindQueryParameter("{{ .Name }}", ctx.Request().URL.Query(), &params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{Style: "{{ .Style }}", ParamLocation: {{ runtimeParamsPrefix }}ParamLocationQuery, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}", AllowReserved: {{ .AllowReserved }}})
 	if err != nil {
 		ctx.StatusCode(http.StatusBadRequest)
 		ctx.WriteString(fmt.Sprintf("Invalid format for parameter {{ .Name }}: %s", err))
@@ -102,7 +102,7 @@ func (w *ServerInterfaceWrapper) {{ .GoOperationID }}(ctx iris.Context) {
 		}
 {{- end }}
 {{- if .IsStyled }}
-		err = {{ .BindFunc }}("{{ .Name }}", valueList[0], &{{ .GoVariableName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationHeader, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
+		err = {{ runtimeParamsPrefix }}BindParameter("{{ .Name }}", valueList[0], &{{ .GoVariableName }}, {{ runtimeParamsPrefix }}ParameterOptions{Style: "{{ .Style }}", ParamLocation: {{ runtimeParamsPrefix }}ParamLocationHeader, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}", AllowReserved: {{ .AllowReserved }}})
 		if err != nil {
 			ctx.StatusCode(http.StatusBadRequest)
 			ctx.WriteString(fmt.Sprintf("Invalid format for parameter {{ .Name }}: %s", err))
@@ -140,7 +140,7 @@ func (w *ServerInterfaceWrapper) {{ .GoOperationID }}(ctx iris.Context) {
 {{- end }}
 {{- if .IsStyled }}
 		var value {{ .TypeDecl }}
-		err = {{ .BindFunc }}("{{ .Name }}", cookie, &value, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationCookie, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
+		err = {{ runtimeParamsPrefix }}BindParameter("{{ .Name }}", cookie, &value, {{ runtimeParamsPrefix }}ParameterOptions{Style: "{{ .Style }}", ParamLocation: {{ runtimeParamsPrefix }}ParamLocationCookie, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}", AllowReserved: {{ .AllowReserved }}})
 		if err != nil {
 			ctx.StatusCode(http.StatusBadRequest)
 			ctx.WriteString(fmt.Sprintf("Invalid format for parameter {{ .Name }}: %s", err))

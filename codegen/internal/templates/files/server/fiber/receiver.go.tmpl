@@ -22,6 +22,12 @@ func {{ .GoOperationID }}{{ $.Prefix }}Handler(si {{ $.Prefix }}ReceiverInterfac
 		_ = err
 
 		var params {{ .ParamsTypeName }}
+{{ if .QueryParams }}
+		query, parseErr := url.ParseQuery(string(c.Request().URI().QueryString()))
+		if parseErr != nil {
+			return fiber.NewError(http.StatusBadRequest, fmt.Sprintf("Invalid format for query string: %s", parseErr))
+		}
+{{ end }}
 {{ range .QueryParams }}
 {{- if or .Required .IsPassThrough .IsJSON }}
 		if paramValue := c.Query("{{ .Name }}"); paramValue != "" {
@@ -41,7 +47,7 @@ func {{ .GoOperationID }}{{ $.Prefix }}Handler(si {{ $.Prefix }}ReceiverInterfac
 		}{{ end }}
 {{- end }}
 {{- if .IsStyled }}
-		err = {{ .BindFunc }}("{{ .Name }}", c.Queries(), &params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationQuery, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
+		err = {{ runtimeParamsPrefix }}BindQueryParameter("{{ .Name }}", query, &params.{{ .GoName }}, {{ runtimeParamsPrefix }}ParameterOptions{Style: "{{ .Style }}", ParamLocation: {{ runtimeParamsPrefix }}ParamLocationQuery, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}", AllowReserved: {{ .AllowReserved }}})
 		if err != nil {
 			return fiber.NewError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter {{ .Name }}: %s", err))
 		}
@@ -53,7 +59,7 @@ func {{ .GoOperationID }}{{ $.Prefix }}Handler(si {{ $.Prefix }}ReceiverInterfac
 			if headerValue != "" {
 				var {{ .GoVariableName }} {{ .TypeDecl }}
 {{- if .IsStyled }}
-				err = {{ .BindFunc }}("{{ .Name }}", headerValue, &{{ .GoVariableName }}, {{ runtimeParamsPrefix }}ParameterOptions{ParamLocation: {{ runtimeParamsPrefix }}ParamLocationHeader, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}"})
+				err = {{ runtimeParamsPrefix }}BindParameter("{{ .Name }}", headerValue, &{{ .GoVariableName }}, {{ runtimeParamsPrefix }}ParameterOptions{Style: "{{ .Style }}", ParamLocation: {{ runtimeParamsPrefix }}ParamLocationHeader, Explode: {{ .Explode }}, Required: {{ .Required }}, Type: "{{ .SchemaType }}", Format: "{{ .SchemaFormat }}", AllowReserved: {{ .AllowReserved }}})
 				if err != nil {
 					return fiber.NewError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter {{ .Name }}: %s", err))
 				}
