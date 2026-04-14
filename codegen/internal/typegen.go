@@ -730,6 +730,14 @@ func (g *TypeGenerator) GenerateStructFields(desc *SchemaDescriptor) []StructFie
 // references (e.g., A: allOf[$ref:B, ...] where B: allOf[$ref:C, ...]) are
 // properly flattened.
 func (g *TypeGenerator) collectFieldsRecursive(desc *SchemaDescriptor) []StructField {
+	seen := make(map[string]bool)
+	if desc.Ref != "" {
+		seen[desc.Ref] = true
+	}
+	return g.collectFieldsRecursiveInner(desc, seen)
+}
+
+func (g *TypeGenerator) collectFieldsRecursiveInner(desc *SchemaDescriptor, seen map[string]bool) []StructField {
 	schema := desc.Schema
 	if schema == nil {
 		return nil
@@ -756,9 +764,14 @@ func (g *TypeGenerator) collectFieldsRecursive(desc *SchemaDescriptor) []StructF
 		var memberFields []StructField
 		if proxy.IsReference() {
 			ref := proxy.GetReference()
+			if seen[ref] {
+				// Cycle detected — skip this ref to avoid infinite recursion.
+				continue
+			}
+			seen[ref] = true
 			if target, ok := g.schemaIndex[ref]; ok {
 				// Recurse: the target may itself be an allOf composition
-				memberFields = g.collectFieldsRecursive(target)
+				memberFields = g.collectFieldsRecursiveInner(target, seen)
 			}
 		} else if memberSchema.Properties != nil && memberSchema.Properties.Len() > 0 {
 			if desc.AllOf != nil && i < len(desc.AllOf) {
