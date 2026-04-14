@@ -9,38 +9,58 @@ import (
 	"strings"
 )
 
-// BindLabelParam binds a label-style parameter without explode to a destination.
-// Label style values are prefixed with a dot.
-// Primitives: .value -> "value"
-// Arrays: .a,b,c -> []string{"a", "b", "c"}
-// Objects: .key1,value1,key2,value2 -> struct{Key1, Key2}
-func BindLabelParam(paramName string, paramLocation ParamLocation, value string, dest any) error {
+// BindLabelParam binds a label-style parameter to a destination.
+// Label style values are prefixed with a dot. Path parameters only.
+//
+// Non-explode:
+//
+//	Primitives: .value          Arrays: .a,b,c          Objects: .key1,value1,key2,value2
+//
+// Explode:
+//
+//	Primitives: .value          Arrays: .a.b.c          Objects: .key1=value1.key2=value2
+func BindLabelParam(paramName string, value string, dest any, opts ParameterOptions) error {
 	if value == "" {
 		return fmt.Errorf("parameter '%s' is empty, can't bind its value", paramName)
 	}
 
-	// Unescape based on location
 	var err error
-	value, err = unescapeParameterString(value, paramLocation)
+	value, err = unescapeParameterString(value, opts.ParamLocation)
 	if err != nil {
 		return fmt.Errorf("error unescaping parameter '%s': %w", paramName, err)
 	}
 
-	// Label style requires leading dot
 	if value[0] != '.' {
 		return fmt.Errorf("invalid format for label parameter '%s', should start with '.'", paramName)
 	}
 
-	// Strip the leading dot and split on comma
-	stripped := value[1:]
-
-	// Check for TextUnmarshaler
 	if tu, ok := dest.(encoding.TextUnmarshaler); ok {
-		return tu.UnmarshalText([]byte(stripped))
+		return tu.UnmarshalText([]byte(value[1:]))
 	}
 
 	v := reflect.Indirect(reflect.ValueOf(dest))
 	t := v.Type()
+
+	if opts.Explode {
+		// Explode: split on dot, skip first empty part
+		parts := strings.Split(value, ".")
+		if parts[0] != "" {
+			return fmt.Errorf("invalid format for label parameter '%s', should start with '.'", paramName)
+		}
+		parts = parts[1:]
+
+		switch t.Kind() {
+		case reflect.Struct:
+			return bindSplitPartsToDestinationStruct(paramName, parts, true, dest)
+		case reflect.Slice:
+			return bindSplitPartsToDestinationArray(parts, dest)
+		default:
+			return BindStringToObject(value[1:], dest)
+		}
+	}
+
+	// Non-explode: strip leading dot, split on comma
+	stripped := value[1:]
 
 	switch t.Kind() {
 	case reflect.Struct:

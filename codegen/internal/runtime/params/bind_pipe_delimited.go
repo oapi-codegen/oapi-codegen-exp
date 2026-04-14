@@ -1,30 +1,40 @@
 package params
 
-//oapi-runtime:function params/BindPipeDelimitedParam
+//oapi-runtime:function params/BindPipeDelimitedQueryParam
 
 import (
 	"encoding"
 	"fmt"
+	"net/url"
 	"reflect"
 	"strings"
 )
 
-// BindPipeDelimitedParam binds a pipeDelimited-style parameter without explode.
-// Pipe-delimited style uses pipe as the separator.
-// Arrays: a|b|c -> []string{"a", "b", "c"}
-func BindPipeDelimitedParam(paramName string, paramLocation ParamLocation, value string, dest any) error {
-	if value == "" {
-		return fmt.Errorf("parameter '%s' is empty, can't bind its value", paramName)
+// BindPipeDelimitedQueryParam binds a pipeDelimited-style query parameter.
+// Pipe-delimited style uses pipes as array separators. Query only.
+//
+// Non-explode: ?param=a|b|c -> []string{"a", "b", "c"}
+// Explode:     ?param=a&param=b -> []string{"a", "b"} (same as form explode)
+func BindPipeDelimitedQueryParam(paramName string, queryParams url.Values, dest any, opts ParameterOptions) error {
+	if opts.Explode {
+		// Exploded pipe-delimited is same as exploded form
+		return BindFormQueryParam(paramName, queryParams, dest, opts)
 	}
 
-	// Unescape based on location
+	value := queryParams.Get(paramName)
+	if value == "" {
+		if opts.Required {
+			return fmt.Errorf("query parameter '%s' is required", paramName)
+		}
+		return nil
+	}
+
 	var err error
-	value, err = unescapeParameterString(value, paramLocation)
+	value, err = unescapeParameterString(value, opts.ParamLocation)
 	if err != nil {
 		return fmt.Errorf("error unescaping parameter '%s': %w", paramName, err)
 	}
 
-	// Check for TextUnmarshaler
 	if tu, ok := dest.(encoding.TextUnmarshaler); ok {
 		return tu.UnmarshalText([]byte(value))
 	}

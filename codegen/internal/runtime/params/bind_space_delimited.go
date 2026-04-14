@@ -1,30 +1,40 @@
 package params
 
-//oapi-runtime:function params/BindSpaceDelimitedParam
+//oapi-runtime:function params/BindSpaceDelimitedQueryParam
 
 import (
 	"encoding"
 	"fmt"
+	"net/url"
 	"reflect"
 	"strings"
 )
 
-// BindSpaceDelimitedParam binds a spaceDelimited-style parameter without explode.
-// Space-delimited style uses space as the separator.
-// Arrays: a b c -> []string{"a", "b", "c"}
-func BindSpaceDelimitedParam(paramName string, paramLocation ParamLocation, value string, dest any) error {
-	if value == "" {
-		return fmt.Errorf("parameter '%s' is empty, can't bind its value", paramName)
+// BindSpaceDelimitedQueryParam binds a spaceDelimited-style query parameter.
+// Space-delimited style uses spaces as array separators. Query only.
+//
+// Non-explode: ?param=a%20b%20c -> []string{"a", "b", "c"}
+// Explode:     ?param=a&param=b -> []string{"a", "b"} (same as form explode)
+func BindSpaceDelimitedQueryParam(paramName string, queryParams url.Values, dest any, opts ParameterOptions) error {
+	if opts.Explode {
+		// Exploded space-delimited is same as exploded form
+		return BindFormQueryParam(paramName, queryParams, dest, opts)
 	}
 
-	// Unescape based on location
+	value := queryParams.Get(paramName)
+	if value == "" {
+		if opts.Required {
+			return fmt.Errorf("query parameter '%s' is required", paramName)
+		}
+		return nil
+	}
+
 	var err error
-	value, err = unescapeParameterString(value, paramLocation)
+	value, err = unescapeParameterString(value, opts.ParamLocation)
 	if err != nil {
 		return fmt.Errorf("error unescaping parameter '%s': %w", paramName, err)
 	}
 
-	// Check for TextUnmarshaler
 	if tu, ok := dest.(encoding.TextUnmarshaler); ok {
 		return tu.UnmarshalText([]byte(value))
 	}

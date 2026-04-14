@@ -1,6 +1,6 @@
 package params
 
-//oapi-runtime:function params/BindDeepObjectParam
+//oapi-runtime:function params/BindDeepObjectQueryParam
 
 import (
 	"errors"
@@ -15,11 +15,11 @@ import (
 	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/runtime/types"
 )
 
-// BindDeepObjectParam binds a deepObject-style parameter to a destination.
-// DeepObject style is only valid for query parameters and must be exploded.
+// BindDeepObjectQueryParam binds a deepObject-style query parameter to a destination.
+// DeepObject style is only valid for query parameters and is always exploded.
 // Objects: ?paramName[key1]=value1&paramName[key2]=value2 -> struct{Key1, Key2}
 // Nested: ?paramName[outer][inner]=value -> struct{Outer: {Inner: value}}
-func BindDeepObjectParam(paramName string, queryParams url.Values, dest any) error {
+func BindDeepObjectQueryParam(paramName string, queryParams url.Values, dest any, opts ParameterOptions) error {
 	return UnmarshalDeepObject(dest, paramName, queryParams)
 }
 
@@ -145,12 +145,10 @@ func assignPathValues(dst any, pathValues fieldOrValue) error {
 		return nil
 
 	case reflect.Struct:
-		// Check for Binder interface
 		if dst, isBinder := v.Interface().(Binder); isBinder {
 			return dst.Bind(pathValues.value)
 		}
 
-		// Handle Date type
 		if it.ConvertibleTo(reflect.TypeOf(types.Date{})) {
 			var date types.Date
 			var err error
@@ -168,7 +166,6 @@ func assignPathValues(dst any, pathValues fieldOrValue) error {
 			return nil
 		}
 
-		// Handle time.Time type
 		if it.ConvertibleTo(reflect.TypeOf(time.Time{})) {
 			tm, err := time.Parse(time.RFC3339Nano, pathValues.value)
 			if err != nil {
@@ -187,7 +184,6 @@ func assignPathValues(dst any, pathValues fieldOrValue) error {
 			return nil
 		}
 
-		// Regular struct
 		fieldMap, err := fieldIndicesByJsonTag(iv.Interface())
 		if err != nil {
 			return fmt.Errorf("failed enumerating fields: %w", err)
