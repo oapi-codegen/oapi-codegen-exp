@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/types"
+	"github.com/oapi-codegen/oapi-codegen-exp/runtime/types"
 )
 
 // TestDateIntervalFieldOrder verifies the x-order extension affects field ordering.

@@ -3,7 +3,7 @@ package codegen
 import (
 	"text/template"
 
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/templates"
+	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/templates"
 )
 
 // RuntimePrefixes holds the package-qualifier prefixes for the three runtime sub-packages.

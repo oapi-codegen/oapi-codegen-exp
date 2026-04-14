@@ -3,7 +3,7 @@ package output
 import (
 	"testing"
 
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/types"
+	"github.com/oapi-codegen/oapi-codegen-exp/runtime/types"
 )
 
 // TestNullableRefOneOf verifies that oneOf: [$ref, {type: "null"}] generates

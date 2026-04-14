@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/types"
+	"github.com/oapi-codegen/oapi-codegen-exp/runtime/types"
 )
 
 // TestNameNormalizerPetType verifies that the Pet type has correctly named

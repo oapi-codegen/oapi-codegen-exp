@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/runtime/types"
+	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/runtime/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

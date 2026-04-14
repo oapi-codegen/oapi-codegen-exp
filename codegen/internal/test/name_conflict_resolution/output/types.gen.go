@@ -15,9 +15,9 @@ import (
 	"strings"
 	"sync"
 
-	oapiCodegenHelpersPkg "github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/helpers"
-	oapiCodegenParamsPkg "github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/params"
-	oapiCodegenTypesPkg "github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/types"
+	oapiCodegenHelpersPkg "github.com/oapi-codegen/oapi-codegen-exp/runtime/helpers"
+	oapiCodegenParamsPkg "github.com/oapi-codegen/oapi-codegen-exp/runtime/params"
+	oapiCodegenTypesPkg "github.com/oapi-codegen/oapi-codegen-exp/runtime/types"
 )
 
 // #/components/schemas/Bar

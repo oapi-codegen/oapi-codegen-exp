@@ -15,8 +15,8 @@ import (
 	"strings"
 	"sync"
 
-	oapiCodegenParamsPkg "github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/params"
-	oapiCodegenTypesPkg "github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/types"
+	oapiCodegenParamsPkg "github.com/oapi-codegen/oapi-codegen-exp/runtime/params"
+	oapiCodegenTypesPkg "github.com/oapi-codegen/oapi-codegen-exp/runtime/types"
 )
 
 // #/components/schemas/WebhookRegistration

@@ -24,7 +24,7 @@ type Import struct {
 // RuntimeModulePrefix is the import path prefix for the internal runtime sub-packages.
 // Used by the extractor to strip internal imports when inlining, and by the runtime
 // generator to rewrite them to the target base path.
-const RuntimeModulePrefix = "github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/runtime/"
+const RuntimeModulePrefix = "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/runtime/"
 
 // typesQualifierRe matches "types." followed by a Go identifier, used to
 // strip the package qualifier when inlining runtime code.

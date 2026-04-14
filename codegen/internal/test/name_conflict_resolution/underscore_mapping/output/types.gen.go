@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	oapiCodegenTypesPkg "github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/types"
+	oapiCodegenTypesPkg "github.com/oapi-codegen/oapi-codegen-exp/runtime/types"
 )
 
 // #/components/schemas/Alarm

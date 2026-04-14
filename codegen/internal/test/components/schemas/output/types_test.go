@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/types"
+	"github.com/oapi-codegen/oapi-codegen-exp/runtime/types"
 )
 
 func TestGenericObjectInstantiation(t *testing.T) {

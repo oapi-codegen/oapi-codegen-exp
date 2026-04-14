@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/runtime/types"
+	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/runtime/types"
 )
 
 // StyleSimpleExplodeParam serializes a value using simple style (RFC 6570) with exploding.

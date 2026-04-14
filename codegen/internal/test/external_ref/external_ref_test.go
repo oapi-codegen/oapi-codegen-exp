@@ -3,8 +3,8 @@ package externalref
 import (
 	"testing"
 
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/test/external_ref/packagea"
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/test/external_ref/packageb"
+	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/packagea"
+	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/packageb"
 )
 
 // TestCrossPackageReferences verifies that types from external packages

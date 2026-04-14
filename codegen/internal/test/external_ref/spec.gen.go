@@ -11,8 +11,8 @@ import (
 	"strings"
 	"sync"
 
-	ext_55025e84 "github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/test/external_ref/packagea"
-	ext_cd3e418f "github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/test/external_ref/packageb"
+	ext_55025e84 "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/packagea"
+	ext_cd3e418f "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/packageb"
 )
 
 // #/components/schemas/Container

@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
-	oapiCodegenHelpersPkg "github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/helpers"
-	oapiCodegenTypesPkg "github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/types"
+	oapiCodegenHelpersPkg "github.com/oapi-codegen/oapi-codegen-exp/runtime/helpers"
+	oapiCodegenTypesPkg "github.com/oapi-codegen/oapi-codegen-exp/runtime/types"
 )
 
 // #/components/schemas/AllTypesRequired

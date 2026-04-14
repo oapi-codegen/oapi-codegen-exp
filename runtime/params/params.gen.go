@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/types"
+	"github.com/oapi-codegen/oapi-codegen-exp/runtime/types"
 )
 
 // BindDeepObjectParam binds a deepObject-style parameter to a destination.

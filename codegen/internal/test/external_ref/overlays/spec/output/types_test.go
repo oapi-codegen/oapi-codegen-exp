@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	packageA "github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/test/external_ref/overlays/packageA/output"
+	packageA "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/overlays/packageA/output"
 )
 
 func TestContainerInstantiation(t *testing.T) {

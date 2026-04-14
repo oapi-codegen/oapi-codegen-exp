@@ -32,8 +32,8 @@ func TestApplyDefaults_ExternalTypes(t *testing.T) {
 	cfg := Configuration{
 		PackageName: "externalref",
 		ImportMapping: map[string]string{
-			"./packagea/spec.yaml": "github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/test/external_ref/packagea",
-			"./packageb/spec.yaml": "github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/test/external_ref/packageb",
+			"./packagea/spec.yaml": "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/packagea",
+			"./packageb/spec.yaml": "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/packageb",
 		},
 	}
 

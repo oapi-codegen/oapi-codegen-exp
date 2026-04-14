@@ -7,7 +7,7 @@ package codegen
 import (
 	"github.com/pb33f/libopenapi"
 
-	impl "github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal"
+	impl "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal"
 )
 
 // Configuration is the top-level configuration for code generation.

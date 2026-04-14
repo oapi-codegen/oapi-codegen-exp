@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/runtimeextract"
-	runtime "github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/runtime"
+	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/runtimeextract"
+	runtime "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/runtime"
 )
 
 // RuntimeOutput holds the generated Go source code for each runtime sub-package.

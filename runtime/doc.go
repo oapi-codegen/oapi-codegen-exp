@@ -7,5 +7,5 @@
 //   - params/  — parameter serialization/deserialization functions
 //   - helpers/ — utility functions for request body encoding (MarshalForm, JSONMerge)
 //
-//go:generate go run ../cmd/oapi-codegen --generate-runtime github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime
+//go:generate go run ../cmd/oapi-codegen --generate-runtime github.com/oapi-codegen/oapi-codegen-exp/runtime
 package runtime

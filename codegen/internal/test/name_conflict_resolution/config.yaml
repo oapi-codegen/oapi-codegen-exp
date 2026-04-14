@@ -5,7 +5,7 @@ generation:
   client: true
   simple-client: true
   runtime-package:
-    path: github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime
+    path: github.com/oapi-codegen/oapi-codegen-exp/runtime
 
 content-types:
   - "^application/json$"

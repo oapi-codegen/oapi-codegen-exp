@@ -90,9 +90,9 @@ unrelated to what we're doing. Please let me know if this feature is causing tro
 
 Go 1.25 is required, install like so:
 
-    go get -tool github.com/oapi-codegen/oapi-codegen-exp/experimental/cmd/oapi-codegen@latest
+    go get -tool github.com/oapi-codegen/oapi-codegen-exp/cmd/oapi-codegen@latest
 
 You can then run the code generator
 
-    //go:generate go run github.com/oapi-codegen/oapi-codegen-exp/experimental/cmd/oapi-codegen
+    //go:generate go run github.com/oapi-codegen/oapi-codegen-exp/cmd/oapi-codegen
 

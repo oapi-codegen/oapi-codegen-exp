@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	oapiCodegenHelpersPkg "github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/helpers"
+	oapiCodegenHelpersPkg "github.com/oapi-codegen/oapi-codegen-exp/runtime/helpers"
 )
 
 // #/components/schemas/SchemaObject

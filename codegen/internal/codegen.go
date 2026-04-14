@@ -9,10 +9,10 @@ import (
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	"golang.org/x/tools/imports"
 
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/dce"
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/runtimeextract"
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/templates"
-	runtime "github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/runtime"
+	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/dce"
+	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/runtimeextract"
+	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/templates"
+	runtime "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/runtime"
 )
 
 // Generate produces Go code from the parsed OpenAPI document.

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/runtime/types"
+	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/runtime/types"
 )
 
 // BindFormExplodeParam binds a form-style parameter with explode to a destination.

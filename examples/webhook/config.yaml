@@ -5,4 +5,4 @@ generation:
   webhook-receiver: true
   server: std-http
   runtime-package:
-    path: github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime
+    path: github.com/oapi-codegen/oapi-codegen-exp/runtime

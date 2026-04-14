@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	oapiCodegenHelpersPkg "github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime/helpers"
+	oapiCodegenHelpersPkg "github.com/oapi-codegen/oapi-codegen-exp/runtime/helpers"
 )
 
 // #/paths//something/get/responses/200/content/application/json/schema

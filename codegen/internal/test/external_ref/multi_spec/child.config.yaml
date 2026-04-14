@@ -4,6 +4,6 @@ generate:
   models: true
 generation:
   runtime-package:
-    path: github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime
+    path: github.com/oapi-codegen/oapi-codegen-exp/runtime
 import-mapping:
-  parent.api.yaml: github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/test/external_ref/multi_spec/output/parent
+  parent.api.yaml: github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/multi_spec/output/parent

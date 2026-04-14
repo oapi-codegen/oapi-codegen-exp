@@ -8,7 +8,7 @@ import (
 
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/templates"
+	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/templates"
 )
 
 // templateEntry describes a single template to load.

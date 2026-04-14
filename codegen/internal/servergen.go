@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/templates"
+	"github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/templates"
 )
 
 // ServerGenerator generates server code from operation descriptors.

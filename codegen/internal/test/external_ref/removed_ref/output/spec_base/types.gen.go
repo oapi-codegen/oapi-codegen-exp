@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	ext_5326ee7e "github.com/oapi-codegen/oapi-codegen-exp/experimental/codegen/internal/test/external_ref/removed_ref/output/spec_ext"
+	ext_5326ee7e "github.com/oapi-codegen/oapi-codegen-exp/codegen/internal/test/external_ref/removed_ref/output/spec_ext"
 )
 
 // #/components/schemas/DirectBar

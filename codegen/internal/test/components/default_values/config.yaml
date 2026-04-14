@@ -2,4 +2,4 @@ package: output
 output: output/default_values.gen.go
 generation:
   runtime-package:
-    path: github.com/oapi-codegen/oapi-codegen-exp/experimental/runtime
+    path: github.com/oapi-codegen/oapi-codegen-exp/runtime
