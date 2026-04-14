@@ -555,6 +555,13 @@ func sortPathParamsByPath(path string, params []*ParameterDescriptor) ([]*Parame
 		if strings.HasPrefix(part, "{") && strings.HasSuffix(part, "}") {
 			name := strings.TrimPrefix(part, "{")
 			name = strings.TrimSuffix(name, "}")
+			// Strip OpenAPI style markers from path templates:
+			// label style: {.param} or {.param*}
+			// matrix style: {;param} or {;param*}
+			// explode marker: {param*}
+			name = strings.TrimPrefix(name, ".")
+			name = strings.TrimPrefix(name, ";")
+			name = strings.TrimSuffix(name, "*")
 			pathParamNames = append(pathParamNames, name)
 		}
 	}

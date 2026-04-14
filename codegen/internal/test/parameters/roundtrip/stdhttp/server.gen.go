@@ -112,40 +112,40 @@ type ServerInterface interface {
 	GetHeader(w http.ResponseWriter, r *http.Request, params GetHeaderParams)
 
 	// (GET /labelExplodeArray/{.param*})
-	GetLabelExplodeArray(w http.ResponseWriter, r *http.Request)
+	GetLabelExplodeArray(w http.ResponseWriter, r *http.Request, param []int32)
 
 	// (GET /labelExplodeObject/{.param*})
-	GetLabelExplodeObject(w http.ResponseWriter, r *http.Request)
+	GetLabelExplodeObject(w http.ResponseWriter, r *http.Request, param Object)
 
 	// (GET /labelExplodePrimitive/{.param*})
-	GetLabelExplodePrimitive(w http.ResponseWriter, r *http.Request)
+	GetLabelExplodePrimitive(w http.ResponseWriter, r *http.Request, param int32)
 
 	// (GET /labelNoExplodeArray/{.param})
-	GetLabelNoExplodeArray(w http.ResponseWriter, r *http.Request)
+	GetLabelNoExplodeArray(w http.ResponseWriter, r *http.Request, param []int32)
 
 	// (GET /labelNoExplodeObject/{.param})
-	GetLabelNoExplodeObject(w http.ResponseWriter, r *http.Request)
+	GetLabelNoExplodeObject(w http.ResponseWriter, r *http.Request, param Object)
 
 	// (GET /labelPrimitive/{.param})
-	GetLabelPrimitive(w http.ResponseWriter, r *http.Request)
+	GetLabelPrimitive(w http.ResponseWriter, r *http.Request, param int32)
 
 	// (GET /matrixExplodeArray/{.id*})
-	GetMatrixExplodeArray(w http.ResponseWriter, r *http.Request)
+	GetMatrixExplodeArray(w http.ResponseWriter, r *http.Request, id []int32)
 
 	// (GET /matrixExplodeObject/{.id*})
-	GetMatrixExplodeObject(w http.ResponseWriter, r *http.Request)
+	GetMatrixExplodeObject(w http.ResponseWriter, r *http.Request, id Object)
 
 	// (GET /matrixExplodePrimitive/{;id*})
-	GetMatrixExplodePrimitive(w http.ResponseWriter, r *http.Request)
+	GetMatrixExplodePrimitive(w http.ResponseWriter, r *http.Request, id int32)
 
 	// (GET /matrixNoExplodeArray/{.id})
-	GetMatrixNoExplodeArray(w http.ResponseWriter, r *http.Request)
+	GetMatrixNoExplodeArray(w http.ResponseWriter, r *http.Request, id []int32)
 
 	// (GET /matrixNoExplodeObject/{.id})
-	GetMatrixNoExplodeObject(w http.ResponseWriter, r *http.Request)
+	GetMatrixNoExplodeObject(w http.ResponseWriter, r *http.Request, id Object)
 
 	// (GET /matrixPrimitive/{;id})
-	GetMatrixPrimitive(w http.ResponseWriter, r *http.Request)
+	GetMatrixPrimitive(w http.ResponseWriter, r *http.Request, id int32)
 
 	// (GET /passThrough/{param})
 	GetPassThrough(w http.ResponseWriter, r *http.Request, param string)
@@ -157,10 +157,10 @@ type ServerInterface interface {
 	GetQueryForm(w http.ResponseWriter, r *http.Request, params GetQueryFormParams)
 
 	// (GET /simpleExplodeArray/{param*})
-	GetSimpleExplodeArray(w http.ResponseWriter, r *http.Request)
+	GetSimpleExplodeArray(w http.ResponseWriter, r *http.Request, param []int32)
 
 	// (GET /simpleExplodeObject/{param*})
-	GetSimpleExplodeObject(w http.ResponseWriter, r *http.Request)
+	GetSimpleExplodeObject(w http.ResponseWriter, r *http.Request, param Object)
 
 	// (GET /simpleExplodePrimitive/{param})
 	GetSimpleExplodePrimitive(w http.ResponseWriter, r *http.Request, param int32)
@@ -522,9 +522,20 @@ func (siw *ServerInterfaceWrapper) GetHeader(w http.ResponseWriter, r *http.Requ
 
 // GetLabelExplodeArray operation middleware
 func (siw *ServerInterfaceWrapper) GetLabelExplodeArray(w http.ResponseWriter, r *http.Request) {
+	var err error
+	_ = err
+
+	// ------------- Path parameter "param" -------------
+	var param []int32
+
+	err = oapiCodegenParamsPkg.BindParameter("param", r.PathValue("param"), &param, oapiCodegenParamsPkg.ParameterOptions{Style: "label", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: true, Required: true, Type: "array", Format: "", AllowReserved: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "param", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetLabelExplodeArray(w, r)
+		siw.Handler.GetLabelExplodeArray(w, r, param)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -536,9 +547,20 @@ func (siw *ServerInterfaceWrapper) GetLabelExplodeArray(w http.ResponseWriter, r
 
 // GetLabelExplodeObject operation middleware
 func (siw *ServerInterfaceWrapper) GetLabelExplodeObject(w http.ResponseWriter, r *http.Request) {
+	var err error
+	_ = err
+
+	// ------------- Path parameter "param" -------------
+	var param Object
+
+	err = oapiCodegenParamsPkg.BindParameter("param", r.PathValue("param"), &param, oapiCodegenParamsPkg.ParameterOptions{Style: "label", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: true, Required: true, Type: "", Format: "", AllowReserved: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "param", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetLabelExplodeObject(w, r)
+		siw.Handler.GetLabelExplodeObject(w, r, param)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -550,9 +572,20 @@ func (siw *ServerInterfaceWrapper) GetLabelExplodeObject(w http.ResponseWriter, 
 
 // GetLabelExplodePrimitive operation middleware
 func (siw *ServerInterfaceWrapper) GetLabelExplodePrimitive(w http.ResponseWriter, r *http.Request) {
+	var err error
+	_ = err
+
+	// ------------- Path parameter "param" -------------
+	var param int32
+
+	err = oapiCodegenParamsPkg.BindParameter("param", r.PathValue("param"), &param, oapiCodegenParamsPkg.ParameterOptions{Style: "label", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: true, Required: true, Type: "integer", Format: "int32", AllowReserved: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "param", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetLabelExplodePrimitive(w, r)
+		siw.Handler.GetLabelExplodePrimitive(w, r, param)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -564,9 +597,20 @@ func (siw *ServerInterfaceWrapper) GetLabelExplodePrimitive(w http.ResponseWrite
 
 // GetLabelNoExplodeArray operation middleware
 func (siw *ServerInterfaceWrapper) GetLabelNoExplodeArray(w http.ResponseWriter, r *http.Request) {
+	var err error
+	_ = err
+
+	// ------------- Path parameter "param" -------------
+	var param []int32
+
+	err = oapiCodegenParamsPkg.BindParameter("param", r.PathValue("param"), &param, oapiCodegenParamsPkg.ParameterOptions{Style: "label", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "array", Format: "", AllowReserved: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "param", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetLabelNoExplodeArray(w, r)
+		siw.Handler.GetLabelNoExplodeArray(w, r, param)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -578,9 +622,20 @@ func (siw *ServerInterfaceWrapper) GetLabelNoExplodeArray(w http.ResponseWriter,
 
 // GetLabelNoExplodeObject operation middleware
 func (siw *ServerInterfaceWrapper) GetLabelNoExplodeObject(w http.ResponseWriter, r *http.Request) {
+	var err error
+	_ = err
+
+	// ------------- Path parameter "param" -------------
+	var param Object
+
+	err = oapiCodegenParamsPkg.BindParameter("param", r.PathValue("param"), &param, oapiCodegenParamsPkg.ParameterOptions{Style: "label", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "", Format: "", AllowReserved: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "param", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetLabelNoExplodeObject(w, r)
+		siw.Handler.GetLabelNoExplodeObject(w, r, param)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -592,9 +647,20 @@ func (siw *ServerInterfaceWrapper) GetLabelNoExplodeObject(w http.ResponseWriter
 
 // GetLabelPrimitive operation middleware
 func (siw *ServerInterfaceWrapper) GetLabelPrimitive(w http.ResponseWriter, r *http.Request) {
+	var err error
+	_ = err
+
+	// ------------- Path parameter "param" -------------
+	var param int32
+
+	err = oapiCodegenParamsPkg.BindParameter("param", r.PathValue("param"), &param, oapiCodegenParamsPkg.ParameterOptions{Style: "label", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int32", AllowReserved: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "param", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetLabelPrimitive(w, r)
+		siw.Handler.GetLabelPrimitive(w, r, param)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -606,9 +672,20 @@ func (siw *ServerInterfaceWrapper) GetLabelPrimitive(w http.ResponseWriter, r *h
 
 // GetMatrixExplodeArray operation middleware
 func (siw *ServerInterfaceWrapper) GetMatrixExplodeArray(w http.ResponseWriter, r *http.Request) {
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id []int32
+
+	err = oapiCodegenParamsPkg.BindParameter("id", r.PathValue("id"), &id, oapiCodegenParamsPkg.ParameterOptions{Style: "matrix", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: true, Required: true, Type: "array", Format: "", AllowReserved: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetMatrixExplodeArray(w, r)
+		siw.Handler.GetMatrixExplodeArray(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -620,9 +697,20 @@ func (siw *ServerInterfaceWrapper) GetMatrixExplodeArray(w http.ResponseWriter, 
 
 // GetMatrixExplodeObject operation middleware
 func (siw *ServerInterfaceWrapper) GetMatrixExplodeObject(w http.ResponseWriter, r *http.Request) {
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Object
+
+	err = oapiCodegenParamsPkg.BindParameter("id", r.PathValue("id"), &id, oapiCodegenParamsPkg.ParameterOptions{Style: "matrix", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: true, Required: true, Type: "", Format: "", AllowReserved: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetMatrixExplodeObject(w, r)
+		siw.Handler.GetMatrixExplodeObject(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -634,9 +722,20 @@ func (siw *ServerInterfaceWrapper) GetMatrixExplodeObject(w http.ResponseWriter,
 
 // GetMatrixExplodePrimitive operation middleware
 func (siw *ServerInterfaceWrapper) GetMatrixExplodePrimitive(w http.ResponseWriter, r *http.Request) {
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id int32
+
+	err = oapiCodegenParamsPkg.BindParameter("id", r.PathValue("id"), &id, oapiCodegenParamsPkg.ParameterOptions{Style: "matrix", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: true, Required: true, Type: "integer", Format: "int32", AllowReserved: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetMatrixExplodePrimitive(w, r)
+		siw.Handler.GetMatrixExplodePrimitive(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -648,9 +747,20 @@ func (siw *ServerInterfaceWrapper) GetMatrixExplodePrimitive(w http.ResponseWrit
 
 // GetMatrixNoExplodeArray operation middleware
 func (siw *ServerInterfaceWrapper) GetMatrixNoExplodeArray(w http.ResponseWriter, r *http.Request) {
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id []int32
+
+	err = oapiCodegenParamsPkg.BindParameter("id", r.PathValue("id"), &id, oapiCodegenParamsPkg.ParameterOptions{Style: "matrix", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "array", Format: "", AllowReserved: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetMatrixNoExplodeArray(w, r)
+		siw.Handler.GetMatrixNoExplodeArray(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -662,9 +772,20 @@ func (siw *ServerInterfaceWrapper) GetMatrixNoExplodeArray(w http.ResponseWriter
 
 // GetMatrixNoExplodeObject operation middleware
 func (siw *ServerInterfaceWrapper) GetMatrixNoExplodeObject(w http.ResponseWriter, r *http.Request) {
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Object
+
+	err = oapiCodegenParamsPkg.BindParameter("id", r.PathValue("id"), &id, oapiCodegenParamsPkg.ParameterOptions{Style: "matrix", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "", Format: "", AllowReserved: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetMatrixNoExplodeObject(w, r)
+		siw.Handler.GetMatrixNoExplodeObject(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -676,9 +797,20 @@ func (siw *ServerInterfaceWrapper) GetMatrixNoExplodeObject(w http.ResponseWrite
 
 // GetMatrixPrimitive operation middleware
 func (siw *ServerInterfaceWrapper) GetMatrixPrimitive(w http.ResponseWriter, r *http.Request) {
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id int32
+
+	err = oapiCodegenParamsPkg.BindParameter("id", r.PathValue("id"), &id, oapiCodegenParamsPkg.ParameterOptions{Style: "matrix", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int32", AllowReserved: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetMatrixPrimitive(w, r)
+		siw.Handler.GetMatrixPrimitive(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -816,9 +948,20 @@ func (siw *ServerInterfaceWrapper) GetQueryForm(w http.ResponseWriter, r *http.R
 
 // GetSimpleExplodeArray operation middleware
 func (siw *ServerInterfaceWrapper) GetSimpleExplodeArray(w http.ResponseWriter, r *http.Request) {
+	var err error
+	_ = err
+
+	// ------------- Path parameter "param" -------------
+	var param []int32
+
+	err = oapiCodegenParamsPkg.BindParameter("param", r.PathValue("param"), &param, oapiCodegenParamsPkg.ParameterOptions{Style: "simple", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: true, Required: true, Type: "array", Format: "", AllowReserved: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "param", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetSimpleExplodeArray(w, r)
+		siw.Handler.GetSimpleExplodeArray(w, r, param)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -830,9 +973,20 @@ func (siw *ServerInterfaceWrapper) GetSimpleExplodeArray(w http.ResponseWriter, 
 
 // GetSimpleExplodeObject operation middleware
 func (siw *ServerInterfaceWrapper) GetSimpleExplodeObject(w http.ResponseWriter, r *http.Request) {
+	var err error
+	_ = err
+
+	// ------------- Path parameter "param" -------------
+	var param Object
+
+	err = oapiCodegenParamsPkg.BindParameter("param", r.PathValue("param"), &param, oapiCodegenParamsPkg.ParameterOptions{Style: "simple", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: true, Required: true, Type: "", Format: "", AllowReserved: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "param", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetSimpleExplodeObject(w, r)
+		siw.Handler.GetSimpleExplodeObject(w, r, param)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {

@@ -18,21 +18,21 @@ func writeJSON(w http.ResponseWriter, v interface{}) {
 func (s *Server) GetSimplePrimitive(w http.ResponseWriter, r *http.Request, param int32)        { writeJSON(w, param) }
 func (s *Server) GetSimpleExplodePrimitive(w http.ResponseWriter, r *http.Request, param int32)  { writeJSON(w, param) }
 func (s *Server) GetSimpleNoExplodeArray(w http.ResponseWriter, r *http.Request, param []int32)  { writeJSON(w, param) }
-func (s *Server) GetSimpleExplodeArray(w http.ResponseWriter, r *http.Request)                   { w.WriteHeader(http.StatusOK) }
+func (s *Server) GetSimpleExplodeArray(w http.ResponseWriter, r *http.Request, param []int32)     { writeJSON(w, param) }
 func (s *Server) GetSimpleNoExplodeObject(w http.ResponseWriter, r *http.Request, param Object)  { writeJSON(w, param) }
-func (s *Server) GetSimpleExplodeObject(w http.ResponseWriter, r *http.Request)                  { w.WriteHeader(http.StatusOK) }
-func (s *Server) GetLabelPrimitive(w http.ResponseWriter, r *http.Request)                       { w.WriteHeader(http.StatusOK) }
-func (s *Server) GetLabelExplodePrimitive(w http.ResponseWriter, r *http.Request)                { w.WriteHeader(http.StatusOK) }
-func (s *Server) GetLabelNoExplodeArray(w http.ResponseWriter, r *http.Request)                  { w.WriteHeader(http.StatusOK) }
-func (s *Server) GetLabelExplodeArray(w http.ResponseWriter, r *http.Request)                    { w.WriteHeader(http.StatusOK) }
-func (s *Server) GetLabelNoExplodeObject(w http.ResponseWriter, r *http.Request)                 { w.WriteHeader(http.StatusOK) }
-func (s *Server) GetLabelExplodeObject(w http.ResponseWriter, r *http.Request)                   { w.WriteHeader(http.StatusOK) }
-func (s *Server) GetMatrixPrimitive(w http.ResponseWriter, r *http.Request)                      { w.WriteHeader(http.StatusOK) }
-func (s *Server) GetMatrixExplodePrimitive(w http.ResponseWriter, r *http.Request)               { w.WriteHeader(http.StatusOK) }
-func (s *Server) GetMatrixNoExplodeArray(w http.ResponseWriter, r *http.Request)                 { w.WriteHeader(http.StatusOK) }
-func (s *Server) GetMatrixExplodeArray(w http.ResponseWriter, r *http.Request)                   { w.WriteHeader(http.StatusOK) }
-func (s *Server) GetMatrixNoExplodeObject(w http.ResponseWriter, r *http.Request)                { w.WriteHeader(http.StatusOK) }
-func (s *Server) GetMatrixExplodeObject(w http.ResponseWriter, r *http.Request)                  { w.WriteHeader(http.StatusOK) }
+func (s *Server) GetSimpleExplodeObject(w http.ResponseWriter, r *http.Request, param Object)    { writeJSON(w, param) }
+func (s *Server) GetLabelPrimitive(w http.ResponseWriter, r *http.Request, param int32)              { writeJSON(w, param) }
+func (s *Server) GetLabelExplodePrimitive(w http.ResponseWriter, r *http.Request, param int32)       { writeJSON(w, param) }
+func (s *Server) GetLabelNoExplodeArray(w http.ResponseWriter, r *http.Request, param []int32)       { writeJSON(w, param) }
+func (s *Server) GetLabelExplodeArray(w http.ResponseWriter, r *http.Request, param []int32)         { writeJSON(w, param) }
+func (s *Server) GetLabelNoExplodeObject(w http.ResponseWriter, r *http.Request, param Object)       { writeJSON(w, param) }
+func (s *Server) GetLabelExplodeObject(w http.ResponseWriter, r *http.Request, param Object)         { writeJSON(w, param) }
+func (s *Server) GetMatrixPrimitive(w http.ResponseWriter, r *http.Request, id int32)                { writeJSON(w, id) }
+func (s *Server) GetMatrixExplodePrimitive(w http.ResponseWriter, r *http.Request, id int32)         { writeJSON(w, id) }
+func (s *Server) GetMatrixNoExplodeArray(w http.ResponseWriter, r *http.Request, id []int32)         { writeJSON(w, id) }
+func (s *Server) GetMatrixExplodeArray(w http.ResponseWriter, r *http.Request, id []int32)           { writeJSON(w, id) }
+func (s *Server) GetMatrixNoExplodeObject(w http.ResponseWriter, r *http.Request, id Object)         { writeJSON(w, id) }
+func (s *Server) GetMatrixExplodeObject(w http.ResponseWriter, r *http.Request, id Object)           { writeJSON(w, id) }
 func (s *Server) GetContentObject(w http.ResponseWriter, r *http.Request, param string)          { writeJSON(w, param) }
 func (s *Server) GetPassThrough(w http.ResponseWriter, r *http.Request, param string)            { writeJSON(w, param) }
 func (s *Server) GetQueryForm(w http.ResponseWriter, r *http.Request, params GetQueryFormParams)  { writeJSON(w, params) }

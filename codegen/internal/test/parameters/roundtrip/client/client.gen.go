@@ -209,29 +209,29 @@ type ClientInterface interface {
 	// GetHeader makes a GET request to /header
 	GetHeader(ctx context.Context, params *GetHeaderParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetLabelExplodeArray makes a GET request to /labelExplodeArray/{.param*}
-	GetLabelExplodeArray(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetLabelExplodeArray(ctx context.Context, param []int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetLabelExplodeObject makes a GET request to /labelExplodeObject/{.param*}
-	GetLabelExplodeObject(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetLabelExplodeObject(ctx context.Context, param Object, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetLabelExplodePrimitive makes a GET request to /labelExplodePrimitive/{.param*}
-	GetLabelExplodePrimitive(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetLabelExplodePrimitive(ctx context.Context, param int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetLabelNoExplodeArray makes a GET request to /labelNoExplodeArray/{.param}
-	GetLabelNoExplodeArray(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetLabelNoExplodeArray(ctx context.Context, param []int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetLabelNoExplodeObject makes a GET request to /labelNoExplodeObject/{.param}
-	GetLabelNoExplodeObject(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetLabelNoExplodeObject(ctx context.Context, param Object, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetLabelPrimitive makes a GET request to /labelPrimitive/{.param}
-	GetLabelPrimitive(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetLabelPrimitive(ctx context.Context, param int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetMatrixExplodeArray makes a GET request to /matrixExplodeArray/{.id*}
-	GetMatrixExplodeArray(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetMatrixExplodeArray(ctx context.Context, id []int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetMatrixExplodeObject makes a GET request to /matrixExplodeObject/{.id*}
-	GetMatrixExplodeObject(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetMatrixExplodeObject(ctx context.Context, id Object, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetMatrixExplodePrimitive makes a GET request to /matrixExplodePrimitive/{;id*}
-	GetMatrixExplodePrimitive(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetMatrixExplodePrimitive(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetMatrixNoExplodeArray makes a GET request to /matrixNoExplodeArray/{.id}
-	GetMatrixNoExplodeArray(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetMatrixNoExplodeArray(ctx context.Context, id []int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetMatrixNoExplodeObject makes a GET request to /matrixNoExplodeObject/{.id}
-	GetMatrixNoExplodeObject(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetMatrixNoExplodeObject(ctx context.Context, id Object, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetMatrixPrimitive makes a GET request to /matrixPrimitive/{;id}
-	GetMatrixPrimitive(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetMatrixPrimitive(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetPassThrough makes a GET request to /passThrough/{param}
 	GetPassThrough(ctx context.Context, param string, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetDeepObject makes a GET request to /queryDeepObject
@@ -239,9 +239,9 @@ type ClientInterface interface {
 	// GetQueryForm makes a GET request to /queryForm
 	GetQueryForm(ctx context.Context, params *GetQueryFormParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetSimpleExplodeArray makes a GET request to /simpleExplodeArray/{param*}
-	GetSimpleExplodeArray(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetSimpleExplodeArray(ctx context.Context, param []int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetSimpleExplodeObject makes a GET request to /simpleExplodeObject/{param*}
-	GetSimpleExplodeObject(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetSimpleExplodeObject(ctx context.Context, param Object, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetSimpleExplodePrimitive makes a GET request to /simpleExplodePrimitive/{param}
 	GetSimpleExplodePrimitive(ctx context.Context, param int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetSimpleNoExplodeArray makes a GET request to /simpleNoExplodeArray/{param}
@@ -358,8 +358,8 @@ func (c *Client) GetHeader(ctx context.Context, params *GetHeaderParams, reqEdit
 
 // GetLabelExplodeArray makes a GET request to /labelExplodeArray/{.param*}
 
-func (c *Client) GetLabelExplodeArray(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetLabelExplodeArrayRequest(c.Server)
+func (c *Client) GetLabelExplodeArray(ctx context.Context, param []int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLabelExplodeArrayRequest(c.Server, param)
 	if err != nil {
 		return nil, err
 	}
@@ -372,8 +372,8 @@ func (c *Client) GetLabelExplodeArray(ctx context.Context, reqEditors ...Request
 
 // GetLabelExplodeObject makes a GET request to /labelExplodeObject/{.param*}
 
-func (c *Client) GetLabelExplodeObject(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetLabelExplodeObjectRequest(c.Server)
+func (c *Client) GetLabelExplodeObject(ctx context.Context, param Object, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLabelExplodeObjectRequest(c.Server, param)
 	if err != nil {
 		return nil, err
 	}
@@ -386,8 +386,8 @@ func (c *Client) GetLabelExplodeObject(ctx context.Context, reqEditors ...Reques
 
 // GetLabelExplodePrimitive makes a GET request to /labelExplodePrimitive/{.param*}
 
-func (c *Client) GetLabelExplodePrimitive(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetLabelExplodePrimitiveRequest(c.Server)
+func (c *Client) GetLabelExplodePrimitive(ctx context.Context, param int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLabelExplodePrimitiveRequest(c.Server, param)
 	if err != nil {
 		return nil, err
 	}
@@ -400,8 +400,8 @@ func (c *Client) GetLabelExplodePrimitive(ctx context.Context, reqEditors ...Req
 
 // GetLabelNoExplodeArray makes a GET request to /labelNoExplodeArray/{.param}
 
-func (c *Client) GetLabelNoExplodeArray(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetLabelNoExplodeArrayRequest(c.Server)
+func (c *Client) GetLabelNoExplodeArray(ctx context.Context, param []int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLabelNoExplodeArrayRequest(c.Server, param)
 	if err != nil {
 		return nil, err
 	}
@@ -414,8 +414,8 @@ func (c *Client) GetLabelNoExplodeArray(ctx context.Context, reqEditors ...Reque
 
 // GetLabelNoExplodeObject makes a GET request to /labelNoExplodeObject/{.param}
 
-func (c *Client) GetLabelNoExplodeObject(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetLabelNoExplodeObjectRequest(c.Server)
+func (c *Client) GetLabelNoExplodeObject(ctx context.Context, param Object, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLabelNoExplodeObjectRequest(c.Server, param)
 	if err != nil {
 		return nil, err
 	}
@@ -428,8 +428,8 @@ func (c *Client) GetLabelNoExplodeObject(ctx context.Context, reqEditors ...Requ
 
 // GetLabelPrimitive makes a GET request to /labelPrimitive/{.param}
 
-func (c *Client) GetLabelPrimitive(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetLabelPrimitiveRequest(c.Server)
+func (c *Client) GetLabelPrimitive(ctx context.Context, param int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLabelPrimitiveRequest(c.Server, param)
 	if err != nil {
 		return nil, err
 	}
@@ -442,8 +442,8 @@ func (c *Client) GetLabelPrimitive(ctx context.Context, reqEditors ...RequestEdi
 
 // GetMatrixExplodeArray makes a GET request to /matrixExplodeArray/{.id*}
 
-func (c *Client) GetMatrixExplodeArray(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetMatrixExplodeArrayRequest(c.Server)
+func (c *Client) GetMatrixExplodeArray(ctx context.Context, id []int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMatrixExplodeArrayRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -456,8 +456,8 @@ func (c *Client) GetMatrixExplodeArray(ctx context.Context, reqEditors ...Reques
 
 // GetMatrixExplodeObject makes a GET request to /matrixExplodeObject/{.id*}
 
-func (c *Client) GetMatrixExplodeObject(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetMatrixExplodeObjectRequest(c.Server)
+func (c *Client) GetMatrixExplodeObject(ctx context.Context, id Object, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMatrixExplodeObjectRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -470,8 +470,8 @@ func (c *Client) GetMatrixExplodeObject(ctx context.Context, reqEditors ...Reque
 
 // GetMatrixExplodePrimitive makes a GET request to /matrixExplodePrimitive/{;id*}
 
-func (c *Client) GetMatrixExplodePrimitive(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetMatrixExplodePrimitiveRequest(c.Server)
+func (c *Client) GetMatrixExplodePrimitive(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMatrixExplodePrimitiveRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -484,8 +484,8 @@ func (c *Client) GetMatrixExplodePrimitive(ctx context.Context, reqEditors ...Re
 
 // GetMatrixNoExplodeArray makes a GET request to /matrixNoExplodeArray/{.id}
 
-func (c *Client) GetMatrixNoExplodeArray(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetMatrixNoExplodeArrayRequest(c.Server)
+func (c *Client) GetMatrixNoExplodeArray(ctx context.Context, id []int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMatrixNoExplodeArrayRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -498,8 +498,8 @@ func (c *Client) GetMatrixNoExplodeArray(ctx context.Context, reqEditors ...Requ
 
 // GetMatrixNoExplodeObject makes a GET request to /matrixNoExplodeObject/{.id}
 
-func (c *Client) GetMatrixNoExplodeObject(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetMatrixNoExplodeObjectRequest(c.Server)
+func (c *Client) GetMatrixNoExplodeObject(ctx context.Context, id Object, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMatrixNoExplodeObjectRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -512,8 +512,8 @@ func (c *Client) GetMatrixNoExplodeObject(ctx context.Context, reqEditors ...Req
 
 // GetMatrixPrimitive makes a GET request to /matrixPrimitive/{;id}
 
-func (c *Client) GetMatrixPrimitive(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetMatrixPrimitiveRequest(c.Server)
+func (c *Client) GetMatrixPrimitive(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMatrixPrimitiveRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -568,8 +568,8 @@ func (c *Client) GetQueryForm(ctx context.Context, params *GetQueryFormParams, r
 
 // GetSimpleExplodeArray makes a GET request to /simpleExplodeArray/{param*}
 
-func (c *Client) GetSimpleExplodeArray(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetSimpleExplodeArrayRequest(c.Server)
+func (c *Client) GetSimpleExplodeArray(ctx context.Context, param []int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSimpleExplodeArrayRequest(c.Server, param)
 	if err != nil {
 		return nil, err
 	}
@@ -582,8 +582,8 @@ func (c *Client) GetSimpleExplodeArray(ctx context.Context, reqEditors ...Reques
 
 // GetSimpleExplodeObject makes a GET request to /simpleExplodeObject/{param*}
 
-func (c *Client) GetSimpleExplodeObject(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetSimpleExplodeObjectRequest(c.Server)
+func (c *Client) GetSimpleExplodeObject(ctx context.Context, param Object, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetSimpleExplodeObjectRequest(c.Server, param)
 	if err != nil {
 		return nil, err
 	}
@@ -890,15 +890,21 @@ func NewGetHeaderRequest(server string, params *GetHeaderParams) (*http.Request,
 }
 
 // NewGetLabelExplodeArrayRequest creates a GET request for /labelExplodeArray/{.param*}
-func NewGetLabelExplodeArrayRequest(server string) (*http.Request, error) {
+func NewGetLabelExplodeArrayRequest(server string, param []int32) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleParameter("param", param, ParameterOptions{Style: "label", ParamLocation: ParamLocationPath, Explode: true, Required: true, Type: "array", Format: "", AllowReserved: false})
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/labelExplodeArray/%s")
+	operationPath := fmt.Sprintf("/labelExplodeArray/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -917,15 +923,21 @@ func NewGetLabelExplodeArrayRequest(server string) (*http.Request, error) {
 }
 
 // NewGetLabelExplodeObjectRequest creates a GET request for /labelExplodeObject/{.param*}
-func NewGetLabelExplodeObjectRequest(server string) (*http.Request, error) {
+func NewGetLabelExplodeObjectRequest(server string, param Object) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleParameter("param", param, ParameterOptions{Style: "label", ParamLocation: ParamLocationPath, Explode: true, Required: true, Type: "", Format: "", AllowReserved: false})
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/labelExplodeObject/%s")
+	operationPath := fmt.Sprintf("/labelExplodeObject/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -944,15 +956,21 @@ func NewGetLabelExplodeObjectRequest(server string) (*http.Request, error) {
 }
 
 // NewGetLabelExplodePrimitiveRequest creates a GET request for /labelExplodePrimitive/{.param*}
-func NewGetLabelExplodePrimitiveRequest(server string) (*http.Request, error) {
+func NewGetLabelExplodePrimitiveRequest(server string, param int32) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleParameter("param", param, ParameterOptions{Style: "label", ParamLocation: ParamLocationPath, Explode: true, Required: true, Type: "integer", Format: "int32", AllowReserved: false})
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/labelExplodePrimitive/%s")
+	operationPath := fmt.Sprintf("/labelExplodePrimitive/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -971,15 +989,21 @@ func NewGetLabelExplodePrimitiveRequest(server string) (*http.Request, error) {
 }
 
 // NewGetLabelNoExplodeArrayRequest creates a GET request for /labelNoExplodeArray/{.param}
-func NewGetLabelNoExplodeArrayRequest(server string) (*http.Request, error) {
+func NewGetLabelNoExplodeArrayRequest(server string, param []int32) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleParameter("param", param, ParameterOptions{Style: "label", ParamLocation: ParamLocationPath, Explode: false, Required: true, Type: "array", Format: "", AllowReserved: false})
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/labelNoExplodeArray/%s")
+	operationPath := fmt.Sprintf("/labelNoExplodeArray/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -998,15 +1022,21 @@ func NewGetLabelNoExplodeArrayRequest(server string) (*http.Request, error) {
 }
 
 // NewGetLabelNoExplodeObjectRequest creates a GET request for /labelNoExplodeObject/{.param}
-func NewGetLabelNoExplodeObjectRequest(server string) (*http.Request, error) {
+func NewGetLabelNoExplodeObjectRequest(server string, param Object) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleParameter("param", param, ParameterOptions{Style: "label", ParamLocation: ParamLocationPath, Explode: false, Required: true, Type: "", Format: "", AllowReserved: false})
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/labelNoExplodeObject/%s")
+	operationPath := fmt.Sprintf("/labelNoExplodeObject/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1025,15 +1055,21 @@ func NewGetLabelNoExplodeObjectRequest(server string) (*http.Request, error) {
 }
 
 // NewGetLabelPrimitiveRequest creates a GET request for /labelPrimitive/{.param}
-func NewGetLabelPrimitiveRequest(server string) (*http.Request, error) {
+func NewGetLabelPrimitiveRequest(server string, param int32) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleParameter("param", param, ParameterOptions{Style: "label", ParamLocation: ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int32", AllowReserved: false})
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/labelPrimitive/%s")
+	operationPath := fmt.Sprintf("/labelPrimitive/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1052,15 +1088,21 @@ func NewGetLabelPrimitiveRequest(server string) (*http.Request, error) {
 }
 
 // NewGetMatrixExplodeArrayRequest creates a GET request for /matrixExplodeArray/{.id*}
-func NewGetMatrixExplodeArrayRequest(server string) (*http.Request, error) {
+func NewGetMatrixExplodeArrayRequest(server string, id []int32) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleParameter("id", id, ParameterOptions{Style: "matrix", ParamLocation: ParamLocationPath, Explode: true, Required: true, Type: "array", Format: "", AllowReserved: false})
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/matrixExplodeArray/%s")
+	operationPath := fmt.Sprintf("/matrixExplodeArray/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1079,15 +1121,21 @@ func NewGetMatrixExplodeArrayRequest(server string) (*http.Request, error) {
 }
 
 // NewGetMatrixExplodeObjectRequest creates a GET request for /matrixExplodeObject/{.id*}
-func NewGetMatrixExplodeObjectRequest(server string) (*http.Request, error) {
+func NewGetMatrixExplodeObjectRequest(server string, id Object) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleParameter("id", id, ParameterOptions{Style: "matrix", ParamLocation: ParamLocationPath, Explode: true, Required: true, Type: "", Format: "", AllowReserved: false})
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/matrixExplodeObject/%s")
+	operationPath := fmt.Sprintf("/matrixExplodeObject/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1106,15 +1154,21 @@ func NewGetMatrixExplodeObjectRequest(server string) (*http.Request, error) {
 }
 
 // NewGetMatrixExplodePrimitiveRequest creates a GET request for /matrixExplodePrimitive/{;id*}
-func NewGetMatrixExplodePrimitiveRequest(server string) (*http.Request, error) {
+func NewGetMatrixExplodePrimitiveRequest(server string, id int32) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleParameter("id", id, ParameterOptions{Style: "matrix", ParamLocation: ParamLocationPath, Explode: true, Required: true, Type: "integer", Format: "int32", AllowReserved: false})
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/matrixExplodePrimitive/%s")
+	operationPath := fmt.Sprintf("/matrixExplodePrimitive/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1133,15 +1187,21 @@ func NewGetMatrixExplodePrimitiveRequest(server string) (*http.Request, error) {
 }
 
 // NewGetMatrixNoExplodeArrayRequest creates a GET request for /matrixNoExplodeArray/{.id}
-func NewGetMatrixNoExplodeArrayRequest(server string) (*http.Request, error) {
+func NewGetMatrixNoExplodeArrayRequest(server string, id []int32) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleParameter("id", id, ParameterOptions{Style: "matrix", ParamLocation: ParamLocationPath, Explode: false, Required: true, Type: "array", Format: "", AllowReserved: false})
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/matrixNoExplodeArray/%s")
+	operationPath := fmt.Sprintf("/matrixNoExplodeArray/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1160,15 +1220,21 @@ func NewGetMatrixNoExplodeArrayRequest(server string) (*http.Request, error) {
 }
 
 // NewGetMatrixNoExplodeObjectRequest creates a GET request for /matrixNoExplodeObject/{.id}
-func NewGetMatrixNoExplodeObjectRequest(server string) (*http.Request, error) {
+func NewGetMatrixNoExplodeObjectRequest(server string, id Object) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleParameter("id", id, ParameterOptions{Style: "matrix", ParamLocation: ParamLocationPath, Explode: false, Required: true, Type: "", Format: "", AllowReserved: false})
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/matrixNoExplodeObject/%s")
+	operationPath := fmt.Sprintf("/matrixNoExplodeObject/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1187,15 +1253,21 @@ func NewGetMatrixNoExplodeObjectRequest(server string) (*http.Request, error) {
 }
 
 // NewGetMatrixPrimitiveRequest creates a GET request for /matrixPrimitive/{;id}
-func NewGetMatrixPrimitiveRequest(server string) (*http.Request, error) {
+func NewGetMatrixPrimitiveRequest(server string, id int32) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleParameter("id", id, ParameterOptions{Style: "matrix", ParamLocation: ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "int32", AllowReserved: false})
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/matrixPrimitive/%s")
+	operationPath := fmt.Sprintf("/matrixPrimitive/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1417,15 +1489,21 @@ func NewGetQueryFormRequest(server string, params *GetQueryFormParams) (*http.Re
 }
 
 // NewGetSimpleExplodeArrayRequest creates a GET request for /simpleExplodeArray/{param*}
-func NewGetSimpleExplodeArrayRequest(server string) (*http.Request, error) {
+func NewGetSimpleExplodeArrayRequest(server string, param []int32) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleParameter("param", param, ParameterOptions{Style: "simple", ParamLocation: ParamLocationPath, Explode: true, Required: true, Type: "array", Format: "", AllowReserved: false})
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/simpleExplodeArray/%s")
+	operationPath := fmt.Sprintf("/simpleExplodeArray/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1444,15 +1522,21 @@ func NewGetSimpleExplodeArrayRequest(server string) (*http.Request, error) {
 }
 
 // NewGetSimpleExplodeObjectRequest creates a GET request for /simpleExplodeObject/{param*}
-func NewGetSimpleExplodeObjectRequest(server string) (*http.Request, error) {
+func NewGetSimpleExplodeObjectRequest(server string, param Object) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+	pathParam0, err = StyleParameter("param", param, ParameterOptions{Style: "simple", ParamLocation: ParamLocationPath, Explode: true, Required: true, Type: "", Format: "", AllowReserved: false})
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/simpleExplodeObject/%s")
+	operationPath := fmt.Sprintf("/simpleExplodeObject/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
