@@ -29,7 +29,7 @@ func {{ .GoOperationID }}{{ $.Prefix }}Handler(si {{ $.Prefix }}ReceiverInterfac
 		}
 {{ end }}
 {{ range .QueryParams }}
-{{- if or .Required .IsPassThrough .IsJSON }}
+{{- if and (not .IsStyled) (or .Required .IsPassThrough .IsJSON) }}
 		if paramValue := c.Query("{{ .Name }}"); paramValue != "" {
 {{- if .IsPassThrough }}
 			params.{{ .GoName }} = {{ if .HasOptionalPointer }}&{{ end }}paramValue

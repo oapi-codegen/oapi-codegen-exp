@@ -194,33 +194,24 @@ func testImpl(t *testing.T, handler http.Handler) {
 				assert.Equal(t, expectedPrimitiveString, *got.Ps)
 			})
 
-			// Object params are generated as *any — this tests whether the
-			// roundtrip preserves the value through JSON encode/decode.
 			t.Run("exploded object only", func(t *testing.T) {
-				obj := any(expectedObject)
-				params := client.GetQueryFormParams{Eo: &obj}
+				params := client.GetQueryFormParams{Eo: &expectedObject}
 				req, err := client.NewGetQueryFormRequest(server, &params)
 				require.NoError(t, err)
 				var got client.GetQueryFormParams
 				doRoundTrip(t, req, &got)
 				require.NotNil(t, got.Eo)
-				// Decoded *any will be map[string]interface{}, compare via JSON.
-				gotJSON, _ := json.Marshal(got.Eo)
-				expectedJSON, _ := json.Marshal(expectedObject)
-				assert.JSONEq(t, string(expectedJSON), string(gotJSON))
+				assert.Equal(t, expectedObject, *got.Eo)
 			})
 
 			t.Run("unexploded object only", func(t *testing.T) {
-				obj := any(expectedObject)
-				params := client.GetQueryFormParams{O: &obj}
+				params := client.GetQueryFormParams{O: &expectedObject}
 				req, err := client.NewGetQueryFormRequest(server, &params)
 				require.NoError(t, err)
 				var got client.GetQueryFormParams
 				doRoundTrip(t, req, &got)
 				require.NotNil(t, got.O)
-				gotJSON, _ := json.Marshal(got.O)
-				expectedJSON, _ := json.Marshal(expectedObject)
-				assert.JSONEq(t, string(expectedJSON), string(gotJSON))
+				assert.Equal(t, expectedObject, *got.O)
 			})
 		})
 
@@ -285,16 +276,13 @@ func testImpl(t *testing.T, handler http.Handler) {
 		})
 
 		t.Run("object only", func(t *testing.T) {
-			obj := any(expectedObject)
-			params := client.GetHeaderParams{XObject: &obj}
+			params := client.GetHeaderParams{XObject: &expectedObject}
 			req, err := client.NewGetHeaderRequest(server, &params)
 			require.NoError(t, err)
 			var got client.GetHeaderParams
 			doRoundTrip(t, req, &got)
 			require.NotNil(t, got.XObject)
-			gotJSON, _ := json.Marshal(got.XObject)
-			expectedJSON, _ := json.Marshal(expectedObject)
-			assert.JSONEq(t, string(expectedJSON), string(gotJSON))
+			assert.Equal(t, expectedObject, *got.XObject)
 		})
 	})
 
@@ -346,16 +334,13 @@ func testImpl(t *testing.T, handler http.Handler) {
 		})
 
 		t.Run("object only", func(t *testing.T) {
-			obj := any(expectedObject)
-			params := client.GetCookieParams{O: &obj}
+			params := client.GetCookieParams{O: &expectedObject}
 			req, err := client.NewGetCookieRequest(server, &params)
 			require.NoError(t, err)
 			var got client.GetCookieParams
 			doRoundTrip(t, req, &got)
 			require.NotNil(t, got.O)
-			gotJSON, _ := json.Marshal(got.O)
-			expectedJSON, _ := json.Marshal(expectedObject)
-			assert.JSONEq(t, string(expectedJSON), string(gotJSON))
+			assert.Equal(t, expectedObject, *got.O)
 		})
 	})
 }

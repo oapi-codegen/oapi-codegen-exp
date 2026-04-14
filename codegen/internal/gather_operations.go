@@ -219,7 +219,17 @@ func (g *operationGatherer) gatherParameter(param *v3.Parameter) (*ParameterDesc
 			schemaDesc = &SchemaDescriptor{
 				Schema: schema,
 			}
-			typeDecl = g.resolveType(schema)
+			// If the schema is a $ref to a named type (e.g. "#/components/schemas/Object"),
+			// use the referenced type name directly instead of resolving to a generic type.
+			if ref := param.Schema.GetReference(); ref != "" {
+				if idx := strings.LastIndex(ref, "/"); idx >= 0 {
+					typeDecl = ToCamelCase(ref[idx+1:])
+				} else {
+					typeDecl = g.resolveType(schema)
+				}
+			} else {
+				typeDecl = g.resolveType(schema)
+			}
 		}
 	}
 

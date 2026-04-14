@@ -159,6 +159,42 @@ func TestBindParameter_RequiredEmpty(t *testing.T) {
 	assert.Equal(t, "name", reqErr.ParamName)
 }
 
+func TestBindParameter_FormCookie_Roundtrip(t *testing.T) {
+	cookieOpts := func(explode bool) ParameterOptions {
+		return ParameterOptions{Style: "form", ParamLocation: ParamLocationCookie, Explode: explode}
+	}
+
+	t.Run("primitive", func(t *testing.T) {
+		styled, err := StyleParameter("p", 5, cookieOpts(false))
+		require.NoError(t, err)
+		// Form style adds "p=" prefix
+		assert.Equal(t, "p=5", styled)
+
+		var result int
+		err = BindParameter("p", styled, &result, cookieOpts(false))
+		require.NoError(t, err)
+		assert.Equal(t, 5, result)
+	})
+	t.Run("primitive_explode", func(t *testing.T) {
+		styled, err := StyleParameter("ep", 100, cookieOpts(true))
+		require.NoError(t, err)
+
+		var result int
+		err = BindParameter("ep", styled, &result, cookieOpts(true))
+		require.NoError(t, err)
+		assert.Equal(t, 100, result)
+	})
+	t.Run("string_with_comma", func(t *testing.T) {
+		styled, err := StyleParameter("s", "hello,world", cookieOpts(false))
+		require.NoError(t, err)
+
+		var result string
+		err = BindParameter("s", styled, &result, cookieOpts(false))
+		require.NoError(t, err)
+		assert.Equal(t, "hello,world", result)
+	})
+}
+
 func TestBindParameter_OptionalEmpty(t *testing.T) {
 	var result string
 	err := BindParameter("name", "", &result, ParameterOptions{Style: "simple"})

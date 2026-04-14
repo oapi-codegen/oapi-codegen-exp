@@ -19,7 +19,7 @@ func (s *Server) GetSimplePrimitive(w http.ResponseWriter, r *http.Request, para
 func (s *Server) GetSimpleExplodePrimitive(w http.ResponseWriter, r *http.Request, param int32)  { writeJSON(w, param) }
 func (s *Server) GetSimpleNoExplodeArray(w http.ResponseWriter, r *http.Request, param []int32)  { writeJSON(w, param) }
 func (s *Server) GetSimpleExplodeArray(w http.ResponseWriter, r *http.Request)                   { w.WriteHeader(http.StatusOK) }
-func (s *Server) GetSimpleNoExplodeObject(w http.ResponseWriter, r *http.Request, param any)     { writeJSON(w, param) }
+func (s *Server) GetSimpleNoExplodeObject(w http.ResponseWriter, r *http.Request, param Object)  { writeJSON(w, param) }
 func (s *Server) GetSimpleExplodeObject(w http.ResponseWriter, r *http.Request)                  { w.WriteHeader(http.StatusOK) }
 func (s *Server) GetLabelPrimitive(w http.ResponseWriter, r *http.Request)                       { w.WriteHeader(http.StatusOK) }
 func (s *Server) GetLabelExplodePrimitive(w http.ResponseWriter, r *http.Request)                { w.WriteHeader(http.StatusOK) }

@@ -31,12 +31,13 @@ func TestGenerateRuntime(t *testing.T) {
 
 		assert.Contains(t, code, "package params")
 		assert.Contains(t, code, "type ParamLocation int")
+		assert.Contains(t, code, "type MissingRequiredParameterError struct")
 		assert.Contains(t, code, "func BindStringToObject(")
 		assert.Contains(t, code, "func marshalKnownTypes(")
-		assert.Contains(t, code, "func StyleSimpleParam(")
-		assert.Contains(t, code, "func StyleFormParam(")
-		assert.Contains(t, code, "func BindSimpleParam(")
-		assert.Contains(t, code, "func BindFormParam(")
+		assert.Contains(t, code, "func BindParameter(")
+		assert.Contains(t, code, "func BindQueryParameter(")
+		assert.Contains(t, code, "func BindRawQueryParameter(")
+		assert.Contains(t, code, "func StyleParameter(")
 
 		// Params should reference types.Date, not bare Date
 		assert.Contains(t, code, "types.Date{}")

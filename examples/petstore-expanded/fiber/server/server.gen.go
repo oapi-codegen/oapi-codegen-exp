@@ -377,10 +377,14 @@ func BindParameter(paramName string, value string, dest any, opts ParameterOptio
 		return bindSplitPartsToDestinationArray(parts, dest)
 	}
 
-	// Primitive types: only label and matrix need prefix stripping via
-	// splitStyledParameter. Simple and form can bind the raw value directly —
-	// splitting on commas would incorrectly reject values that contain commas.
-	if style == "label" || style == "matrix" {
+	// Primitive types need style-specific prefix stripping before binding.
+	// Label and matrix use splitStyledParameter for their prefix formats.
+	// Form style adds a "name=" prefix (e.g. "p=5") which is meaningful in
+	// query strings but must be stripped for cookie/header values. We use
+	// TrimPrefix instead of splitStyledParameter to avoid splitting on commas,
+	// which would break string primitives containing literal commas.
+	switch style {
+	case "label", "matrix":
 		parts, err := splitStyledParameter(style, opts.Explode, false, paramName, value)
 		if err != nil {
 			return fmt.Errorf("error splitting parameter '%s': %w", paramName, err)
@@ -389,6 +393,8 @@ func BindParameter(paramName string, value string, dest any, opts ParameterOptio
 			return fmt.Errorf("parameter '%s': expected single value, got %d parts", paramName, len(parts))
 		}
 		value = parts[0]
+	case "form":
+		value = strings.TrimPrefix(value, paramName+"=")
 	}
 	return BindStringToObject(value, dest)
 }

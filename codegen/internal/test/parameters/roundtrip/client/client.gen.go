@@ -247,7 +247,7 @@ type ClientInterface interface {
 	// GetSimpleNoExplodeArray makes a GET request to /simpleNoExplodeArray/{param}
 	GetSimpleNoExplodeArray(ctx context.Context, param []int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetSimpleNoExplodeObject makes a GET request to /simpleNoExplodeObject/{param}
-	GetSimpleNoExplodeObject(ctx context.Context, param any, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetSimpleNoExplodeObject(ctx context.Context, param Object, reqEditors ...RequestEditorFn) (*http.Response, error)
 	// GetSimplePrimitive makes a GET request to /simplePrimitive/{param}
 	GetSimplePrimitive(ctx context.Context, param int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
@@ -263,9 +263,9 @@ type GetCookieParams struct {
 	// a (cookie)
 	A *[]int32
 	// eo (cookie)
-	Eo *any
+	Eo *Object
 	// o (cookie)
-	O *any
+	O *Object
 	// co (cookie)
 	Co *string
 }
@@ -281,9 +281,9 @@ type GetHeaderParams struct {
 	// X-Array (header)
 	XArray *[]int32
 	// X-Object-Exploded (header)
-	XObjectExploded *any
+	XObjectExploded *Object
 	// X-Object (header)
-	XObject *any
+	XObject *Object
 	// X-Complex-Object (header)
 	XComplexObject *string
 }
@@ -291,7 +291,7 @@ type GetHeaderParams struct {
 // GetDeepObjectParams defines parameters for GetDeepObject.
 type GetDeepObjectParams struct {
 	// deepObj (required)
-	DeepObj any `form:"deepObj" json:"deepObj"`
+	DeepObj ComplexObject `form:"deepObj" json:"deepObj"`
 }
 
 // GetQueryFormParams defines parameters for GetQueryForm.
@@ -301,9 +301,9 @@ type GetQueryFormParams struct {
 	// a (optional)
 	A *[]int32 `form:"a" json:"a"`
 	// eo (optional)
-	Eo *any `form:"eo" json:"eo"`
+	Eo *Object `form:"eo" json:"eo"`
 	// o (optional)
-	O *any `form:"o" json:"o"`
+	O *Object `form:"o" json:"o"`
 	// ep (optional)
 	Ep *int32 `form:"ep" json:"ep"`
 	// p (optional)
@@ -624,7 +624,7 @@ func (c *Client) GetSimpleNoExplodeArray(ctx context.Context, param []int32, req
 
 // GetSimpleNoExplodeObject makes a GET request to /simpleNoExplodeObject/{param}
 
-func (c *Client) GetSimpleNoExplodeObject(ctx context.Context, param any, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) GetSimpleNoExplodeObject(ctx context.Context, param Object, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetSimpleNoExplodeObjectRequest(c.Server, param)
 	if err != nil {
 		return nil, err
@@ -1537,7 +1537,7 @@ func NewGetSimpleNoExplodeArrayRequest(server string, param []int32) (*http.Requ
 }
 
 // NewGetSimpleNoExplodeObjectRequest creates a GET request for /simpleNoExplodeObject/{param}
-func NewGetSimpleNoExplodeObjectRequest(server string, param any) (*http.Request, error) {
+func NewGetSimpleNoExplodeObjectRequest(server string, param Object) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -1706,9 +1706,12 @@ type UUID = uuid.UUID
 
 // If the destination implements encoding.TextUnmarshaler, use it directly.
 
-// Primitive types: only label and matrix need prefix stripping via
-// splitStyledParameter. Simple and form can bind the raw value directly —
-// splitting on commas would incorrectly reject values that contain commas.
+// Primitive types need style-specific prefix stripping before binding.
+// Label and matrix use splitStyledParameter for their prefix formats.
+// Form style adds a "name=" prefix (e.g. "p=5") which is meaningful in
+// query strings but must be stripped for cookie/header values. We use
+// TrimPrefix instead of splitStyledParameter to avoid splitting on commas,
+// which would break string primitives containing literal commas.
 
 // BindQueryParameter binds a query parameter from pre-parsed url.Values.
 // The Style field in opts selects parsing behavior. If Style is empty, "form"

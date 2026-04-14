@@ -169,7 +169,7 @@ type ServerInterface interface {
 	GetSimpleNoExplodeArray(w http.ResponseWriter, r *http.Request, param []int32)
 
 	// (GET /simpleNoExplodeObject/{param})
-	GetSimpleNoExplodeObject(w http.ResponseWriter, r *http.Request, param any)
+	GetSimpleNoExplodeObject(w http.ResponseWriter, r *http.Request, param Object)
 
 	// (GET /simplePrimitive/{param})
 	GetSimplePrimitive(w http.ResponseWriter, r *http.Request, param int32)
@@ -186,9 +186,9 @@ type GetCookieParams struct {
 	// a (cookie)
 	A *[]int32
 	// eo (cookie)
-	Eo *any
+	Eo *Object
 	// o (cookie)
-	O *any
+	O *Object
 	// co (cookie)
 	Co *string
 }
@@ -204,9 +204,9 @@ type GetHeaderParams struct {
 	// X-Array (header)
 	XArray *[]int32
 	// X-Object-Exploded (header)
-	XObjectExploded *any
+	XObjectExploded *Object
 	// X-Object (header)
-	XObject *any
+	XObject *Object
 	// X-Complex-Object (header)
 	XComplexObject *string
 }
@@ -214,7 +214,7 @@ type GetHeaderParams struct {
 // GetDeepObjectParams defines parameters for GetDeepObject.
 type GetDeepObjectParams struct {
 	// deepObj (required)
-	DeepObj any `form:"deepObj" json:"deepObj"`
+	DeepObj ComplexObject `form:"deepObj" json:"deepObj"`
 }
 
 // GetQueryFormParams defines parameters for GetQueryForm.
@@ -224,9 +224,9 @@ type GetQueryFormParams struct {
 	// a (optional)
 	A *[]int32 `form:"a" json:"a"`
 	// eo (optional)
-	Eo *any `form:"eo" json:"eo"`
+	Eo *Object `form:"eo" json:"eo"`
 	// o (optional)
-	O *any `form:"o" json:"o"`
+	O *Object `form:"o" json:"o"`
 	// ep (optional)
 	Ep *int32 `form:"ep" json:"ep"`
 	// p (optional)
@@ -335,7 +335,7 @@ func (siw *ServerInterfaceWrapper) GetCookie(w http.ResponseWriter, r *http.Requ
 	{
 		var cookie *http.Cookie
 		if cookie, err = r.Cookie("eo"); err == nil {
-			var value any
+			var value Object
 			err = oapiCodegenParamsPkg.BindParameter("eo", cookie.Value, &value, oapiCodegenParamsPkg.ParameterOptions{Style: "form", ParamLocation: oapiCodegenParamsPkg.ParamLocationCookie, Explode: true, Required: false, Type: "", Format: "", AllowReserved: false})
 			if err != nil {
 				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "eo", Err: err})
@@ -348,7 +348,7 @@ func (siw *ServerInterfaceWrapper) GetCookie(w http.ResponseWriter, r *http.Requ
 	{
 		var cookie *http.Cookie
 		if cookie, err = r.Cookie("o"); err == nil {
-			var value any
+			var value Object
 			err = oapiCodegenParamsPkg.BindParameter("o", cookie.Value, &value, oapiCodegenParamsPkg.ParameterOptions{Style: "form", ParamLocation: oapiCodegenParamsPkg.ParamLocationCookie, Explode: false, Required: false, Type: "", Format: "", AllowReserved: false})
 			if err != nil {
 				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "o", Err: err})
@@ -463,7 +463,7 @@ func (siw *ServerInterfaceWrapper) GetHeader(w http.ResponseWriter, r *http.Requ
 
 	// ------------- Optional header parameter "X-Object-Exploded" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Object-Exploded")]; found {
-		var xObjectExploded any
+		var xObjectExploded Object
 		n := len(valueList)
 		if n != 1 {
 			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Object-Exploded", Count: n})
@@ -479,7 +479,7 @@ func (siw *ServerInterfaceWrapper) GetHeader(w http.ResponseWriter, r *http.Requ
 
 	// ------------- Optional header parameter "X-Object" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Object")]; found {
-		var xObject any
+		var xObject Object
 		n := len(valueList)
 		if n != 1 {
 			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Object", Count: n})
@@ -718,11 +718,6 @@ func (siw *ServerInterfaceWrapper) GetDeepObject(w http.ResponseWriter, r *http.
 	var params GetDeepObjectParams
 
 	// ------------- Required query parameter "deepObj" -------------
-	if paramValue := r.URL.Query().Get("deepObj"); paramValue != "" {
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "deepObj"})
-		return
-	}
 	err = oapiCodegenParamsPkg.BindQueryParameter("deepObj", r.URL.Query(), &params.DeepObj, oapiCodegenParamsPkg.ParameterOptions{Style: "deepObject", ParamLocation: oapiCodegenParamsPkg.ParamLocationQuery, Explode: true, Required: true, Type: "", Format: "", AllowReserved: false})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "deepObj", Err: err})
@@ -903,7 +898,7 @@ func (siw *ServerInterfaceWrapper) GetSimpleNoExplodeObject(w http.ResponseWrite
 	_ = err
 
 	// ------------- Path parameter "param" -------------
-	var param any
+	var param Object
 
 	err = oapiCodegenParamsPkg.BindParameter("param", r.PathValue("param"), &param, oapiCodegenParamsPkg.ParameterOptions{Style: "simple", ParamLocation: oapiCodegenParamsPkg.ParamLocationPath, Explode: false, Required: true, Type: "", Format: "", AllowReserved: false})
 	if err != nil {

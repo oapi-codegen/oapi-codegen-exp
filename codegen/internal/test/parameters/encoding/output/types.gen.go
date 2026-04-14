@@ -159,9 +159,12 @@ func GetOpenAPISpecJSON() ([]byte, error) {
 
 // If the destination implements encoding.TextUnmarshaler, use it directly.
 
-// Primitive types: only label and matrix need prefix stripping via
-// splitStyledParameter. Simple and form can bind the raw value directly —
-// splitting on commas would incorrectly reject values that contain commas.
+// Primitive types need style-specific prefix stripping before binding.
+// Label and matrix use splitStyledParameter for their prefix formats.
+// Form style adds a "name=" prefix (e.g. "p=5") which is meaningful in
+// query strings but must be stripped for cookie/header values. We use
+// TrimPrefix instead of splitStyledParameter to avoid splitting on commas,
+// which would break string primitives containing literal commas.
 
 // BindQueryParameter binds a query parameter from pre-parsed url.Values.
 // The Style field in opts selects parsing behavior. If Style is empty, "form"

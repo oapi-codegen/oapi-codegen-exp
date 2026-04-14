@@ -57,7 +57,7 @@ func (siw *ServerInterfaceWrapper) {{ .GoOperationID }}(c fiber.Ctx) error {
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Invalid format for parameter {{ .Name }}: %s", err))
 	}
-{{- else if or .Required .IsPassThrough .IsJSON }}
+{{- else if and (not .IsStyled) (or .Required .IsPassThrough .IsJSON) }}
 	if paramValue := c.Query("{{ .Name }}"); paramValue != "" {
 {{- if .IsPassThrough }}
 		params.{{ .GoName }} = {{ if .HasOptionalPointer }}&{{ end }}paramValue

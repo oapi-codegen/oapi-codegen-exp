@@ -58,7 +58,7 @@ func (siw *ServerInterfaceWrapper) {{ .GoOperationID }}(c *gin.Context) {
 		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter {{ .Name }}: %w", err), http.StatusBadRequest)
 		return
 	}
-{{- else if or .Required .IsPassThrough .IsJSON }}
+{{- else if and (not .IsStyled) (or .Required .IsPassThrough .IsJSON) }}
 	if paramValue := c.Query("{{ .Name }}"); paramValue != "" {
 {{- if .IsPassThrough }}
 		params.{{ .GoName }} = {{ if .HasOptionalPointer }}&{{ end }}paramValue

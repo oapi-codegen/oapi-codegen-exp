@@ -35,7 +35,7 @@ func {{ .GoOperationID }}{{ $.Prefix }}Handler(si {{ $.Prefix }}ReceiverInterfac
 		var params {{ .ParamsTypeName }}
 {{ range .QueryParams }}
 		// ------------- {{ if .Required }}Required{{ else }}Optional{{ end }} query parameter "{{ .Name }}" -------------
-{{- if or .Required .IsPassThrough .IsJSON }}
+{{- if and (not .IsStyled) (or .Required .IsPassThrough .IsJSON) }}
 		if paramValue := r.URL.Query().Get("{{ .Name }}"); paramValue != "" {
 {{- if .IsPassThrough }}
 			params.{{ .GoName }} = {{ if .HasOptionalPointer }}&{{ end }}paramValue
