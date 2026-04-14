@@ -87,7 +87,11 @@ func testImpl(t *testing.T, handler http.Handler) {
 			})
 
 			t.Run("array explode", func(t *testing.T) {
-				t.Skip("V3 codegen does not yet parse simple explode array path params")
+				req, err := client.NewGetSimpleExplodeArrayRequest(server, expectedArray)
+				require.NoError(t, err)
+				var got []int32
+				doRoundTrip(t, req, &got)
+				assert.Equal(t, expectedArray, got)
 			})
 
 			t.Run("object noExplode", func(t *testing.T) {
@@ -99,16 +103,102 @@ func testImpl(t *testing.T, handler http.Handler) {
 			})
 
 			t.Run("object explode", func(t *testing.T) {
-				t.Skip("V3 codegen does not yet parse simple explode object path params")
+				req, err := client.NewGetSimpleExplodeObjectRequest(server, expectedObject)
+				require.NoError(t, err)
+				var got client.Object
+				doRoundTrip(t, req, &got)
+				assert.Equal(t, expectedObject, got)
 			})
 		})
 
 		t.Run("label", func(t *testing.T) {
-			t.Skip("V3 codegen does not yet serialize/parse label-style path params")
+			t.Run("primitive", func(t *testing.T) {
+				req, err := client.NewGetLabelPrimitiveRequest(server, expectedPrimitive)
+				require.NoError(t, err)
+				var got int32
+				doRoundTrip(t, req, &got)
+				assert.Equal(t, expectedPrimitive, got)
+			})
+			t.Run("primitive explode", func(t *testing.T) {
+				req, err := client.NewGetLabelExplodePrimitiveRequest(server, expectedPrimitive)
+				require.NoError(t, err)
+				var got int32
+				doRoundTrip(t, req, &got)
+				assert.Equal(t, expectedPrimitive, got)
+			})
+			t.Run("array noExplode", func(t *testing.T) {
+				req, err := client.NewGetLabelNoExplodeArrayRequest(server, expectedArray)
+				require.NoError(t, err)
+				var got []int32
+				doRoundTrip(t, req, &got)
+				assert.Equal(t, expectedArray, got)
+			})
+			t.Run("array explode", func(t *testing.T) {
+				req, err := client.NewGetLabelExplodeArrayRequest(server, expectedArray)
+				require.NoError(t, err)
+				var got []int32
+				doRoundTrip(t, req, &got)
+				assert.Equal(t, expectedArray, got)
+			})
+			t.Run("object noExplode", func(t *testing.T) {
+				req, err := client.NewGetLabelNoExplodeObjectRequest(server, expectedObject)
+				require.NoError(t, err)
+				var got client.Object
+				doRoundTrip(t, req, &got)
+				assert.Equal(t, expectedObject, got)
+			})
+			t.Run("object explode", func(t *testing.T) {
+				req, err := client.NewGetLabelExplodeObjectRequest(server, expectedObject)
+				require.NoError(t, err)
+				var got client.Object
+				doRoundTrip(t, req, &got)
+				assert.Equal(t, expectedObject, got)
+			})
 		})
 
 		t.Run("matrix", func(t *testing.T) {
-			t.Skip("V3 codegen does not yet serialize/parse matrix-style path params")
+			t.Run("primitive", func(t *testing.T) {
+				req, err := client.NewGetMatrixPrimitiveRequest(server, expectedPrimitive)
+				require.NoError(t, err)
+				var got int32
+				doRoundTrip(t, req, &got)
+				assert.Equal(t, expectedPrimitive, got)
+			})
+			t.Run("primitive explode", func(t *testing.T) {
+				req, err := client.NewGetMatrixExplodePrimitiveRequest(server, expectedPrimitive)
+				require.NoError(t, err)
+				var got int32
+				doRoundTrip(t, req, &got)
+				assert.Equal(t, expectedPrimitive, got)
+			})
+			t.Run("array noExplode", func(t *testing.T) {
+				req, err := client.NewGetMatrixNoExplodeArrayRequest(server, expectedArray)
+				require.NoError(t, err)
+				var got []int32
+				doRoundTrip(t, req, &got)
+				assert.Equal(t, expectedArray, got)
+			})
+			t.Run("array explode", func(t *testing.T) {
+				req, err := client.NewGetMatrixExplodeArrayRequest(server, expectedArray)
+				require.NoError(t, err)
+				var got []int32
+				doRoundTrip(t, req, &got)
+				assert.Equal(t, expectedArray, got)
+			})
+			t.Run("object noExplode", func(t *testing.T) {
+				req, err := client.NewGetMatrixNoExplodeObjectRequest(server, expectedObject)
+				require.NoError(t, err)
+				var got client.Object
+				doRoundTrip(t, req, &got)
+				assert.Equal(t, expectedObject, got)
+			})
+			t.Run("object explode", func(t *testing.T) {
+				req, err := client.NewGetMatrixExplodeObjectRequest(server, expectedObject)
+				require.NoError(t, err)
+				var got client.Object
+				doRoundTrip(t, req, &got)
+				assert.Equal(t, expectedObject, got)
+			})
 		})
 
 		t.Run("content-based", func(t *testing.T) {
