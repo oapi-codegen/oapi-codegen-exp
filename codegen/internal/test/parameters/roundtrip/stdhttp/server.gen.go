@@ -250,6 +250,7 @@ type MiddlewareFunc func(http.Handler) http.Handler
 // GetContentObject operation middleware
 func (siw *ServerInterfaceWrapper) GetContentObject(w http.ResponseWriter, r *http.Request) {
 	var err error
+	_ = err
 
 	// ------------- Path parameter "param" -------------
 	var param string
@@ -274,6 +275,7 @@ func (siw *ServerInterfaceWrapper) GetContentObject(w http.ResponseWriter, r *ht
 // GetCookie operation middleware
 func (siw *ServerInterfaceWrapper) GetCookie(w http.ResponseWriter, r *http.Request) {
 	var err error
+	_ = err
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetCookieParams
@@ -295,7 +297,7 @@ func (siw *ServerInterfaceWrapper) GetCookie(w http.ResponseWriter, r *http.Requ
 		var cookie *http.Cookie
 		if cookie, err = r.Cookie("ep"); err == nil {
 			var value int32
-			err = oapiCodegenParamsPkg.BindFormExplodeParam("ep", oapiCodegenParamsPkg.ParamLocationCookie, cookie.Value, &value)
+			err = oapiCodegenParamsPkg.BindFormParam("ep", oapiCodegenParamsPkg.ParamLocationCookie, cookie.Value, &value)
 			if err != nil {
 				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ep", Err: err})
 				return
@@ -308,7 +310,7 @@ func (siw *ServerInterfaceWrapper) GetCookie(w http.ResponseWriter, r *http.Requ
 		var cookie *http.Cookie
 		if cookie, err = r.Cookie("ea"); err == nil {
 			var value []int32
-			err = oapiCodegenParamsPkg.BindFormExplodeParam("ea", oapiCodegenParamsPkg.ParamLocationCookie, cookie.Value, &value)
+			err = oapiCodegenParamsPkg.BindFormParam("ea", oapiCodegenParamsPkg.ParamLocationCookie, cookie.Value, &value)
 			if err != nil {
 				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ea", Err: err})
 				return
@@ -334,7 +336,7 @@ func (siw *ServerInterfaceWrapper) GetCookie(w http.ResponseWriter, r *http.Requ
 		var cookie *http.Cookie
 		if cookie, err = r.Cookie("eo"); err == nil {
 			var value any
-			err = oapiCodegenParamsPkg.BindFormExplodeParam("eo", oapiCodegenParamsPkg.ParamLocationCookie, cookie.Value, &value)
+			err = oapiCodegenParamsPkg.BindFormParam("eo", oapiCodegenParamsPkg.ParamLocationCookie, cookie.Value, &value)
 			if err != nil {
 				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "eo", Err: err})
 				return
@@ -388,6 +390,7 @@ func (siw *ServerInterfaceWrapper) GetCookie(w http.ResponseWriter, r *http.Requ
 // GetHeader operation middleware
 func (siw *ServerInterfaceWrapper) GetHeader(w http.ResponseWriter, r *http.Request) {
 	var err error
+	_ = err
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetHeaderParams
@@ -688,6 +691,7 @@ func (siw *ServerInterfaceWrapper) GetMatrixPrimitive(w http.ResponseWriter, r *
 // GetPassThrough operation middleware
 func (siw *ServerInterfaceWrapper) GetPassThrough(w http.ResponseWriter, r *http.Request) {
 	var err error
+	_ = err
 
 	// ------------- Path parameter "param" -------------
 	var param string
@@ -708,6 +712,7 @@ func (siw *ServerInterfaceWrapper) GetPassThrough(w http.ResponseWriter, r *http
 // GetDeepObject operation middleware
 func (siw *ServerInterfaceWrapper) GetDeepObject(w http.ResponseWriter, r *http.Request) {
 	var err error
+	_ = err
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetDeepObjectParams
@@ -718,7 +723,7 @@ func (siw *ServerInterfaceWrapper) GetDeepObject(w http.ResponseWriter, r *http.
 		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "deepObj"})
 		return
 	}
-	err = oapiCodegenParamsPkg.BindDeepObjectExplodeParam("deepObj", true, r.URL.Query(), &params.DeepObj)
+	err = oapiCodegenParamsPkg.BindDeepObjectParam("deepObj", r.URL.Query(), &params.DeepObj)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "deepObj", Err: err})
 		return
@@ -738,6 +743,7 @@ func (siw *ServerInterfaceWrapper) GetDeepObject(w http.ResponseWriter, r *http.
 // GetQueryForm operation middleware
 func (siw *ServerInterfaceWrapper) GetQueryForm(w http.ResponseWriter, r *http.Request) {
 	var err error
+	_ = err
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetQueryFormParams
@@ -750,7 +756,7 @@ func (siw *ServerInterfaceWrapper) GetQueryForm(w http.ResponseWriter, r *http.R
 	}
 
 	// ------------- Optional query parameter "a" -------------
-	err = oapiCodegenParamsPkg.BindFormParam("a", false, r.URL.Query(), &params.A)
+	err = oapiCodegenParamsPkg.BindFormParam("a", oapiCodegenParamsPkg.ParamLocationQuery, r.URL.Query().Get("a"), &params.A)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "a", Err: err})
 		return
@@ -764,7 +770,7 @@ func (siw *ServerInterfaceWrapper) GetQueryForm(w http.ResponseWriter, r *http.R
 	}
 
 	// ------------- Optional query parameter "o" -------------
-	err = oapiCodegenParamsPkg.BindFormParam("o", false, r.URL.Query(), &params.O)
+	err = oapiCodegenParamsPkg.BindFormParam("o", oapiCodegenParamsPkg.ParamLocationQuery, r.URL.Query().Get("o"), &params.O)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "o", Err: err})
 		return
@@ -778,7 +784,7 @@ func (siw *ServerInterfaceWrapper) GetQueryForm(w http.ResponseWriter, r *http.R
 	}
 
 	// ------------- Optional query parameter "p" -------------
-	err = oapiCodegenParamsPkg.BindFormParam("p", false, r.URL.Query(), &params.P)
+	err = oapiCodegenParamsPkg.BindFormParam("p", oapiCodegenParamsPkg.ParamLocationQuery, r.URL.Query().Get("p"), &params.P)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "p", Err: err})
 		return
@@ -844,6 +850,7 @@ func (siw *ServerInterfaceWrapper) GetSimpleExplodeObject(w http.ResponseWriter,
 // GetSimpleExplodePrimitive operation middleware
 func (siw *ServerInterfaceWrapper) GetSimpleExplodePrimitive(w http.ResponseWriter, r *http.Request) {
 	var err error
+	_ = err
 
 	// ------------- Path parameter "param" -------------
 	var param int32
@@ -868,6 +875,7 @@ func (siw *ServerInterfaceWrapper) GetSimpleExplodePrimitive(w http.ResponseWrit
 // GetSimpleNoExplodeArray operation middleware
 func (siw *ServerInterfaceWrapper) GetSimpleNoExplodeArray(w http.ResponseWriter, r *http.Request) {
 	var err error
+	_ = err
 
 	// ------------- Path parameter "param" -------------
 	var param []int32
@@ -892,6 +900,7 @@ func (siw *ServerInterfaceWrapper) GetSimpleNoExplodeArray(w http.ResponseWriter
 // GetSimpleNoExplodeObject operation middleware
 func (siw *ServerInterfaceWrapper) GetSimpleNoExplodeObject(w http.ResponseWriter, r *http.Request) {
 	var err error
+	_ = err
 
 	// ------------- Path parameter "param" -------------
 	var param any
@@ -916,6 +925,7 @@ func (siw *ServerInterfaceWrapper) GetSimpleNoExplodeObject(w http.ResponseWrite
 // GetSimplePrimitive operation middleware
 func (siw *ServerInterfaceWrapper) GetSimplePrimitive(w http.ResponseWriter, r *http.Request) {
 	var err error
+	_ = err
 
 	// ------------- Path parameter "param" -------------
 	var param int32

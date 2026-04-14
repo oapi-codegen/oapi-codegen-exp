@@ -249,7 +249,9 @@ type SecurityRequirement struct {
 // ComputeStyleFunc returns the style function name for a parameter.
 func ComputeStyleFunc(style string, explode bool) string {
 	base := "Style" + ToCamelCase(style)
-	if explode {
+	// deepObject always requires explode=true per OpenAPI spec,
+	// so there is no separate "Explode" variant.
+	if explode && style != "deepObject" {
 		return base + "ExplodeParam"
 	}
 	return base + "Param"
@@ -258,7 +260,9 @@ func ComputeStyleFunc(style string, explode bool) string {
 // ComputeBindFunc returns the bind function name for a parameter.
 func ComputeBindFunc(style string, explode bool) string {
 	base := "Bind" + ToCamelCase(style)
-	if explode {
+	// deepObject always requires explode=true per OpenAPI spec,
+	// so there is no separate "Explode" variant.
+	if explode && style != "deepObject" {
 		return base + "ExplodeParam"
 	}
 	return base + "Param"

@@ -45,7 +45,13 @@ func {{ .GoOperationID }}{{ $.Prefix }}Handler(si {{ $.Prefix }}ReceiverInterfac
 		}{{ end }}
 {{- end }}
 {{- if .IsStyled }}
+{{- if eq .Style "deepObject" }}
+		err = {{ .BindFunc }}("{{ .Name }}", ctx.Request().URL.Query(), &params.{{ .GoName }})
+{{- else if .Explode }}
 		err = {{ .BindFunc }}("{{ .Name }}", {{ .Required }}, ctx.Request().URL.Query(), &params.{{ .GoName }})
+{{- else }}
+		err = {{ .BindFunc }}("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationQuery, ctx.Request().URL.Query().Get("{{ .Name }}"), &params.{{ .GoName }})
+{{- end }}
 		if err != nil {
 			ctx.StatusCode(http.StatusBadRequest)
 			_, _ = ctx.WriteString(fmt.Sprintf("Invalid format for parameter {{ .Name }}: %s", err))

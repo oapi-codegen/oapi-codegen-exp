@@ -19,6 +19,7 @@ type MiddlewareFunc func(c *gin.Context)
 func (siw *ServerInterfaceWrapper) {{ .GoOperationID }}(c *gin.Context) {
 {{- if or .PathParams .HasParams }}
 	var err error
+	_ = err
 {{- end }}
 {{ range .PathParams }}
 	// ------------- Path parameter "{{ .Name }}" -------------
@@ -52,7 +53,13 @@ func (siw *ServerInterfaceWrapper) {{ .GoOperationID }}(c *gin.Context) {
 {{ range .QueryParams }}
 	// ------------- {{ if .Required }}Required{{ else }}Optional{{ end }} query parameter "{{ .Name }}" -------------
 {{- if .IsStyled }}
+{{- if eq .Style "deepObject" }}
+	err = {{ .BindFunc }}("{{ .Name }}", c.Request.URL.Query(), &params.{{ .GoName }})
+{{- else if .Explode }}
 	err = {{ .BindFunc }}("{{ .Name }}", {{ .Required }}, c.Request.URL.Query(), &params.{{ .GoName }})
+{{- else }}
+	err = {{ .BindFunc }}("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationQuery, c.Request.URL.Query().Get("{{ .Name }}"), &params.{{ .GoName }})
+{{- end }}
 	if err != nil {
 		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter {{ .Name }}: %w", err), http.StatusBadRequest)
 		return
@@ -135,7 +142,7 @@ func (siw *ServerInterfaceWrapper) {{ .GoOperationID }}(c *gin.Context) {
 {{- end }}
 {{- if .IsStyled }}
 			var value {{ .TypeDecl }}
-			err = {{ .BindFunc }}("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationCookie, cookie, &value)
+			err = {{ runtimeParamsPrefix }}BindFormParam("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationCookie, cookie, &value)
 			if err != nil {
 				siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter {{ .Name }}: %w", err), http.StatusBadRequest)
 				return

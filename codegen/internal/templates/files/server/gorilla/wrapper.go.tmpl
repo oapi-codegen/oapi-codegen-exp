@@ -19,6 +19,7 @@ type MiddlewareFunc func(http.Handler) http.Handler
 func (siw *ServerInterfaceWrapper) {{ .GoOperationID }}(w http.ResponseWriter, r *http.Request) {
 {{- if or .PathParams .HasParams }}
 	var err error
+	_ = err
 {{- end }}
 {{ if .PathParams }}
 	pathParams := mux.Vars(r)
@@ -76,7 +77,13 @@ func (siw *ServerInterfaceWrapper) {{ .GoOperationID }}(w http.ResponseWriter, r
 	}{{ end }}
 {{- end }}
 {{- if .IsStyled }}
+{{- if eq .Style "deepObject" }}
+	err = {{ .BindFunc }}("{{ .Name }}", r.URL.Query(), &params.{{ .GoName }})
+{{- else if .Explode }}
 	err = {{ .BindFunc }}("{{ .Name }}", {{ .Required }}, r.URL.Query(), &params.{{ .GoName }})
+{{- else }}
+	err = {{ .BindFunc }}("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationQuery, r.URL.Query().Get("{{ .Name }}"), &params.{{ .GoName }})
+{{- end }}
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "{{ .Name }}", Err: err})
 		return
@@ -142,7 +149,7 @@ func (siw *ServerInterfaceWrapper) {{ .GoOperationID }}(w http.ResponseWriter, r
 {{- end }}
 {{- if .IsStyled }}
 			var value {{ .TypeDecl }}
-			err = {{ .BindFunc }}("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationCookie, cookie.Value, &value)
+			err = {{ runtimeParamsPrefix }}BindFormParam("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationCookie, cookie.Value, &value)
 			if err != nil {
 				siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "{{ .Name }}", Err: err})
 				return

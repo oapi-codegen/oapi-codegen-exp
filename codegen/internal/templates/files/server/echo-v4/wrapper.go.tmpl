@@ -44,7 +44,13 @@ func (w *ServerInterfaceWrapper) {{ .GoOperationID }}(ctx echo.Context) error {
 {{ range .QueryParams }}
 	// ------------- {{ if .Required }}Required{{ else }}Optional{{ end }} query parameter "{{ .Name }}" -------------
 {{- if .IsStyled }}
+{{- if eq .Style "deepObject" }}
+	err = {{ .BindFunc }}("{{ .Name }}", ctx.QueryParams(), &params.{{ .GoName }})
+{{- else if .Explode }}
 	err = {{ .BindFunc }}("{{ .Name }}", {{ .Required }}, ctx.QueryParams(), &params.{{ .GoName }})
+{{- else }}
+	err = {{ .BindFunc }}("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationQuery, ctx.QueryParam("{{ .Name }}"), &params.{{ .GoName }})
+{{- end }}
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter {{ .Name }}: %s", err))
 	}
@@ -116,7 +122,7 @@ func (w *ServerInterfaceWrapper) {{ .GoOperationID }}(ctx echo.Context) error {
 {{- end }}
 {{- if .IsStyled }}
 		var value {{ .TypeDecl }}
-		err = {{ .BindFunc }}("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationCookie, cookie.Value, &value)
+		err = {{ runtimeParamsPrefix }}BindFormParam("{{ .Name }}", {{ runtimeParamsPrefix }}ParamLocationCookie, cookie.Value, &value)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter {{ .Name }}: %s", err))
 		}
