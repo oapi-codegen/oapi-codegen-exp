@@ -54,7 +54,9 @@ func Generate(doc libopenapi.Document, specData []byte, cfg Configuration) (stri
 	// Pass 1: Gather all schemas that need types.
 	// Operation filters (include/exclude tags, operation IDs) are applied during
 	// gathering so that schemas from excluded operations are never collected.
-	schemas, err := GatherSchemas(v3Doc, contentTypeMatcher, cfg.OutputOptions)
+	schemas, err := GatherSchemasWithOptions(v3Doc, contentTypeMatcher, cfg.OutputOptions, GatherOptions{
+		SkipEnumViaOneOf: cfg.Generation.SkipEnumViaOneOf,
+	})
 	if err != nil {
 		return "", fmt.Errorf("gathering schemas: %w", err)
 	}

@@ -143,6 +143,13 @@ type GenerationOptions struct {
 	// instead, generated code imports and references them from this package.
 	// Generate the runtime package with --generate-runtime or GenerateRuntime().
 	RuntimePackage *RuntimePackageConfig `yaml:"runtime-package,omitempty"`
+
+	// SkipEnumViaOneOf disables detection of the OpenAPI 3.1 enum-via-oneOf
+	// idiom (a schema with `type: string|integer` + `oneOf:` members that each
+	// carry `const` + `title`). When false (default), such schemas are emitted
+	// as Go enums with named constants. When true, they fall through to the
+	// standard union-type generator.
+	SkipEnumViaOneOf bool `yaml:"skip-enum-via-oneof,omitempty"`
 }
 
 // ServerType constants for supported server frameworks.

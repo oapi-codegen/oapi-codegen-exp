@@ -284,6 +284,12 @@ func GenerateEnumFromInfo(info *EnumInfo) string {
 				constName = info.SanitizedNames[i]
 			}
 
+			if i < len(info.ValueDocs) && info.ValueDocs[i] != "" {
+				for _, line := range strings.Split(info.ValueDocs[i], "\n") {
+					b.Line("// %s", line)
+				}
+			}
+
 			if info.BaseType == "string" {
 				b.Line("%s %s = %q", constName, info.TypeName, v)
 			} else {

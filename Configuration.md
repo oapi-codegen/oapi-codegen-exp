@@ -71,6 +71,14 @@ generation:
   runtime-package:
     path: github.com/org/project/runtime
 
+  # Disable detection of the OpenAPI 3.1 enum-via-oneOf idiom. When a schema
+  # declares a scalar `type` with `oneOf` branches that each carry `const` and
+  # `title`, oapi-codegen emits a Go enum with named constants (from `title`)
+  # and per-value doc comments (from `description`) instead of a oneOf union.
+  # Set to true to keep the legacy union output for those schemas.
+  # Default: false
+  skip-enum-via-oneof: false
+
 # Output options: control which operations and schemas are included.
 output-options:
   # Only include operations tagged with one of these tags. Ignored when empty.

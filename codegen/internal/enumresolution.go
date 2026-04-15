@@ -14,6 +14,10 @@ type EnumInfo struct {
 	// CustomNames are user-provided constant names from x-oapi-codegen-enum-var-names.
 	// May be nil or shorter than Values.
 	CustomNames []string
+	// ValueDocs is the per-constant documentation string (e.g. from the
+	// `description` field on each oneOf+const enum branch). May be nil;
+	// individual entries may be empty. Indexed in parallel with Values.
+	ValueDocs []string
 	// Doc is the enum's documentation string.
 	Doc string
 	// SchemaPath is the key used to look up this EnumInfo (schema path string).

@@ -109,9 +109,11 @@ func (g *TypeGenerator) resolveEnumNames(schemas []*SchemaDescriptor, alwaysPref
 }
 
 // buildEnumInfo creates an EnumInfo from a schema descriptor.
+// Handles both plain `enum: [...]` schemas and the OpenAPI 3.1
+// enum-via-oneOf idiom (detected during gather and cached on the descriptor).
 func (g *TypeGenerator) buildEnumInfo(desc *SchemaDescriptor) *EnumInfo {
 	schema := desc.Schema
-	if schema == nil || len(schema.Enum) == 0 {
+	if schema == nil {
 		return nil
 	}
 
@@ -122,13 +124,34 @@ func (g *TypeGenerator) buildEnumInfo(desc *SchemaDescriptor) *EnumInfo {
 	}
 
 	var values []string
-	for _, v := range schema.Enum {
-		values = append(values, fmt.Sprintf("%v", v.Value))
-	}
-
 	var customNames []string
-	if desc.Extensions != nil && len(desc.Extensions.EnumVarNames) > 0 {
-		customNames = desc.Extensions.EnumVarNames
+	var valueDocs []string
+
+	switch {
+	case len(schema.Enum) > 0:
+		for _, v := range schema.Enum {
+			values = append(values, fmt.Sprintf("%v", v.Value))
+		}
+		if desc.Extensions != nil && len(desc.Extensions.EnumVarNames) > 0 {
+			customNames = desc.Extensions.EnumVarNames
+		}
+
+	case len(desc.ConstOneOfItems) > 0:
+		// User-supplied titles may not be valid Go identifiers (e.g.
+		// "High severity"). Run them through the mangler so the
+		// CustomNames-wins path in computeEnumConstantNames still yields
+		// valid identifiers.
+		customNames = make([]string, len(desc.ConstOneOfItems))
+		values = make([]string, len(desc.ConstOneOfItems))
+		valueDocs = make([]string, len(desc.ConstOneOfItems))
+		for i, item := range desc.ConstOneOfItems {
+			customNames[i] = g.converter.ToEnumValueName(item.Title, "string")
+			values[i] = item.Value
+			valueDocs[i] = item.Doc
+		}
+
+	default:
+		return nil
 	}
 
 	return &EnumInfo{
@@ -136,6 +159,7 @@ func (g *TypeGenerator) buildEnumInfo(desc *SchemaDescriptor) *EnumInfo {
 		BaseType:    baseType,
 		Values:      values,
 		CustomNames: customNames,
+		ValueDocs:   valueDocs,
 		Doc:         extractDescription(schema),
 		SchemaPath:  desc.Path.String(),
 	}
@@ -245,6 +269,11 @@ func (g *TypeGenerator) goTypeForSchema(schema *base.Schema, desc *SchemaDescrip
 		return g.anyOfType(desc)
 	}
 	if len(schema.OneOf) > 0 {
+		// If the oneOf matches the 3.1 enum-via-const idiom, render as the
+		// generated enum type name rather than the union form.
+		if desc != nil && len(desc.ConstOneOfItems) > 0 && desc.ShortName != "" {
+			return desc.ShortName
+		}
 		return g.oneOfType(desc)
 	}
 
@@ -941,8 +970,9 @@ func GetSchemaKind(desc *SchemaDescriptor) SchemaKind {
 		return KindAlias
 	}
 
-	// Enum check first
-	if len(schema.Enum) > 0 {
+	// Enum check first (plain `enum: [...]` or the 3.1 oneOf+const idiom
+	// detected and cached during gather).
+	if len(schema.Enum) > 0 || len(desc.ConstOneOfItems) > 0 {
 		return KindEnum
 	}
 
