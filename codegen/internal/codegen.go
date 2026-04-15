@@ -3,6 +3,7 @@ package codegen
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/pb33f/libopenapi"
@@ -1041,11 +1042,15 @@ func collectUnionMembers(gen *TypeGenerator, parentDesc *SchemaDescriptor, membe
 		}
 	}
 
-	// Build reverse mapping: $ref path → []discriminator values
+	// Build reverse mapping: $ref path → []discriminator values.
+	// Sort values so output is deterministic regardless of map iteration order.
 	refToDiscValues := make(map[string][]string)
 	if parentDesc != nil && parentDesc.Discriminator != nil {
 		for discValue, refPath := range parentDesc.Discriminator.Mapping {
 			refToDiscValues[refPath] = append(refToDiscValues[refPath], discValue)
+		}
+		for ref := range refToDiscValues {
+			sort.Strings(refToDiscValues[ref])
 		}
 	}
 
