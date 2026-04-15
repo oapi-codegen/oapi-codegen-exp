@@ -64,8 +64,8 @@ func TestOneOfDiscriminatorMultiMapping(t *testing.T) {
 }
 
 // TestFromConfigHTTPSetsDiscriminator verifies that FromConfigHTTP sets the
-// discriminator value. Note: V3 codegen forces the first mapping value
-// ("apache_server") regardless of what the caller sets.
+// discriminator value. V3 codegen forces the lexicographically first mapping
+// value ("another_server") regardless of what the caller sets.
 func TestFromConfigHTTPSetsDiscriminator(t *testing.T) {
 	var saveReq ConfigSaveReq
 	err := saveReq.FromConfigHTTP(ConfigHTTP{
@@ -77,9 +77,9 @@ func TestFromConfigHTTPSetsDiscriminator(t *testing.T) {
 
 	disc, err := saveReq.Discriminator()
 	require.NoError(t, err)
-	// V3 codegen forces "apache_server" — this documents the current behavior.
+	// V3 codegen forces "another_server" (sorted first among the HTTP mappings).
 	// If/when this is fixed to preserve the caller's value, change this assertion.
-	assert.Equal(t, "apache_server", disc)
+	assert.Equal(t, "another_server", disc)
 }
 
 func TestApplyDefaults(t *testing.T) {

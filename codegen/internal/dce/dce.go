@@ -94,17 +94,52 @@ func EliminateDeadCode(src string) (string, error) {
 		}
 	}
 
-	// Keep only reachable declarations.
-	var kept []ast.Decl
-	for _, d := range roots {
-		kept = append(kept, d)
-	}
+	// Keep only reachable declarations; collect positions of eliminated ones.
+	kept := append([]ast.Decl{}, roots...)
+	var eliminated []ast.Decl
 	for _, c := range candidates {
 		if isReachable(c.names, reachable) {
 			kept = append(kept, c.decl)
+		} else {
+			eliminated = append(eliminated, c.decl)
 		}
 	}
 	f.Decls = kept
+
+	// Remove comments associated with eliminated declarations so
+	// go/printer doesn't emit orphaned doc/inline comments.
+	if len(eliminated) > 0 {
+		// Build line ranges for eliminated declarations: from the doc
+		// comment (or decl start) through the last line of the decl.
+		removedLines := make([]lineSpan, 0, len(eliminated))
+		for _, d := range eliminated {
+			start := d.Pos()
+			switch dd := d.(type) {
+			case *ast.GenDecl:
+				if dd.Doc != nil {
+					start = dd.Doc.Pos()
+				}
+			case *ast.FuncDecl:
+				if dd.Doc != nil {
+					start = dd.Doc.Pos()
+				}
+			}
+			removedLines = append(removedLines, lineSpan{
+				startLine: fset.Position(start).Line,
+				endLine:   fset.Position(d.End()).Line,
+			})
+		}
+
+		filtered := make([]*ast.CommentGroup, 0, len(f.Comments))
+		for _, cg := range f.Comments {
+			cgStart := fset.Position(cg.Pos()).Line
+			cgEnd := fset.Position(cg.End()).Line
+			if !linesOverlap(cgStart, cgEnd, removedLines) {
+				filtered = append(filtered, cg)
+			}
+		}
+		f.Comments = filtered
+	}
 
 	var buf strings.Builder
 	if err := printer.Fprint(&buf, fset, f); err != nil {
@@ -152,6 +187,17 @@ func receiverTypeName(expr ast.Expr) string {
 		return receiverTypeName(t.X)
 	}
 	return ""
+}
+
+type lineSpan struct{ startLine, endLine int }
+
+func linesOverlap(cgStart, cgEnd int, spans []lineSpan) bool {
+	for _, s := range spans {
+		if cgStart >= s.startLine && cgEnd <= s.endLine {
+			return true
+		}
+	}
+	return false
 }
 
 func collectIdents(node ast.Node, idents map[string]bool) {

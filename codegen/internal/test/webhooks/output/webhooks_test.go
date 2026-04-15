@@ -29,8 +29,8 @@ func TestWebhookKindEnum(t *testing.T) {
 
 // Verify type aliases for webhook request bodies
 func TestWebhookRequestBodyAliases(t *testing.T) {
-	var enterBody EnterEventJSONRequestBody = Person{Name: "Bob"}
-	var exitBody ExitEventJSONRequestBody = Person{Name: "Carol"}
+	var enterBody = EnterEventJSONRequestBody(Person{Name: "Bob"})
+	var exitBody = ExitEventJSONRequestBody(Person{Name: "Carol"})
 	assert.Equal(t, "Bob", enterBody.Name)
 	assert.Equal(t, "Carol", exitBody.Name)
 }

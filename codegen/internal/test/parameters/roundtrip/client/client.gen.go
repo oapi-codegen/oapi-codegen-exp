@@ -1733,122 +1733,15 @@ func (d Date) Format(layout string) string {
 	return d.Time.Format(layout)
 }
 
-// ErrValidationEmail is the sentinel error returned when an email fails validation
-
-// Email represents an email address.
-// It is a string type that must pass regex validation before being marshalled
-// to JSON or unmarshalled from JSON.
-
-// Nullable is a generic type that can distinguish between:
-// - Field not provided (unspecified)
-// - Field explicitly set to null
-// - Field has a value
-//
-// This is implemented as a map[bool]T where:
-// - Empty map: unspecified
-// - map[false]T: explicitly null
-// - map[true]T: has a value
-
-// NewNullableWithValue creates a Nullable with the given value.
-
-// NewNullNullable creates a Nullable that is explicitly null.
-
-// Get returns the value if set, or an error if null or unspecified.
-
-// MustGet returns the value or panics if null or unspecified.
-
-// Set assigns a value.
-
-// SetNull marks the field as explicitly null.
-
-// SetUnspecified clears the field (as if it was never set).
-
-// IsNull returns true if the field is explicitly null.
-
-// IsSpecified returns true if the field was provided (either null or a value).
-
-// MarshalJSON implements json.Marshaler.
-
-// Unspecified - this shouldn't be called if omitempty is used correctly
-
-// UnmarshalJSON implements json.Unmarshaler.
-
-// ErrNullableIsNull is returned when trying to get a value from a null Nullable.
-
-// ErrNullableNotSpecified is returned when trying to get a value from an unspecified Nullable.
-
 type UUID = uuid.UUID
-
-// BindParameter binds a styled parameter from a single string value to a Go
-// object. This is the entry point for path, header, and cookie parameters
-// where the HTTP framework has already extracted the raw value.
-//
-// The Style field in opts selects how the value is split into parts (simple,
-// label, matrix, form). If Style is empty, "simple" is assumed.
-
-// Unescape based on parameter location.
-
-// If the destination implements encoding.TextUnmarshaler, use it directly.
-
-// Primitive types need style-specific prefix stripping before binding.
-// Label and matrix use splitStyledParameter for their prefix formats.
-// Form style adds a "name=" prefix (e.g. "p=5") which is meaningful in
-// query strings but must be stripped for cookie/header values. We use
-// TrimPrefix instead of splitStyledParameter to avoid splitting on commas,
-// which would break string primitives containing literal commas.
-
-// BindQueryParameter binds a query parameter from pre-parsed url.Values.
-// The Style field in opts selects parsing behavior. If Style is empty, "form"
-// is assumed. Supports form, spaceDelimited, pipeDelimited, and deepObject.
-
-// Destination value management for optional (pointer) parameters.
-
-// Exploded: each value is a separate key=value pair.
-// spaceDelimited and pipeDelimited with explode=true are
-// serialized identically to form explode=true.
-
-// Non-exploded: single value, delimiter-separated.
-
-// Primitive types: use the raw value as-is without splitting.
-
-// Some struct types (e.g. Date, time.Time) are scalar values
-// that should be bound from a single string, not decomposed as
-// key-value objects.
-
-// BindRawQueryParameter works like BindQueryParameter but operates on the raw
-// (undecoded) query string. This correctly handles form/explode=false
-// parameters whose values contain literal commas encoded as %2C — something
-// that BindQueryParameter cannot do because url.Values has already decoded
-// %2C to ',' before we can split on the delimiter comma.
-
-// For explode, url.ParseQuery is fine — no delimiter commas to
-// confuse with literal commas.
-
-// explode=false — use findRawQueryParam to get the still-encoded
-// value, split on the style-specific delimiter, then URL-decode
-// each resulting part individually.
-
-// Primitive types: decode as-is without splitting.
 
 // ---------------------------------------------------------------------------
 // Deep object internals
 // ---------------------------------------------------------------------------
 
-// unmarshalDeepObject is the internal implementation of deep object
-// unmarshaling that supports the required parameter.
-
-// UnmarshalDeepObject unmarshals deepObject-style query parameters to a
-// destination. Exported for use by generated code and tests.
-
 // ---------------------------------------------------------------------------
 // Exploded object binding
 // ---------------------------------------------------------------------------
-
-// bindParamsToExplodedObject reflects the destination structure and pulls the
-// value for each settable field from the given query parameters. Returns
-// whether any fields were bound.
-
-// indirectBinder checks if dest implements Binder and returns reflect values.
 
 // ParamLocation indicates where a parameter is located in an HTTP request.
 type ParamLocation int
@@ -1860,12 +1753,6 @@ const (
 	ParamLocationHeader
 	ParamLocationCookie
 )
-
-// Binder is an interface for types that can bind themselves from a string value.
-
-// MissingRequiredParameterError is returned when a required parameter is not
-// present in the request. Upper layers can use errors.As to detect this and
-// produce an appropriate HTTP error response.
 
 // primitiveToString converts a primitive value to a string representation.
 // It handles basic Go types, time.Time, Date, and types that implement
@@ -2004,8 +1891,6 @@ func isUnreserved(c byte) bool {
 		c == '-' || c == '.' || c == '_' || c == '~'
 }
 
-// unescapeParameterString unescapes a parameter value based on its location.
-
 // sortedKeys returns the keys of a map in sorted order.
 func sortedKeys(m map[string]string) []string {
 	keys := make([]string, 0, len(m))
@@ -2016,54 +1901,10 @@ func sortedKeys(m map[string]string) []string {
 	return keys
 }
 
-// BindStringToObject binds a string value to a destination object.
-// It handles primitives, encoding.TextUnmarshaler, and the Binder interface.
-
-// Check for TextUnmarshaler
-
-// Check for Binder interface
-
-// Try JSON unmarshal as a fallback
-
-// bindSplitPartsToDestinationArray binds a slice of string parts to a destination slice.
-
-// bindSplitPartsToDestinationStruct binds string parts to a destination struct via JSON.
-
-// splitStyledParameter splits a styled parameter string value into parts based
-// on the OpenAPI style. The object flag indicates whether the destination is a
-// struct/map (affects matrix explode handling).
-
-// In the simple case, we always split on comma
-
-// Exploded: .a.b.c or .key=value.key=value
-
-// Unexploded: .a,b,c
-
-// Exploded: ;a;b;c or ;key=value;key=value
-
-// Unexploded: ;paramName=a,b,c
-
-// findRawQueryParam extracts values for a named parameter from a raw
-// (undecoded) query string. The parameter key is decoded for comparison
-// purposes, but the returned values remain in their original encoded form.
-
-// Skip malformed keys.
-
 // isByteSlice reports whether t is []byte (or equivalently []uint8).
 func isByteSlice(t reflect.Type) bool {
 	return t.Kind() == reflect.Slice && t.Elem().Kind() == reflect.Uint8
 }
-
-// base64Decode decodes s as base64.
-//
-// Per OpenAPI 3.0, format: byte uses RFC 4648 Section 4 (standard alphabet,
-// padded). We use padding presence to select the right decoder, rather than
-// blindly cascading (which can produce corrupt output when RawStdEncoding
-// silently accepts padded input and treats '=' as data).
-
-// structToFieldDict converts a struct to a map of field names to string values.
-
-// Skip nil optional fields
 
 // ParameterOptions carries OpenAPI parameter metadata to bind and style
 // functions so they can handle style dispatch, explode, required,
@@ -2440,10 +2281,3 @@ func marshalDeepObjectRecursive(in any, path []string) ([]string, error) {
 	}
 	return result, nil
 }
-
-// JSONMerge merges two JSON-encoded objects. Fields from patch override
-// fields in base. Both arguments must be valid JSON objects (or nil/null).
-
-// MarshalForm marshals a struct into url.Values using the struct's json tags
-// as field names. It handles nested structs, slices, pointers, and
-// AdditionalProperties maps.

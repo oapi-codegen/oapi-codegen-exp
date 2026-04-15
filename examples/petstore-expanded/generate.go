@@ -1,4 +1,5 @@
 //go:generate go run github.com/oapi-codegen/oapi-codegen-exp/cmd/oapi-codegen -config models.config.yaml petstore-expanded.yaml
+//go:generate go run github.com/oapi-codegen/oapi-codegen-exp/cmd/oapi-codegen -config client/client.config.yaml -output client/client.gen.go petstore-expanded.yaml
 //go:generate go run github.com/oapi-codegen/oapi-codegen-exp/cmd/oapi-codegen -config stdhttp/server/server.config.yaml -output stdhttp/server/server.gen.go petstore-expanded.yaml
 //go:generate go run github.com/oapi-codegen/oapi-codegen-exp/cmd/oapi-codegen -config chi/server/server.config.yaml -output chi/server/server.gen.go petstore-expanded.yaml
 //go:generate go run github.com/oapi-codegen/oapi-codegen-exp/cmd/oapi-codegen -config echo-v4/server/server.config.yaml -output echo-v4/server/server.gen.go petstore-expanded.yaml

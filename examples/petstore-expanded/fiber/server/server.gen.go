@@ -264,50 +264,6 @@ func (d Date) Format(layout string) string {
 	return d.Time.Format(layout)
 }
 
-// ErrValidationEmail is the sentinel error returned when an email fails validation
-
-// Email represents an email address.
-// It is a string type that must pass regex validation before being marshalled
-// to JSON or unmarshalled from JSON.
-
-// Nullable is a generic type that can distinguish between:
-// - Field not provided (unspecified)
-// - Field explicitly set to null
-// - Field has a value
-//
-// This is implemented as a map[bool]T where:
-// - Empty map: unspecified
-// - map[false]T: explicitly null
-// - map[true]T: has a value
-
-// NewNullableWithValue creates a Nullable with the given value.
-
-// NewNullNullable creates a Nullable that is explicitly null.
-
-// Get returns the value if set, or an error if null or unspecified.
-
-// MustGet returns the value or panics if null or unspecified.
-
-// Set assigns a value.
-
-// SetNull marks the field as explicitly null.
-
-// SetUnspecified clears the field (as if it was never set).
-
-// IsNull returns true if the field is explicitly null.
-
-// IsSpecified returns true if the field was provided (either null or a value).
-
-// MarshalJSON implements json.Marshaler.
-
-// Unspecified - this shouldn't be called if omitempty is used correctly
-
-// UnmarshalJSON implements json.Unmarshaler.
-
-// ErrNullableIsNull is returned when trying to get a value from a null Nullable.
-
-// ErrNullableNotSpecified is returned when trying to get a value from an unspecified Nullable.
-
 // BindParameter binds a styled parameter from a single string value to a Go
 // object. This is the entry point for path, header, and cookie parameters
 // where the HTTP framework has already extracted the raw value.
@@ -576,21 +532,6 @@ func BindQueryParameter(paramName string, queryParams url.Values, dest any, opts
 	}
 }
 
-// BindRawQueryParameter works like BindQueryParameter but operates on the raw
-// (undecoded) query string. This correctly handles form/explode=false
-// parameters whose values contain literal commas encoded as %2C — something
-// that BindQueryParameter cannot do because url.Values has already decoded
-// %2C to ',' before we can split on the delimiter comma.
-
-// For explode, url.ParseQuery is fine — no delimiter commas to
-// confuse with literal commas.
-
-// explode=false — use findRawQueryParam to get the still-encoded
-// value, split on the style-specific delimiter, then URL-decode
-// each resulting part individually.
-
-// Primitive types: decode as-is without splitting.
-
 // ---------------------------------------------------------------------------
 // Deep object internals
 // ---------------------------------------------------------------------------
@@ -638,9 +579,6 @@ func unmarshalDeepObject(dst any, paramName string, params url.Values, required 
 	}
 	return nil
 }
-
-// UnmarshalDeepObject unmarshals deepObject-style query parameters to a
-// destination. Exported for use by generated code and tests.
 
 type fieldOrValue struct {
 	fields map[string]fieldOrValue
@@ -966,39 +904,6 @@ func (e *MissingRequiredParameterError) Error() string {
 	return fmt.Sprintf("parameter '%s' is required", e.ParamName)
 }
 
-// primitiveToString converts a primitive value to a string representation.
-// It handles basic Go types, time.Time, Date, and types that implement
-// json.Marshaler or fmt.Stringer.
-
-// Check for known types first (time, date, uuid)
-
-// Dereference pointers for optional values
-
-// Check if it's a UUID
-
-// Check if it implements json.Marshaler
-
-// marshalKnownTypes checks for special types (time.Time, Date, UUID) and marshals them.
-
-// escapeParameterName escapes a parameter name for use in query strings and
-// paths. This ensures characters like [] in parameter names (e.g. user_ids[])
-// are properly percent-encoded per RFC 3986.
-
-// Parameter names should always be encoded regardless of allowReserved,
-// which only applies to values per the OpenAPI spec.
-
-// escapeParameterString escapes a parameter value based on its location.
-// Query and path parameters need URL escaping; headers and cookies do not.
-// When allowReserved is true and the location is query, RFC 3986 reserved
-// characters are left unencoded per the OpenAPI allowReserved specification.
-
-// escapeQueryAllowReserved percent-encodes a query parameter value while
-// leaving RFC 3986 reserved characters (:/?#[]@!$&'()*+,;=) unencoded, as
-// specified by OpenAPI's allowReserved parameter option.
-
-// isUnreserved reports whether the byte is an RFC 3986 unreserved character:
-// ALPHA / DIGIT / "-" / "." / "_" / "~"
-
 // unescapeParameterString unescapes a parameter value based on its location.
 func unescapeParameterString(value string, paramLocation ParamLocation) (string, error) {
 	switch paramLocation {
@@ -1010,8 +915,6 @@ func unescapeParameterString(value string, paramLocation ParamLocation) (string,
 		return value, nil
 	}
 }
-
-// sortedKeys returns the keys of a map in sorted order.
 
 // BindStringToObject binds a string value to a destination object.
 // It handles primitives, encoding.TextUnmarshaler, and the Binder interface.
@@ -1175,12 +1078,6 @@ func splitStyledParameter(style string, explode bool, object bool, paramName str
 	return nil, fmt.Errorf("unhandled parameter style: %s", style)
 }
 
-// findRawQueryParam extracts values for a named parameter from a raw
-// (undecoded) query string. The parameter key is decoded for comparison
-// purposes, but the returned values remain in their original encoded form.
-
-// Skip malformed keys.
-
 // isByteSlice reports whether t is []byte (or equivalently []uint8).
 func isByteSlice(t reflect.Type) bool {
 	return t.Kind() == reflect.Slice && t.Elem().Kind() == reflect.Uint8
@@ -1218,10 +1115,6 @@ func base64Decode1(enc *base64.Encoding, s string) ([]byte, error) {
 	return b, nil
 }
 
-// structToFieldDict converts a struct to a map of field names to string values.
-
-// Skip nil optional fields
-
 // ParameterOptions carries OpenAPI parameter metadata to bind and style
 // functions so they can handle style dispatch, explode, required,
 // type-aware coercions, and location-aware escaping from a single
@@ -1236,36 +1129,10 @@ type ParameterOptions struct {
 	AllowReserved bool   // When true, reserved characters in query values are not percent-encoded
 }
 
-// StyleParameter serializes a Go value into an OpenAPI-styled parameter string.
-// This is the entry point for client-side parameter serialization. The Style
-// field in opts selects the serialization format. If Style is empty, "simple"
-// is assumed.
-
-// Dereference pointers; error on nil.
-
-// If the value implements encoding.TextMarshaler, use it — but not for
-// time.Time or Date which have their own formatting logic.
-
 // ---------------------------------------------------------------------------
 // Internal style helpers
 // ---------------------------------------------------------------------------
 
-// If input implements json.Marshaler (e.g. objects with additional properties
-// or anyOf), marshal to JSON and re-style the generic structure.
-
-// Build a dictionary of the struct's fields.
-
-// Skip nil optional fields.
-
 // ---------------------------------------------------------------------------
 // Deep object marshaling
 // ---------------------------------------------------------------------------
-
-// MarshalDeepObject marshals an object to deepObject style query parameters.
-
-// JSONMerge merges two JSON-encoded objects. Fields from patch override
-// fields in base. Both arguments must be valid JSON objects (or nil/null).
-
-// MarshalForm marshals a struct into url.Values using the struct's json tags
-// as field names. It handles nested structs, slices, pointers, and
-// AdditionalProperties maps.

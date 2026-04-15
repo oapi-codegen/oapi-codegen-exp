@@ -1224,37 +1224,6 @@ func base64Decode1(enc *base64.Encoding, s string) ([]byte, error) {
 	return b, nil
 }
 
-// structToFieldDict converts a struct to a map of field names to string values.
-func structToFieldDict(value any) (map[string]string, error) {
-	v := reflect.ValueOf(value)
-	t := reflect.TypeOf(value)
-	fieldDict := make(map[string]string)
-
-	for i := 0; i < t.NumField(); i++ {
-		fieldT := t.Field(i)
-		tag := fieldT.Tag.Get("json")
-		fieldName := fieldT.Name
-		if tag != "" {
-			tagParts := strings.Split(tag, ",")
-			if tagParts[0] != "" {
-				fieldName = tagParts[0]
-			}
-		}
-		f := v.Field(i)
-
-		// Skip nil optional fields
-		if f.Type().Kind() == reflect.Ptr && f.IsNil() {
-			continue
-		}
-		str, err := primitiveToString(f.Interface())
-		if err != nil {
-			return nil, fmt.Errorf("error formatting field '%s': %w", fieldName, err)
-		}
-		fieldDict[fieldName] = str
-	}
-	return fieldDict, nil
-}
-
 // ParameterOptions carries OpenAPI parameter metadata to bind and style
 // functions so they can handle style dispatch, explode, required,
 // type-aware coercions, and location-aware escaping from a single

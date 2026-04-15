@@ -43,7 +43,7 @@ func (t ConfigSaveReq) AsConfigHTTP() (ConfigHTTP, error) {
 
 // FromConfigHTTP overwrites any union data inside the ConfigSaveReq as the provided ConfigHTTP.
 func (t *ConfigSaveReq) FromConfigHTTP(v ConfigHTTP) error {
-	v.ConfigType = "apache_server"
+	v.ConfigType = "another_server"
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
@@ -51,7 +51,7 @@ func (t *ConfigSaveReq) FromConfigHTTP(v ConfigHTTP) error {
 
 // MergeConfigHTTP performs a merge with any union data inside the ConfigSaveReq, using the provided ConfigHTTP.
 func (t *ConfigSaveReq) MergeConfigHTTP(v ConfigHTTP) error {
-	v.ConfigType = "apache_server"
+	v.ConfigType = "another_server"
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -104,11 +104,11 @@ func (t ConfigSaveReq) ValueByDiscriminator() (any, error) {
 		return nil, err
 	}
 	switch discriminator {
+	case "another_server":
+		return t.AsConfigHTTP()
 	case "apache_server":
 		return t.AsConfigHTTP()
 	case "web_server":
-		return t.AsConfigHTTP()
-	case "another_server":
 		return t.AsConfigHTTP()
 	case "ssh_server":
 		return t.AsConfigSSH()
