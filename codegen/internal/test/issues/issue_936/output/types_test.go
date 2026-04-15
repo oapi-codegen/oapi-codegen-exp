@@ -3,129 +3,152 @@ package output
 import (
 	"encoding/json"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// TestFilterColumnIncludesInstantiation verifies that recursive/circular schema references
-// generate valid types.
-// https://github.com/oapi-codegen/oapi-codegen/issues/936
-func TestFilterColumnIncludesInstantiation(t *testing.T) {
-	strVal := "hello"
-	fv := FilterValue{
-		String1: &strVal,
-	}
-	fp := FilterPredicate{
-		FilterValue: &fv,
-	}
-	fci := FilterColumnIncludes{
-		DollarSignIncludes: &fp,
-	}
+func TestFilterValue_StringVariant(t *testing.T) {
+	var fv FilterValue
+	require.NoError(t, fv.FromString1("hello"))
 
-	if fci.DollarSignIncludes == nil {
-		t.Fatal("DollarSignIncludes should not be nil")
-	}
-	if fci.DollarSignIncludes.FilterValue == nil {
-		t.Fatal("FilterValue should not be nil")
-	}
-	if *fci.DollarSignIncludes.FilterValue.String1 != "hello" {
-		t.Errorf("String1 = %q, want %q", *fci.DollarSignIncludes.FilterValue.String1, "hello")
-	}
-}
-
-func TestFilterValueOneOfString(t *testing.T) {
-	strVal := "test"
-	fv := FilterValue{
-		String1: &strVal,
-	}
+	got, err := fv.AsString1()
+	require.NoError(t, err)
+	assert.Equal(t, "hello", got)
 
 	data, err := json.Marshal(fv)
-	if err != nil {
-		t.Fatalf("Marshal failed: %v", err)
-	}
+	require.NoError(t, err)
+	assert.JSONEq(t, `"hello"`, string(data))
 
-	if string(data) != `"test"` {
-		t.Errorf("Marshal result = %s, want %q", string(data), `"test"`)
-	}
+	var decoded FilterValue
+	require.NoError(t, json.Unmarshal(data, &decoded))
+	got2, err := decoded.AsString1()
+	require.NoError(t, err)
+	assert.Equal(t, "hello", got2)
 }
 
-func TestFilterValueOneOfFloat(t *testing.T) {
-	floatVal := float32(3.14)
-	fv := FilterValue{
-		Float320: &floatVal,
-	}
+func TestFilterValue_FloatVariant(t *testing.T) {
+	var fv FilterValue
+	require.NoError(t, fv.FromFloat320(3.14))
+
+	got, err := fv.AsFloat320()
+	require.NoError(t, err)
+	assert.InDelta(t, float32(3.14), got, 0.001)
 
 	data, err := json.Marshal(fv)
-	if err != nil {
-		t.Fatalf("Marshal failed: %v", err)
-	}
+	require.NoError(t, err)
 
-	var decoded float32
-	if err := json.Unmarshal(data, &decoded); err != nil {
-		t.Fatalf("Unmarshal failed: %v", err)
-	}
-	if decoded != 3.14 {
-		t.Errorf("decoded = %v, want %v", decoded, 3.14)
-	}
+	var decoded FilterValue
+	require.NoError(t, json.Unmarshal(data, &decoded))
+	got2, err := decoded.AsFloat320()
+	require.NoError(t, err)
+	assert.InDelta(t, float32(3.14), got2, 0.001)
 }
 
-func TestFilterValueOneOfBool(t *testing.T) {
-	boolVal := true
-	fv := FilterValue{
-		Bool2: &boolVal,
-	}
+func TestFilterValue_BoolVariant(t *testing.T) {
+	var fv FilterValue
+	require.NoError(t, fv.FromBool2(true))
+
+	got, err := fv.AsBool2()
+	require.NoError(t, err)
+	assert.True(t, got)
 
 	data, err := json.Marshal(fv)
-	if err != nil {
-		t.Fatalf("Marshal failed: %v", err)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, "true", string(data))
 
-	if string(data) != "true" {
-		t.Errorf("Marshal result = %s, want %s", string(data), "true")
-	}
+	var decoded FilterValue
+	require.NoError(t, json.Unmarshal(data, &decoded))
+	got2, err := decoded.AsBool2()
+	require.NoError(t, err)
+	assert.True(t, got2)
 }
 
-func TestFilterRangeValueOneOfString(t *testing.T) {
-	strVal := "2023-01-01"
-	frv := FilterRangeValue{
-		String1: &strVal,
-	}
+func TestFilterRangeValue_StringVariant(t *testing.T) {
+	var frv FilterRangeValue
+	require.NoError(t, frv.FromString1("2023-01-01"))
+
+	got, err := frv.AsString1()
+	require.NoError(t, err)
+	assert.Equal(t, "2023-01-01", got)
 
 	data, err := json.Marshal(frv)
-	if err != nil {
-		t.Fatalf("Marshal failed: %v", err)
-	}
-
-	if string(data) != `"2023-01-01"` {
-		t.Errorf("Marshal result = %s, want %q", string(data), `"2023-01-01"`)
-	}
+	require.NoError(t, err)
+	assert.JSONEq(t, `"2023-01-01"`, string(data))
 }
 
-func TestFilterPredicateRangeOp(t *testing.T) {
-	strVal := "100"
-	fro := FilterPredicateRangeOp{
-		DollarSignLt: &FilterRangeValue{
-			String1: &strVal,
+func TestFilterRangeValue_FloatVariant(t *testing.T) {
+	var frv FilterRangeValue
+	require.NoError(t, frv.FromFloat320(99.5))
+
+	got, err := frv.AsFloat320()
+	require.NoError(t, err)
+	assert.InDelta(t, float32(99.5), got, 0.001)
+
+	data, err := json.Marshal(frv)
+	require.NoError(t, err)
+
+	var decoded FilterRangeValue
+	require.NoError(t, json.Unmarshal(data, &decoded))
+	got2, err := decoded.AsFloat320()
+	require.NoError(t, err)
+	assert.InDelta(t, float32(99.5), got2, 0.001)
+}
+
+func TestFilterPredicate_FilterValueVariant(t *testing.T) {
+	var fv FilterValue
+	require.NoError(t, fv.FromString1("match-me"))
+
+	var fp FilterPredicate
+	require.NoError(t, fp.FromFilterValue(fv))
+
+	// Round-trip through JSON.
+	data, err := json.Marshal(fp)
+	require.NoError(t, err)
+	assert.JSONEq(t, `"match-me"`, string(data))
+
+	var decoded FilterPredicate
+	require.NoError(t, json.Unmarshal(data, &decoded))
+
+	gotFV, err := decoded.AsFilterValue()
+	require.NoError(t, err)
+	gotStr, err := gotFV.AsString1()
+	require.NoError(t, err)
+	assert.Equal(t, "match-me", gotStr)
+}
+
+func TestFilterColumnIncludes_RoundTrip(t *testing.T) {
+	// Build: FilterColumnIncludes -> FilterPredicate (FilterValue variant) + additional properties.
+	var fv FilterValue
+	require.NoError(t, fv.FromString1("match-me"))
+
+	var fp FilterPredicate
+	require.NoError(t, fp.FromFilterValue(fv))
+
+	original := FilterColumnIncludes{
+		DollarSignIncludes: &fp,
+		AdditionalProperties: map[string]any{
+			"extra": "data",
 		},
 	}
 
-	data, err := json.Marshal(fro)
-	if err != nil {
-		t.Fatalf("Marshal failed: %v", err)
-	}
+	data, err := json.Marshal(original)
+	require.NoError(t, err)
 
-	var decoded FilterPredicateRangeOp
-	if err := json.Unmarshal(data, &decoded); err != nil {
-		t.Fatalf("Unmarshal failed: %v", err)
-	}
+	var decoded FilterColumnIncludes
+	require.NoError(t, json.Unmarshal(data, &decoded))
 
-	if decoded.DollarSignLt == nil {
-		t.Fatal("DollarSignLt should not be nil")
-	}
-	if *decoded.DollarSignLt.String1 != "100" {
-		t.Errorf("String1 = %q, want %q", *decoded.DollarSignLt.String1, "100")
-	}
+	require.NotNil(t, decoded.DollarSignIncludes)
+	gotFV, err := decoded.DollarSignIncludes.AsFilterValue()
+	require.NoError(t, err)
+	gotStr, err := gotFV.AsString1()
+	require.NoError(t, err)
+	assert.Equal(t, "match-me", gotStr)
+
+	assert.Equal(t, "data", decoded.AdditionalProperties["extra"])
 }
 
-func TestFilterColumnIncludesAdditionalProperties(t *testing.T) {
+func TestFilterColumnIncludes_AdditionalPropertiesOnly(t *testing.T) {
 	fci := FilterColumnIncludes{
 		AdditionalProperties: map[string]any{
 			"customField": "customValue",
@@ -133,54 +156,117 @@ func TestFilterColumnIncludesAdditionalProperties(t *testing.T) {
 	}
 
 	data, err := json.Marshal(fci)
-	if err != nil {
-		t.Fatalf("Marshal failed: %v", err)
-	}
+	require.NoError(t, err)
 
 	var decoded FilterColumnIncludes
-	if err := json.Unmarshal(data, &decoded); err != nil {
-		t.Fatalf("Unmarshal failed: %v", err)
-	}
-
-	if decoded.AdditionalProperties["customField"] != "customValue" {
-		t.Errorf("AdditionalProperties[customField] = %v, want %q",
-			decoded.AdditionalProperties["customField"], "customValue")
-	}
+	require.NoError(t, json.Unmarshal(data, &decoded))
+	assert.Equal(t, "customValue", decoded.AdditionalProperties["customField"])
 }
 
-func TestFilterColumnIncludesJSONRoundTrip(t *testing.T) {
-	strVal := "match-me"
-	original := FilterColumnIncludes{
-		DollarSignIncludes: &FilterPredicate{
-			FilterValue: &FilterValue{
-				String1: &strVal,
-			},
-		},
-		AdditionalProperties: map[string]any{
-			"extra": "data",
-		},
+func TestFilterPredicate_PredicateOpVariant(t *testing.T) {
+	// FilterPredicate -> FilterPredicateOp with $any containing an array of FilterPredicates.
+	var innerFV FilterValue
+	require.NoError(t, innerFV.FromFloat320(42))
+
+	var innerFP FilterPredicate
+	require.NoError(t, innerFP.FromFilterValue(innerFV))
+
+	var opAny FilterPredicateOpAny
+	require.NoError(t, opAny.FromFilterPredicateOpAnyOneOf0(FilterPredicateOpAnyOneOf0{innerFP}))
+
+	op := FilterPredicateOp{
+		DollarSignAny: &opAny,
 	}
 
-	data, err := json.Marshal(original)
-	if err != nil {
-		t.Fatalf("Marshal failed: %v", err)
-	}
+	var fp FilterPredicate
+	require.NoError(t, fp.FromFilterPredicateOp(op))
 
-	var decoded FilterColumnIncludes
-	if err := json.Unmarshal(data, &decoded); err != nil {
-		t.Fatalf("Unmarshal failed: %v", err)
-	}
+	data, err := json.Marshal(fp)
+	require.NoError(t, err)
 
-	if decoded.DollarSignIncludes == nil {
-		t.Fatal("DollarSignIncludes should not be nil after round trip")
-	}
-	if decoded.AdditionalProperties["extra"] != "data" {
-		t.Errorf("AdditionalProperties[extra] = %v, want %q",
-			decoded.AdditionalProperties["extra"], "data")
-	}
+	var decoded FilterPredicate
+	require.NoError(t, json.Unmarshal(data, &decoded))
+
+	gotOp, err := decoded.AsFilterPredicateOp()
+	require.NoError(t, err)
+	require.NotNil(t, gotOp.DollarSignAny)
+
+	gotSlice, err := gotOp.DollarSignAny.AsFilterPredicateOpAnyOneOf0()
+	require.NoError(t, err)
+	require.Len(t, gotSlice, 1)
+
+	gotFV, err := gotSlice[0].AsFilterValue()
+	require.NoError(t, err)
+	gotFloat, err := gotFV.AsFloat320()
+	require.NoError(t, err)
+	assert.InDelta(t, float32(42), gotFloat, 0.001)
 }
 
-func TestFilterPredicateOpAdditionalProperties(t *testing.T) {
+func TestFilterPredicate_ArrayVariant(t *testing.T) {
+	// FilterPredicate -> FilterPredicateOneOf1 ([]FilterPredicate).
+	var fv1 FilterValue
+	require.NoError(t, fv1.FromString1("a"))
+	var fv2 FilterValue
+	require.NoError(t, fv2.FromString1("b"))
+
+	var fp1 FilterPredicate
+	require.NoError(t, fp1.FromFilterValue(fv1))
+	var fp2 FilterPredicate
+	require.NoError(t, fp2.FromFilterValue(fv2))
+
+	var fp FilterPredicate
+	require.NoError(t, fp.FromFilterPredicateOneOf1(FilterPredicateOneOf1{fp1, fp2}))
+
+	data, err := json.Marshal(fp)
+	require.NoError(t, err)
+
+	var decoded FilterPredicate
+	require.NoError(t, json.Unmarshal(data, &decoded))
+
+	gotSlice, err := decoded.AsFilterPredicateOneOf1()
+	require.NoError(t, err)
+	require.Len(t, gotSlice, 2)
+
+	s1, err := gotSlice[0].AsFilterValue()
+	require.NoError(t, err)
+	str1, err := s1.AsString1()
+	require.NoError(t, err)
+	assert.Equal(t, "a", str1)
+
+	s2, err := gotSlice[1].AsFilterValue()
+	require.NoError(t, err)
+	str2, err := s2.AsString1()
+	require.NoError(t, err)
+	assert.Equal(t, "b", str2)
+}
+
+func TestFilterPredicate_RangeOpVariant(t *testing.T) {
+	var rangeVal FilterRangeValue
+	require.NoError(t, rangeVal.FromString1("100"))
+
+	rangeOp := FilterPredicateRangeOp{
+		DollarSignLt: &rangeVal,
+	}
+
+	var fp FilterPredicate
+	require.NoError(t, fp.FromFilterPredicateRangeOp(rangeOp))
+
+	data, err := json.Marshal(fp)
+	require.NoError(t, err)
+
+	var decoded FilterPredicate
+	require.NoError(t, json.Unmarshal(data, &decoded))
+
+	gotRangeOp, err := decoded.AsFilterPredicateRangeOp()
+	require.NoError(t, err)
+	require.NotNil(t, gotRangeOp.DollarSignLt)
+
+	gotStr, err := gotRangeOp.DollarSignLt.AsString1()
+	require.NoError(t, err)
+	assert.Equal(t, "100", gotStr)
+}
+
+func TestFilterPredicateOp_AdditionalProperties(t *testing.T) {
 	op := FilterPredicateOp{
 		AdditionalProperties: map[string]any{
 			"$custom": "value",
@@ -188,23 +274,40 @@ func TestFilterPredicateOpAdditionalProperties(t *testing.T) {
 	}
 
 	data, err := json.Marshal(op)
-	if err != nil {
-		t.Fatalf("Marshal failed: %v", err)
-	}
+	require.NoError(t, err)
 
 	var decoded FilterPredicateOp
-	if err := json.Unmarshal(data, &decoded); err != nil {
-		t.Fatalf("Unmarshal failed: %v", err)
-	}
+	require.NoError(t, json.Unmarshal(data, &decoded))
+	assert.Equal(t, "value", decoded.AdditionalProperties["$custom"])
+}
 
-	if decoded.AdditionalProperties["$custom"] != "value" {
-		t.Errorf("AdditionalProperties[$custom] = %v, want %q",
-			decoded.AdditionalProperties["$custom"], "value")
-	}
+func TestFilterPredicateOpNone_PredicateVariant(t *testing.T) {
+	var fv FilterValue
+	require.NoError(t, fv.FromBool2(false))
+
+	var fp FilterPredicate
+	require.NoError(t, fp.FromFilterValue(fv))
+
+	var none FilterPredicateOpNone
+	require.NoError(t, none.FromFilterPredicate(fp))
+
+	data, err := json.Marshal(none)
+	require.NoError(t, err)
+
+	var decoded FilterPredicateOpNone
+	require.NoError(t, json.Unmarshal(data, &decoded))
+
+	gotFP, err := decoded.AsFilterPredicate()
+	require.NoError(t, err)
+	gotFV, err := gotFP.AsFilterValue()
+	require.NoError(t, err)
+	gotBool, err := gotFV.AsBool2()
+	require.NoError(t, err)
+	assert.False(t, gotBool)
 }
 
 func TestApplyDefaults(t *testing.T) {
-	// ApplyDefaults should be callable on all types without panic
+	// ApplyDefaults should be callable on all types without panic.
 	fci := &FilterColumnIncludes{}
 	fci.ApplyDefaults()
 
@@ -222,14 +325,16 @@ func TestApplyDefaults(t *testing.T) {
 
 	fpr := &FilterPredicateRangeOp{}
 	fpr.ApplyDefaults()
+
+	fpa := &FilterPredicateOpAny{}
+	fpa.ApplyDefaults()
+
+	fpn := &FilterPredicateOpNone{}
+	fpn.ApplyDefaults()
 }
 
 func TestGetOpenAPISpecJSON(t *testing.T) {
 	data, err := GetOpenAPISpecJSON()
-	if err != nil {
-		t.Fatalf("GetOpenAPISpecJSON failed: %v", err)
-	}
-	if len(data) == 0 {
-		t.Fatal("GetOpenAPISpecJSON returned empty data")
-	}
+	require.NoError(t, err)
+	assert.NotEmpty(t, data)
 }

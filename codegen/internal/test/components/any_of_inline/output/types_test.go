@@ -6,7 +6,6 @@ import (
 )
 
 // TestAnyOfInlineCatType verifies the Cat type fields are accessible.
-// V2 test suite: internal/test/components/anyof/inline
 func TestAnyOfInlineCatType(t *testing.T) {
 	id := "cat-1"
 	name := "Whiskers"
@@ -28,6 +27,12 @@ func TestAnyOfInlineCatType(t *testing.T) {
 	if *cat.Name != "Whiskers" {
 		t.Errorf("Name = %q, want %q", *cat.Name, "Whiskers")
 	}
+	if *cat.Breed != "Siamese" {
+		t.Errorf("Breed = %q, want %q", *cat.Breed, "Siamese")
+	}
+	if *cat.Color != "cream" {
+		t.Errorf("Color = %q, want %q", *cat.Color, "cream")
+	}
 	if *cat.Purrs != true {
 		t.Errorf("Purrs = %v, want true", *cat.Purrs)
 	}
@@ -37,16 +42,23 @@ func TestAnyOfInlineCatType(t *testing.T) {
 func TestAnyOfInlineDogType(t *testing.T) {
 	id := "dog-1"
 	name := "Rex"
+	breed := "Labrador"
+	color := "golden"
 	barks := true
 
 	dog := Dog{
 		ID:    &id,
 		Name:  &name,
+		Breed: &breed,
+		Color: &color,
 		Barks: &barks,
 	}
 
 	if *dog.ID != "dog-1" {
 		t.Errorf("ID = %q, want %q", *dog.ID, "dog-1")
+	}
+	if *dog.Name != "Rex" {
+		t.Errorf("Name = %q, want %q", *dog.Name, "Rex")
 	}
 	if *dog.Barks != true {
 		t.Errorf("Barks = %v, want true", *dog.Barks)
@@ -57,155 +69,221 @@ func TestAnyOfInlineDogType(t *testing.T) {
 func TestAnyOfInlineRatType(t *testing.T) {
 	id := "rat-1"
 	name := "Remy"
+	color := "grey"
 	squeaks := true
 
 	rat := Rat{
 		ID:      &id,
 		Name:    &name,
+		Color:   &color,
 		Squeaks: &squeaks,
 	}
 
 	if *rat.ID != "rat-1" {
 		t.Errorf("ID = %q, want %q", *rat.ID, "rat-1")
 	}
+	if *rat.Name != "Remy" {
+		t.Errorf("Name = %q, want %q", *rat.Name, "Remy")
+	}
 	if *rat.Squeaks != true {
 		t.Errorf("Squeaks = %v, want true", *rat.Squeaks)
 	}
 }
 
-// TestAnyOfInlineUnionType verifies the anyOf union type
-// GetPets200ResponseJSON2 holds Cat, Dog, and Rat members.
-func TestAnyOfInlineUnionType(t *testing.T) {
+// TestAnyOfInlineFromCatRoundTrip verifies FromCat -> MarshalJSON ->
+// UnmarshalJSON -> AsCat round-trip.
+func TestAnyOfInlineFromCatRoundTrip(t *testing.T) {
 	id := "cat-1"
 	name := "Whiskers"
-	cat := Cat{
-		ID:   &id,
-		Name: &name,
+	breed := "Siamese"
+	color := "cream"
+	purrs := true
+
+	var union GetPets200ResponseJSON2
+	if err := union.FromCat(Cat{
+		ID:    &id,
+		Name:  &name,
+		Breed: &breed,
+		Color: &color,
+		Purrs: &purrs,
+	}); err != nil {
+		t.Fatalf("FromCat failed: %v", err)
 	}
 
-	union := GetPets200ResponseJSON2{
-		Cat: &cat,
+	data, err := union.MarshalJSON()
+	if err != nil {
+		t.Fatalf("MarshalJSON failed: %v", err)
 	}
 
-	if union.Cat == nil {
-		t.Fatal("Cat should not be nil")
+	var decoded GetPets200ResponseJSON2
+	if err := decoded.UnmarshalJSON(data); err != nil {
+		t.Fatalf("UnmarshalJSON failed: %v", err)
 	}
-	if *union.Cat.ID != "cat-1" {
-		t.Errorf("Cat.ID = %q, want %q", *union.Cat.ID, "cat-1")
+
+	got, err := decoded.AsCat()
+	if err != nil {
+		t.Fatalf("AsCat failed: %v", err)
 	}
-	if union.Dog != nil {
-		t.Error("Dog should be nil")
+	if *got.ID != "cat-1" {
+		t.Errorf("ID = %q, want %q", *got.ID, "cat-1")
 	}
-	if union.Rat != nil {
-		t.Error("Rat should be nil")
+	if *got.Name != "Whiskers" {
+		t.Errorf("Name = %q, want %q", *got.Name, "Whiskers")
+	}
+	if *got.Breed != "Siamese" {
+		t.Errorf("Breed = %q, want %q", *got.Breed, "Siamese")
+	}
+	if *got.Purrs != true {
+		t.Errorf("Purrs = %v, want true", *got.Purrs)
 	}
 }
 
-// TestAnyOfInlineUnionMarshalJSON verifies that MarshalJSON merges the fields
-// from the set anyOf member into a single JSON object.
-func TestAnyOfInlineUnionMarshalJSON(t *testing.T) {
+// TestAnyOfInlineFromDogRoundTrip verifies FromDog -> MarshalJSON ->
+// UnmarshalJSON -> AsDog round-trip.
+func TestAnyOfInlineFromDogRoundTrip(t *testing.T) {
 	id := "dog-1"
 	name := "Buddy"
 	barks := true
-	dog := Dog{
+
+	var union GetPets200ResponseJSON2
+	if err := union.FromDog(Dog{
 		ID:    &id,
 		Name:  &name,
 		Barks: &barks,
+	}); err != nil {
+		t.Fatalf("FromDog failed: %v", err)
 	}
 
-	union := GetPets200ResponseJSON2{
-		Dog: &dog,
-	}
-
-	data, err := json.Marshal(union)
+	data, err := union.MarshalJSON()
 	if err != nil {
-		t.Fatalf("Marshal failed: %v", err)
+		t.Fatalf("MarshalJSON failed: %v", err)
 	}
 
-	var m map[string]any
-	if err := json.Unmarshal(data, &m); err != nil {
-		t.Fatalf("Unmarshal into map failed: %v", err)
+	var decoded GetPets200ResponseJSON2
+	if err := decoded.UnmarshalJSON(data); err != nil {
+		t.Fatalf("UnmarshalJSON failed: %v", err)
 	}
 
-	if m["id"] != "dog-1" {
-		t.Errorf("id = %v, want %q", m["id"], "dog-1")
+	got, err := decoded.AsDog()
+	if err != nil {
+		t.Fatalf("AsDog failed: %v", err)
 	}
-	if m["name"] != "Buddy" {
-		t.Errorf("name = %v, want %q", m["name"], "Buddy")
+	if *got.ID != "dog-1" {
+		t.Errorf("ID = %q, want %q", *got.ID, "dog-1")
 	}
-	if m["barks"] != true {
-		t.Errorf("barks = %v, want true", m["barks"])
+	if *got.Name != "Buddy" {
+		t.Errorf("Name = %q, want %q", *got.Name, "Buddy")
+	}
+	if *got.Barks != true {
+		t.Errorf("Barks = %v, want true", *got.Barks)
 	}
 }
 
-// TestAnyOfInlineUnionUnmarshalJSON verifies that UnmarshalJSON populates all
-// matching anyOf members from the input JSON.
-func TestAnyOfInlineUnionUnmarshalJSON(t *testing.T) {
+// TestAnyOfInlineFromRatRoundTrip verifies FromRat -> MarshalJSON ->
+// UnmarshalJSON -> AsRat round-trip.
+func TestAnyOfInlineFromRatRoundTrip(t *testing.T) {
+	id := "rat-1"
+	name := "Remy"
+	squeaks := true
+
+	var union GetPets200ResponseJSON2
+	if err := union.FromRat(Rat{
+		ID:      &id,
+		Name:    &name,
+		Squeaks: &squeaks,
+	}); err != nil {
+		t.Fatalf("FromRat failed: %v", err)
+	}
+
+	data, err := union.MarshalJSON()
+	if err != nil {
+		t.Fatalf("MarshalJSON failed: %v", err)
+	}
+
+	var decoded GetPets200ResponseJSON2
+	if err := decoded.UnmarshalJSON(data); err != nil {
+		t.Fatalf("UnmarshalJSON failed: %v", err)
+	}
+
+	got, err := decoded.AsRat()
+	if err != nil {
+		t.Fatalf("AsRat failed: %v", err)
+	}
+	if *got.ID != "rat-1" {
+		t.Errorf("ID = %q, want %q", *got.ID, "rat-1")
+	}
+	if *got.Name != "Remy" {
+		t.Errorf("Name = %q, want %q", *got.Name, "Remy")
+	}
+	if *got.Squeaks != true {
+		t.Errorf("Squeaks = %v, want true", *got.Squeaks)
+	}
+}
+
+// TestAnyOfInlineUnmarshalJSONObject verifies that raw JSON can be unmarshaled
+// into the union and then extracted as the correct variant.
+func TestAnyOfInlineUnmarshalJSONObject(t *testing.T) {
 	input := `{"id":"pet-1","name":"Furball","color":"brown","purrs":true}`
 
 	var union GetPets200ResponseJSON2
-	if err := json.Unmarshal([]byte(input), &union); err != nil {
-		t.Fatalf("Unmarshal failed: %v", err)
+	if err := union.UnmarshalJSON([]byte(input)); err != nil {
+		t.Fatalf("UnmarshalJSON failed: %v", err)
 	}
 
-	// Cat should match because purrs is a Cat field
-	if union.Cat == nil {
-		t.Fatal("Cat should not be nil after unmarshal")
+	// The JSON has "purrs", so it should decode as a Cat.
+	cat, err := union.AsCat()
+	if err != nil {
+		t.Fatalf("AsCat failed: %v", err)
 	}
-	if *union.Cat.Name != "Furball" {
-		t.Errorf("Cat.Name = %q, want %q", *union.Cat.Name, "Furball")
+	if *cat.Name != "Furball" {
+		t.Errorf("Cat.Name = %q, want %q", *cat.Name, "Furball")
 	}
-	if *union.Cat.Purrs != true {
-		t.Errorf("Cat.Purrs = %v, want true", *union.Cat.Purrs)
+	if *cat.Color != "brown" {
+		t.Errorf("Cat.Color = %q, want %q", *cat.Color, "brown")
 	}
-
-	// Dog and Rat should also match (anyOf allows multiple matches)
-	if union.Dog == nil {
-		t.Fatal("Dog should not be nil (anyOf allows multiple matches)")
-	}
-	if union.Rat == nil {
-		t.Fatal("Rat should not be nil (anyOf allows multiple matches)")
-	}
-}
-
-// TestAnyOfInlineResponseType verifies the GetPetsJSONResponse wrapper type.
-func TestAnyOfInlineResponseType(t *testing.T) {
-	id := "rat-1"
-	name := "Scabbers"
-	rat := Rat{
-		ID:   &id,
-		Name: &name,
+	if *cat.Purrs != true {
+		t.Errorf("Cat.Purrs = %v, want true", *cat.Purrs)
 	}
 
-	resp := GetPetsJSONResponse{
-		Data: []GetPets200ResponseJSON2{
-			{Rat: &rat},
-		},
+	// anyOf allows the same data to also be read as Dog or Rat (shared fields
+	// decode, variant-specific fields are zero/nil).
+	dog, err := union.AsDog()
+	if err != nil {
+		t.Fatalf("AsDog failed: %v", err)
+	}
+	if *dog.Name != "Furball" {
+		t.Errorf("Dog.Name = %q, want %q", *dog.Name, "Furball")
+	}
+	if dog.Barks != nil {
+		t.Errorf("Dog.Barks = %v, want nil (not in input)", *dog.Barks)
 	}
 
-	if len(resp.Data) != 1 {
-		t.Fatalf("Data length = %d, want 1", len(resp.Data))
+	rat, err := union.AsRat()
+	if err != nil {
+		t.Fatalf("AsRat failed: %v", err)
 	}
-	if resp.Data[0].Rat == nil {
-		t.Fatal("Data[0].Rat should not be nil")
+	if *rat.Name != "Furball" {
+		t.Errorf("Rat.Name = %q, want %q", *rat.Name, "Furball")
 	}
-	if *resp.Data[0].Rat.Name != "Scabbers" {
-		t.Errorf("Data[0].Rat.Name = %q, want %q", *resp.Data[0].Rat.Name, "Scabbers")
+	if rat.Squeaks != nil {
+		t.Errorf("Rat.Squeaks = %v, want nil (not in input)", *rat.Squeaks)
 	}
 }
 
 // TestAnyOfInlineResponseJSONRoundTrip verifies JSON round-trip for the
-// response wrapper containing anyOf union items.
+// GetPetsJSONResponse wrapper containing anyOf union items.
 func TestAnyOfInlineResponseJSONRoundTrip(t *testing.T) {
 	id := "cat-2"
 	name := "Luna"
 	purrs := true
-	cat := Cat{ID: &id, Name: &name, Purrs: &purrs}
+
+	var union GetPets200ResponseJSON2
+	if err := union.FromCat(Cat{ID: &id, Name: &name, Purrs: &purrs}); err != nil {
+		t.Fatalf("FromCat failed: %v", err)
+	}
 
 	original := GetPetsJSONResponse{
-		Data: []GetPets200ResponseJSON2{
-			{Cat: &cat},
-		},
+		Data: []GetPets200ResponseJSON2{union},
 	}
 
 	data, err := json.Marshal(original)
@@ -221,11 +299,16 @@ func TestAnyOfInlineResponseJSONRoundTrip(t *testing.T) {
 	if len(decoded.Data) != 1 {
 		t.Fatalf("Data length = %d, want 1", len(decoded.Data))
 	}
-	if decoded.Data[0].Cat == nil {
-		t.Fatal("decoded Cat should not be nil")
+
+	cat, err := decoded.Data[0].AsCat()
+	if err != nil {
+		t.Fatalf("AsCat failed: %v", err)
 	}
-	if *decoded.Data[0].Cat.Name != "Luna" {
-		t.Errorf("Cat.Name = %q, want %q", *decoded.Data[0].Cat.Name, "Luna")
+	if *cat.Name != "Luna" {
+		t.Errorf("Cat.Name = %q, want %q", *cat.Name, "Luna")
+	}
+	if *cat.Purrs != true {
+		t.Errorf("Cat.Purrs = %v, want true", *cat.Purrs)
 	}
 }
 
@@ -253,9 +336,6 @@ func TestAnyOfInlineApplyDefaults(t *testing.T) {
 	resp := &GetPetsJSONResponse{}
 	resp.ApplyDefaults()
 
-	id := "test"
-	union := &GetPets200ResponseJSON2{
-		Cat: &Cat{ID: &id},
-	}
+	union := &GetPets200ResponseJSON2{}
 	union.ApplyDefaults()
 }

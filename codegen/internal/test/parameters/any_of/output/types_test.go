@@ -3,251 +3,207 @@ package output
 import (
 	"encoding/json"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// TestAnyOfParamTestType verifies the Test anyOf union type with two
-// inline object schemas.
-// V2 test suite: internal/test/components/anyof/param
-func TestAnyOfParamTestType(t *testing.T) {
-	variant0 := TestAnyOf0{
+// TestFromTestAnyOf0AsTestAnyOf0RoundTrip verifies that setting the first
+// anyOf variant via FromTestAnyOf0 and reading it back via AsTestAnyOf0
+// preserves the data.
+func TestFromTestAnyOf0AsTestAnyOf0RoundTrip(t *testing.T) {
+	var u Test
+	err := u.FromTestAnyOf0(TestAnyOf0{
 		Item1: "value1",
 		Item2: "value2",
-	}
+	})
+	require.NoError(t, err)
 
-	test := Test{
-		TestAnyOf0: &variant0,
-	}
-
-	if test.TestAnyOf0 == nil {
-		t.Fatal("TestAnyOf0 should not be nil")
-	}
-	if test.TestAnyOf0.Item1 != "value1" {
-		t.Errorf("Item1 = %q, want %q", test.TestAnyOf0.Item1, "value1")
-	}
-	if test.TestAnyOf0.Item2 != "value2" {
-		t.Errorf("Item2 = %q, want %q", test.TestAnyOf0.Item2, "value2")
-	}
-	if test.TestAnyOf1 != nil {
-		t.Error("TestAnyOf1 should be nil")
-	}
+	got, err := u.AsTestAnyOf0()
+	require.NoError(t, err)
+	assert.Equal(t, "value1", got.Item1)
+	assert.Equal(t, "value2", got.Item2)
 }
 
-// TestAnyOfParamTestAnyOf0 verifies the first anyOf variant with required
-// fields.
-func TestAnyOfParamTestAnyOf0(t *testing.T) {
-	v := TestAnyOf0{
-		Item1: "a",
-		Item2: "b",
-	}
-
-	if v.Item1 != "a" {
-		t.Errorf("Item1 = %q, want %q", v.Item1, "a")
-	}
-	if v.Item2 != "b" {
-		t.Errorf("Item2 = %q, want %q", v.Item2, "b")
-	}
-}
-
-// TestAnyOfParamTestAnyOf1 verifies the second anyOf variant with optional
-// fields.
-func TestAnyOfParamTestAnyOf1(t *testing.T) {
+// TestFromTestAnyOf1AsTestAnyOf1RoundTrip verifies the second anyOf variant
+// round-trips through From/As.
+func TestFromTestAnyOf1AsTestAnyOf1RoundTrip(t *testing.T) {
 	item2 := "hello"
 	item3 := "world"
-	v := TestAnyOf1{
+
+	var u Test
+	err := u.FromTestAnyOf1(TestAnyOf1{
 		Item2: &item2,
 		Item3: &item3,
-	}
+	})
+	require.NoError(t, err)
 
-	if *v.Item2 != "hello" {
-		t.Errorf("Item2 = %q, want %q", *v.Item2, "hello")
-	}
-	if *v.Item3 != "world" {
-		t.Errorf("Item3 = %q, want %q", *v.Item3, "world")
-	}
+	got, err := u.AsTestAnyOf1()
+	require.NoError(t, err)
+	require.NotNil(t, got.Item2)
+	require.NotNil(t, got.Item3)
+	assert.Equal(t, "hello", *got.Item2)
+	assert.Equal(t, "world", *got.Item3)
 }
 
-// TestAnyOfParamTestMarshalJSON verifies that MarshalJSON merges fields from
-// set anyOf members.
-func TestAnyOfParamTestMarshalJSON(t *testing.T) {
+// TestTestMarshalBothVariantsMerged verifies that for an anyOf union, merging
+// both variants produces JSON containing fields from both.
+func TestTestMarshalBothVariantsMerged(t *testing.T) {
 	item2 := "shared"
 	item3 := "extra"
 
-	test := Test{
-		TestAnyOf0: &TestAnyOf0{Item1: "first", Item2: "second"},
-		TestAnyOf1: &TestAnyOf1{Item2: &item2, Item3: &item3},
-	}
+	var u Test
+	err := u.FromTestAnyOf0(TestAnyOf0{Item1: "first", Item2: "second"})
+	require.NoError(t, err)
+	err = u.MergeTestAnyOf1(TestAnyOf1{Item2: &item2, Item3: &item3})
+	require.NoError(t, err)
 
-	data, err := json.Marshal(test)
-	if err != nil {
-		t.Fatalf("Marshal failed: %v", err)
-	}
+	data, err := json.Marshal(u)
+	require.NoError(t, err)
 
 	var m map[string]any
-	if err := json.Unmarshal(data, &m); err != nil {
-		t.Fatalf("Unmarshal into map failed: %v", err)
-	}
+	err = json.Unmarshal(data, &m)
+	require.NoError(t, err)
 
-	// item1 and item3 should be present
-	if m["item1"] != "first" {
-		t.Errorf("item1 = %v, want %q", m["item1"], "first")
-	}
-	if m["item3"] != "extra" {
-		t.Errorf("item3 = %v, want %q", m["item3"], "extra")
-	}
+	assert.Equal(t, "first", m["item1"])
+	assert.Equal(t, "extra", m["item3"])
+	// item2 should be present (the merge overwrites with "shared")
+	assert.Equal(t, "shared", m["item2"])
 }
 
-// TestAnyOfParamTestUnmarshalJSON verifies that UnmarshalJSON populates
-// matching anyOf members.
-func TestAnyOfParamTestUnmarshalJSON(t *testing.T) {
+// TestTestUnmarshalBothVariants verifies that unmarshaling JSON with fields
+// from both anyOf variants allows reading either variant back.
+func TestTestUnmarshalBothVariants(t *testing.T) {
 	input := `{"item1":"a","item2":"b","item3":"c"}`
 
-	var test Test
-	if err := json.Unmarshal([]byte(input), &test); err != nil {
-		t.Fatalf("Unmarshal failed: %v", err)
-	}
+	var u Test
+	err := json.Unmarshal([]byte(input), &u)
+	require.NoError(t, err)
 
-	// Both variants should match since the JSON has fields from both
-	if test.TestAnyOf0 == nil {
-		t.Fatal("TestAnyOf0 should not be nil")
-	}
-	if test.TestAnyOf0.Item1 != "a" {
-		t.Errorf("TestAnyOf0.Item1 = %q, want %q", test.TestAnyOf0.Item1, "a")
-	}
-	if test.TestAnyOf0.Item2 != "b" {
-		t.Errorf("TestAnyOf0.Item2 = %q, want %q", test.TestAnyOf0.Item2, "b")
-	}
+	// AsTestAnyOf0: item1 and item2 should be populated
+	v0, err := u.AsTestAnyOf0()
+	require.NoError(t, err)
+	assert.Equal(t, "a", v0.Item1)
+	assert.Equal(t, "b", v0.Item2)
 
-	if test.TestAnyOf1 == nil {
-		t.Fatal("TestAnyOf1 should not be nil")
-	}
-	if *test.TestAnyOf1.Item2 != "b" {
-		t.Errorf("TestAnyOf1.Item2 = %q, want %q", *test.TestAnyOf1.Item2, "b")
-	}
-	if *test.TestAnyOf1.Item3 != "c" {
-		t.Errorf("TestAnyOf1.Item3 = %q, want %q", *test.TestAnyOf1.Item3, "c")
-	}
+	// AsTestAnyOf1: item2 and item3 should be populated
+	v1, err := u.AsTestAnyOf1()
+	require.NoError(t, err)
+	require.NotNil(t, v1.Item2)
+	require.NotNil(t, v1.Item3)
+	assert.Equal(t, "b", *v1.Item2)
+	assert.Equal(t, "c", *v1.Item3)
 }
 
-// TestAnyOfParamTest2Type verifies the Test2 anyOf union type with primitive
-// (int and string) members.
-func TestAnyOfParamTest2Type(t *testing.T) {
-	intVal := 42
-	t2 := Test2{
-		Int0: &intVal,
-	}
+// TestTest2FromInt0AsInt0RoundTrip verifies int round-trip through the
+// oneOf union.
+func TestTest2FromInt0AsInt0RoundTrip(t *testing.T) {
+	var u Test2
+	err := u.FromInt0(42)
+	require.NoError(t, err)
 
-	if t2.Int0 == nil {
-		t.Fatal("Int0 should not be nil")
-	}
-	if *t2.Int0 != 42 {
-		t.Errorf("Int0 = %d, want %d", *t2.Int0, 42)
-	}
-	if t2.String1 != nil {
-		t.Error("String1 should be nil")
-	}
+	got, err := u.AsInt0()
+	require.NoError(t, err)
+	assert.Equal(t, 42, got)
 }
 
-// TestAnyOfParamTest2MarshalInt verifies Test2 marshals when only the int
-// member is set.
-func TestAnyOfParamTest2MarshalInt(t *testing.T) {
-	intVal := 99
-	t2 := Test2{Int0: &intVal}
+// TestTest2FromString1AsString1RoundTrip verifies string round-trip through
+// the oneOf union.
+func TestTest2FromString1AsString1RoundTrip(t *testing.T) {
+	var u Test2
+	err := u.FromString1("hello")
+	require.NoError(t, err)
 
-	data, err := json.Marshal(t2)
-	if err != nil {
-		t.Fatalf("Marshal failed: %v", err)
-	}
-
-	if string(data) != "99" {
-		t.Errorf("Marshal result = %s, want %q", string(data), "99")
-	}
+	got, err := u.AsString1()
+	require.NoError(t, err)
+	assert.Equal(t, "hello", got)
 }
 
-// TestAnyOfParamTest2MarshalString verifies Test2 marshals when only the
-// string member is set.
-func TestAnyOfParamTest2MarshalString(t *testing.T) {
-	strVal := "hello"
-	t2 := Test2{String1: &strVal}
+// TestTest2MarshalInt verifies that a Test2 holding an int marshals to a bare
+// JSON number.
+func TestTest2MarshalInt(t *testing.T) {
+	var u Test2
+	err := u.FromInt0(99)
+	require.NoError(t, err)
 
-	data, err := json.Marshal(t2)
-	if err != nil {
-		t.Fatalf("Marshal failed: %v", err)
-	}
-
-	if string(data) != `"hello"` {
-		t.Errorf("Marshal result = %s, want %q", string(data), `"hello"`)
-	}
+	data, err := json.Marshal(u)
+	require.NoError(t, err)
+	assert.Equal(t, "99", string(data))
 }
 
-// TestAnyOfParamTest2MarshalBothSetError verifies that marshaling Test2 with
-// both members set returns an error (exactly one must be set).
-func TestAnyOfParamTest2MarshalBothSetError(t *testing.T) {
-	intVal := 1
-	strVal := "one"
-	t2 := Test2{Int0: &intVal, String1: &strVal}
+// TestTest2MarshalString verifies that a Test2 holding a string marshals to a
+// JSON string.
+func TestTest2MarshalString(t *testing.T) {
+	var u Test2
+	err := u.FromString1("world")
+	require.NoError(t, err)
 
-	_, err := json.Marshal(t2)
-	if err == nil {
-		t.Error("expected error when both members are set, got nil")
-	}
+	data, err := json.Marshal(u)
+	require.NoError(t, err)
+	assert.Equal(t, `"world"`, string(data))
 }
 
-// TestAnyOfParamTest2UnmarshalInt verifies that unmarshaling an integer value
-// populates the Int0 member.
-func TestAnyOfParamTest2UnmarshalInt(t *testing.T) {
-	input := `42`
+// TestTest2MarshalBothSetLastWins verifies the behavior when both variants are
+// set sequentially -- the last From* call wins since each overwrites the union.
+func TestTest2MarshalBothSetLastWins(t *testing.T) {
+	var u Test2
+	err := u.FromInt0(1)
+	require.NoError(t, err)
+	err = u.FromString1("one")
+	require.NoError(t, err)
 
-	var t2 Test2
-	if err := json.Unmarshal([]byte(input), &t2); err != nil {
-		t.Fatalf("Unmarshal failed: %v", err)
-	}
-
-	if t2.Int0 == nil {
-		t.Fatal("Int0 should not be nil")
-	}
-	if *t2.Int0 != 42 {
-		t.Errorf("Int0 = %d, want %d", *t2.Int0, 42)
-	}
+	data, err := json.Marshal(u)
+	require.NoError(t, err)
+	// The last From call (FromString1) should win
+	assert.Equal(t, `"one"`, string(data))
 }
 
-// TestAnyOfParamTest2UnmarshalString verifies that unmarshaling a string value
-// populates the String1 member.
-func TestAnyOfParamTest2UnmarshalString(t *testing.T) {
-	input := `"world"`
+// TestTest2UnmarshalInt verifies that unmarshaling a JSON integer populates
+// the int variant.
+func TestTest2UnmarshalInt(t *testing.T) {
+	var u Test2
+	err := json.Unmarshal([]byte(`42`), &u)
+	require.NoError(t, err)
 
-	var t2 Test2
-	if err := json.Unmarshal([]byte(input), &t2); err != nil {
-		t.Fatalf("Unmarshal failed: %v", err)
-	}
-
-	if t2.String1 == nil {
-		t.Fatal("String1 should not be nil")
-	}
-	if *t2.String1 != "world" {
-		t.Errorf("String1 = %q, want %q", *t2.String1, "world")
-	}
+	got, err := u.AsInt0()
+	require.NoError(t, err)
+	assert.Equal(t, 42, got)
 }
 
-// TestAnyOfParamGetTestParameterAlias verifies the GetTestParameter type alias
-// is a slice of Test2.
-func TestAnyOfParamGetTestParameterAlias(t *testing.T) {
-	intVal := 10
+// TestTest2UnmarshalString verifies that unmarshaling a JSON string populates
+// the string variant.
+func TestTest2UnmarshalString(t *testing.T) {
+	var u Test2
+	err := json.Unmarshal([]byte(`"world"`), &u)
+	require.NoError(t, err)
+
+	got, err := u.AsString1()
+	require.NoError(t, err)
+	assert.Equal(t, "world", got)
+}
+
+// TestGetTestParameterAlias verifies the GetTestParameter type alias is a
+// slice of Test2 and works as expected.
+func TestGetTestParameterAlias(t *testing.T) {
 	var params GetTestParameter
-	params = append(params, Test2{Int0: &intVal})
 
-	if len(params) != 1 {
-		t.Fatalf("params length = %d, want 1", len(params))
-	}
-	if *params[0].Int0 != 10 {
-		t.Errorf("params[0].Int0 = %d, want %d", *params[0].Int0, 10)
-	}
+	var elem Test2
+	err := elem.FromInt0(10)
+	require.NoError(t, err)
+
+	params = append(params, elem)
+	require.Len(t, params, 1)
+
+	got, err := params[0].AsInt0()
+	require.NoError(t, err)
+	assert.Equal(t, 10, got)
 }
 
-// TestAnyOfParamApplyDefaults verifies that ApplyDefaults can be called on
-// all types without panic.
-func TestAnyOfParamApplyDefaults(t *testing.T) {
-	test := &Test{}
-	test.ApplyDefaults()
+// TestApplyDefaults verifies that ApplyDefaults can be called on all types
+// without panic.
+func TestApplyDefaults(t *testing.T) {
+	u := &Test{}
+	u.ApplyDefaults()
 
 	v0 := &TestAnyOf0{}
 	v0.ApplyDefaults()
@@ -255,6 +211,6 @@ func TestAnyOfParamApplyDefaults(t *testing.T) {
 	v1 := &TestAnyOf1{}
 	v1.ApplyDefaults()
 
-	t2 := &Test2{}
-	t2.ApplyDefaults()
+	u2 := &Test2{}
+	u2.ApplyDefaults()
 }

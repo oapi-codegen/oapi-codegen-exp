@@ -12,20 +12,22 @@ func ptr[T any](v T) *T {
 	return &v
 }
 
-// TestArrayOfAnyOf tests marshaling/unmarshaling of arrays with anyOf items
+// TestArrayOfAnyOf tests marshaling/unmarshaling of arrays with anyOf items.
 func TestArrayOfAnyOf(t *testing.T) {
-	t.Run("unmarshal string item", func(t *testing.T) {
+	t.Run("unmarshal string items", func(t *testing.T) {
 		input := `["hello", "world"]`
 		var arr ArrayOfAnyOf
 		err := json.Unmarshal([]byte(input), &arr)
 		require.NoError(t, err)
 		require.Len(t, arr, 2)
 
-		// String items should populate the string field
-		assert.NotNil(t, arr[0].String0)
-		assert.Equal(t, "hello", *arr[0].String0)
-		assert.NotNil(t, arr[1].String0)
-		assert.Equal(t, "world", *arr[1].String0)
+		s0, err := arr[0].AsString0()
+		require.NoError(t, err)
+		assert.Equal(t, "hello", s0)
+
+		s1, err := arr[1].AsString0()
+		require.NoError(t, err)
+		assert.Equal(t, "world", s1)
 	})
 
 	t.Run("unmarshal object item", func(t *testing.T) {
@@ -35,10 +37,10 @@ func TestArrayOfAnyOf(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, arr, 1)
 
-		// Object item should populate the object field
-		assert.NotNil(t, arr[0].ArrayOfAnyOfAnyOf1)
-		assert.NotNil(t, arr[0].ArrayOfAnyOfAnyOf1.ID)
-		assert.Equal(t, 42, *arr[0].ArrayOfAnyOfAnyOf1.ID)
+		obj, err := arr[0].AsArrayOfAnyOfAnyOf1()
+		require.NoError(t, err)
+		require.NotNil(t, obj.ID)
+		assert.Equal(t, 42, *obj.ID)
 	})
 
 	t.Run("unmarshal mixed items", func(t *testing.T) {
@@ -48,42 +50,57 @@ func TestArrayOfAnyOf(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, arr, 4)
 
-		assert.NotNil(t, arr[0].String0)
-		assert.Equal(t, "hello", *arr[0].String0)
+		s0, err := arr[0].AsString0()
+		require.NoError(t, err)
+		assert.Equal(t, "hello", s0)
 
-		assert.NotNil(t, arr[1].ArrayOfAnyOfAnyOf1)
-		assert.Equal(t, 1, *arr[1].ArrayOfAnyOfAnyOf1.ID)
+		obj1, err := arr[1].AsArrayOfAnyOfAnyOf1()
+		require.NoError(t, err)
+		require.NotNil(t, obj1.ID)
+		assert.Equal(t, 1, *obj1.ID)
 
-		assert.NotNil(t, arr[2].String0)
-		assert.Equal(t, "world", *arr[2].String0)
+		s2, err := arr[2].AsString0()
+		require.NoError(t, err)
+		assert.Equal(t, "world", s2)
 
-		assert.NotNil(t, arr[3].ArrayOfAnyOfAnyOf1)
-		assert.Equal(t, 2, *arr[3].ArrayOfAnyOfAnyOf1.ID)
+		obj3, err := arr[3].AsArrayOfAnyOfAnyOf1()
+		require.NoError(t, err)
+		require.NotNil(t, obj3.ID)
+		assert.Equal(t, 2, *obj3.ID)
 	})
 
 	t.Run("marshal string item", func(t *testing.T) {
-		arr := ArrayOfAnyOf{
-			{String0: ptr("hello")},
-		}
+		var item ArrayOfAnyOfItem
+		err := item.FromString0("hello")
+		require.NoError(t, err)
+
+		arr := ArrayOfAnyOf{item}
 		data, err := json.Marshal(arr)
 		require.NoError(t, err)
 		assert.JSONEq(t, `["hello"]`, string(data))
 	})
 
 	t.Run("marshal object item", func(t *testing.T) {
-		arr := ArrayOfAnyOf{
-			{ArrayOfAnyOfAnyOf1: &ArrayOfAnyOfAnyOf1{ID: ptr(42)}},
-		}
+		var item ArrayOfAnyOfItem
+		err := item.FromArrayOfAnyOfAnyOf1(ArrayOfAnyOfAnyOf1{ID: ptr(42)})
+		require.NoError(t, err)
+
+		arr := ArrayOfAnyOf{item}
 		data, err := json.Marshal(arr)
 		require.NoError(t, err)
 		assert.JSONEq(t, `[{"id": 42}]`, string(data))
 	})
 
 	t.Run("round trip mixed", func(t *testing.T) {
-		original := ArrayOfAnyOf{
-			{String0: ptr("test")},
-			{ArrayOfAnyOfAnyOf1: &ArrayOfAnyOfAnyOf1{ID: ptr(99)}},
-		}
+		var strItem ArrayOfAnyOfItem
+		err := strItem.FromString0("test")
+		require.NoError(t, err)
+
+		var objItem ArrayOfAnyOfItem
+		err = objItem.FromArrayOfAnyOfAnyOf1(ArrayOfAnyOfAnyOf1{ID: ptr(99)})
+		require.NoError(t, err)
+
+		original := ArrayOfAnyOf{strItem, objItem}
 
 		data, err := json.Marshal(original)
 		require.NoError(t, err)
@@ -91,24 +108,31 @@ func TestArrayOfAnyOf(t *testing.T) {
 		var decoded ArrayOfAnyOf
 		err = json.Unmarshal(data, &decoded)
 		require.NoError(t, err)
-
 		require.Len(t, decoded, 2)
-		assert.Equal(t, "test", *decoded[0].String0)
-		assert.Equal(t, 99, *decoded[1].ArrayOfAnyOfAnyOf1.ID)
+
+		s, err := decoded[0].AsString0()
+		require.NoError(t, err)
+		assert.Equal(t, "test", s)
+
+		obj, err := decoded[1].AsArrayOfAnyOfAnyOf1()
+		require.NoError(t, err)
+		require.NotNil(t, obj.ID)
+		assert.Equal(t, 99, *obj.ID)
 	})
 }
 
-// TestObjectWithAnyOfProperty tests marshaling/unmarshaling of objects with anyOf properties
+// TestObjectWithAnyOfProperty tests marshaling/unmarshaling of objects with anyOf properties.
 func TestObjectWithAnyOfProperty(t *testing.T) {
 	t.Run("unmarshal string value", func(t *testing.T) {
 		input := `{"value": "hello"}`
 		var obj ObjectWithAnyOfProperty
 		err := json.Unmarshal([]byte(input), &obj)
 		require.NoError(t, err)
-
 		require.NotNil(t, obj.Value)
-		assert.NotNil(t, obj.Value.String0)
-		assert.Equal(t, "hello", *obj.Value.String0)
+
+		s, err := obj.Value.AsString0()
+		require.NoError(t, err)
+		assert.Equal(t, "hello", s)
 	})
 
 	t.Run("unmarshal integer value", func(t *testing.T) {
@@ -116,174 +140,175 @@ func TestObjectWithAnyOfProperty(t *testing.T) {
 		var obj ObjectWithAnyOfProperty
 		err := json.Unmarshal([]byte(input), &obj)
 		require.NoError(t, err)
-
 		require.NotNil(t, obj.Value)
-		assert.NotNil(t, obj.Value.Int1)
-		assert.Equal(t, 42, *obj.Value.Int1)
+
+		i, err := obj.Value.AsInt1()
+		require.NoError(t, err)
+		assert.Equal(t, 42, i)
 	})
 
 	t.Run("marshal string value", func(t *testing.T) {
-		obj := ObjectWithAnyOfProperty{
-			Value: &ObjectWithAnyOfPropertyValue{
-				String0: ptr("hello"),
-			},
-		}
+		var val ObjectWithAnyOfPropertyValue
+		err := val.FromString0("hello")
+		require.NoError(t, err)
+
+		obj := ObjectWithAnyOfProperty{Value: &val}
 		data, err := json.Marshal(obj)
 		require.NoError(t, err)
 		assert.JSONEq(t, `{"value": "hello"}`, string(data))
 	})
 
 	t.Run("marshal integer value", func(t *testing.T) {
-		obj := ObjectWithAnyOfProperty{
-			Value: &ObjectWithAnyOfPropertyValue{
-				Int1: ptr(42),
-			},
-		}
+		var val ObjectWithAnyOfPropertyValue
+		err := val.FromInt1(42)
+		require.NoError(t, err)
+
+		obj := ObjectWithAnyOfProperty{Value: &val}
 		data, err := json.Marshal(obj)
 		require.NoError(t, err)
 		assert.JSONEq(t, `{"value": 42}`, string(data))
 	})
 
 	t.Run("round trip string", func(t *testing.T) {
-		original := ObjectWithAnyOfProperty{
-			Value: &ObjectWithAnyOfPropertyValue{String0: ptr("test")},
-		}
+		var val ObjectWithAnyOfPropertyValue
+		err := val.FromString0("test")
+		require.NoError(t, err)
 
+		original := ObjectWithAnyOfProperty{Value: &val}
 		data, err := json.Marshal(original)
 		require.NoError(t, err)
 
 		var decoded ObjectWithAnyOfProperty
 		err = json.Unmarshal(data, &decoded)
 		require.NoError(t, err)
-
 		require.NotNil(t, decoded.Value)
-		assert.Equal(t, "test", *decoded.Value.String0)
+
+		s, err := decoded.Value.AsString0()
+		require.NoError(t, err)
+		assert.Equal(t, "test", s)
 	})
 }
 
-// TestObjectWithOneOfProperty tests marshaling/unmarshaling of objects with oneOf properties
+// TestObjectWithOneOfProperty tests marshaling/unmarshaling of objects with oneOf properties.
 func TestObjectWithOneOfProperty(t *testing.T) {
-	t.Run("unmarshal ambiguous input errors", func(t *testing.T) {
-		// Both variants have optional "kind" field, so this JSON matches both
-		// oneOf requires exactly one match, so this should error
-		input := `{"variant": {"kind": "person", "name": "Alice"}}`
-		var obj ObjectWithOneOfProperty
-		err := json.Unmarshal([]byte(input), &obj)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "expected exactly one type to match, got 2")
-	})
-
-	t.Run("unmarshal unambiguous variant 0", func(t *testing.T) {
-		// Only variant 0 has "name" as a field that can be set
-		// But since all fields are optional, both variants still match
-		// This demonstrates why discriminators are important for oneOf
-		input := `{"variant": {"name": "Alice"}}`
-		var obj ObjectWithOneOfProperty
-		err := json.Unmarshal([]byte(input), &obj)
-		// Still ambiguous because both variants can unmarshal (missing fields are just nil)
-		require.Error(t, err)
-	})
-
-	t.Run("unmarshal unambiguous variant 1", func(t *testing.T) {
-		// Only variant 1 has "count" field
-		// But since all fields are optional, both variants still match
-		input := `{"variant": {"count": 10}}`
-		var obj ObjectWithOneOfProperty
-		err := json.Unmarshal([]byte(input), &obj)
-		// Still ambiguous because both variants can unmarshal (missing fields are just nil)
-		require.Error(t, err)
-	})
-
 	t.Run("marshal variant 0", func(t *testing.T) {
-		obj := ObjectWithOneOfProperty{
-			Variant: &ObjectWithOneOfPropertyVariant{
-				ObjectWithOneOfPropertyVariantOneOf0: &ObjectWithOneOfPropertyVariantOneOf0{
-					Kind: ptr("person"),
-					Name: ptr("Alice"),
-				},
-			},
-		}
+		var variant ObjectWithOneOfPropertyVariant
+		err := variant.FromObjectWithOneOfPropertyVariantOneOf0(ObjectWithOneOfPropertyVariantOneOf0{
+			Kind: ptr("person"),
+			Name: ptr("Alice"),
+		})
+		require.NoError(t, err)
+
+		obj := ObjectWithOneOfProperty{Variant: &variant}
 		data, err := json.Marshal(obj)
 		require.NoError(t, err)
 		assert.JSONEq(t, `{"variant": {"kind": "person", "name": "Alice"}}`, string(data))
 	})
 
 	t.Run("marshal variant 1", func(t *testing.T) {
-		obj := ObjectWithOneOfProperty{
-			Variant: &ObjectWithOneOfPropertyVariant{
-				ObjectWithOneOfPropertyVariantOneOf1: &ObjectWithOneOfPropertyVariantOneOf1{
-					Kind:  ptr("counter"),
-					Count: ptr(10),
-				},
-			},
-		}
+		var variant ObjectWithOneOfPropertyVariant
+		err := variant.FromObjectWithOneOfPropertyVariantOneOf1(ObjectWithOneOfPropertyVariantOneOf1{
+			Kind:  ptr("counter"),
+			Count: ptr(10),
+		})
+		require.NoError(t, err)
+
+		obj := ObjectWithOneOfProperty{Variant: &variant}
 		data, err := json.Marshal(obj)
 		require.NoError(t, err)
 		assert.JSONEq(t, `{"variant": {"kind": "counter", "count": 10}}`, string(data))
 	})
 
-	t.Run("marshal fails with zero variants set", func(t *testing.T) {
-		obj := ObjectWithOneOfProperty{
-			Variant: &ObjectWithOneOfPropertyVariant{},
-		}
-		_, err := json.Marshal(obj)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "exactly one member must be set")
+	t.Run("unmarshal and extract variant 0", func(t *testing.T) {
+		input := `{"variant": {"kind": "person", "name": "Alice"}}`
+		var obj ObjectWithOneOfProperty
+		err := json.Unmarshal([]byte(input), &obj)
+		require.NoError(t, err)
+		require.NotNil(t, obj.Variant)
+
+		v0, err := obj.Variant.AsObjectWithOneOfPropertyVariantOneOf0()
+		require.NoError(t, err)
+		require.NotNil(t, v0.Kind)
+		assert.Equal(t, "person", *v0.Kind)
+		require.NotNil(t, v0.Name)
+		assert.Equal(t, "Alice", *v0.Name)
 	})
 
-	t.Run("marshal fails with two variants set", func(t *testing.T) {
-		obj := ObjectWithOneOfProperty{
-			Variant: &ObjectWithOneOfPropertyVariant{
-				ObjectWithOneOfPropertyVariantOneOf0: &ObjectWithOneOfPropertyVariantOneOf0{
-					Kind: ptr("person"),
-					Name: ptr("Alice"),
-				},
-				ObjectWithOneOfPropertyVariantOneOf1: &ObjectWithOneOfPropertyVariantOneOf1{
-					Kind:  ptr("counter"),
-					Count: ptr(10),
-				},
-			},
-		}
-		_, err := json.Marshal(obj)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "exactly one member must be set")
+	t.Run("unmarshal and extract variant 1", func(t *testing.T) {
+		input := `{"variant": {"kind": "counter", "count": 10}}`
+		var obj ObjectWithOneOfProperty
+		err := json.Unmarshal([]byte(input), &obj)
+		require.NoError(t, err)
+		require.NotNil(t, obj.Variant)
+
+		v1, err := obj.Variant.AsObjectWithOneOfPropertyVariantOneOf1()
+		require.NoError(t, err)
+		require.NotNil(t, v1.Kind)
+		assert.Equal(t, "counter", *v1.Kind)
+		require.NotNil(t, v1.Count)
+		assert.Equal(t, 10, *v1.Count)
+	})
+
+	t.Run("unmarshal ambiguous input still stores raw JSON", func(t *testing.T) {
+		// With V3 union types, UnmarshalJSON stores raw bytes without
+		// oneOf validation. Both variants can be extracted -- the caller
+		// is responsible for choosing the right As* method.
+		input := `{"variant": {"kind": "ambiguous"}}`
+		var obj ObjectWithOneOfProperty
+		err := json.Unmarshal([]byte(input), &obj)
+		require.NoError(t, err)
+		require.NotNil(t, obj.Variant)
+
+		// Both As* calls succeed because the raw JSON is valid for either.
+		v0, err := obj.Variant.AsObjectWithOneOfPropertyVariantOneOf0()
+		require.NoError(t, err)
+		assert.Equal(t, "ambiguous", *v0.Kind)
+
+		v1, err := obj.Variant.AsObjectWithOneOfPropertyVariantOneOf1()
+		require.NoError(t, err)
+		assert.Equal(t, "ambiguous", *v1.Kind)
+	})
+
+	t.Run("round trip variant 0", func(t *testing.T) {
+		var variant ObjectWithOneOfPropertyVariant
+		err := variant.FromObjectWithOneOfPropertyVariantOneOf0(ObjectWithOneOfPropertyVariantOneOf0{
+			Kind: ptr("person"),
+			Name: ptr("Bob"),
+		})
+		require.NoError(t, err)
+
+		original := ObjectWithOneOfProperty{Variant: &variant}
+		data, err := json.Marshal(original)
+		require.NoError(t, err)
+
+		var decoded ObjectWithOneOfProperty
+		err = json.Unmarshal(data, &decoded)
+		require.NoError(t, err)
+		require.NotNil(t, decoded.Variant)
+
+		v0, err := decoded.Variant.AsObjectWithOneOfPropertyVariantOneOf0()
+		require.NoError(t, err)
+		assert.Equal(t, "Bob", *v0.Name)
 	})
 }
 
-// TestAllOfWithOneOf tests marshaling/unmarshaling of allOf containing oneOf
+// TestAllOfWithOneOf tests marshaling/unmarshaling of allOf containing oneOf.
 func TestAllOfWithOneOf(t *testing.T) {
-	t.Run("unmarshal with optionA - ambiguous oneOf errors", func(t *testing.T) {
-		// The nested oneOf has same ambiguity issue - both variants match
-		input := `{"base": "test", "optionA": true}`
-		var obj AllOfWithOneOf
-		err := json.Unmarshal([]byte(input), &obj)
-		// The nested AllOfWithOneOfAllOf1 (oneOf) will error due to ambiguity
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "expected exactly one type to match")
-	})
-
-	t.Run("unmarshal with optionB - ambiguous oneOf errors", func(t *testing.T) {
-		input := `{"base": "test", "optionB": 42}`
-		var obj AllOfWithOneOf
-		err := json.Unmarshal([]byte(input), &obj)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "expected exactly one type to match")
-	})
-
 	t.Run("marshal with optionA", func(t *testing.T) {
+		var union AllOfWithOneOfAllOf1
+		err := union.FromAllOfWithOneOfAllOf1OneOf0(AllOfWithOneOfAllOf1OneOf0{
+			OptionA: ptr(true),
+		})
+		require.NoError(t, err)
+
 		obj := AllOfWithOneOf{
-			Base: ptr("test"),
-			AllOfWithOneOfAllOf1: &AllOfWithOneOfAllOf1{
-				AllOfWithOneOfAllOf1OneOf0: &AllOfWithOneOfAllOf1OneOf0{
-					OptionA: ptr(true),
-				},
-			},
+			Base:                 ptr("test"),
+			AllOfWithOneOfAllOf1: &union,
 		}
 
 		data, err := json.Marshal(obj)
 		require.NoError(t, err)
 
-		// Should contain both base and optionA merged
 		var m map[string]any
 		err = json.Unmarshal(data, &m)
 		require.NoError(t, err)
@@ -293,13 +318,15 @@ func TestAllOfWithOneOf(t *testing.T) {
 	})
 
 	t.Run("marshal with optionB", func(t *testing.T) {
+		var union AllOfWithOneOfAllOf1
+		err := union.FromAllOfWithOneOfAllOf1OneOf1(AllOfWithOneOfAllOf1OneOf1{
+			OptionB: ptr(42),
+		})
+		require.NoError(t, err)
+
 		obj := AllOfWithOneOf{
-			Base: ptr("test"),
-			AllOfWithOneOfAllOf1: &AllOfWithOneOfAllOf1{
-				AllOfWithOneOfAllOf1OneOf1: &AllOfWithOneOfAllOf1OneOf1{
-					OptionB: ptr(42),
-				},
-			},
+			Base:                 ptr("test"),
+			AllOfWithOneOfAllOf1: &union,
 		}
 
 		data, err := json.Marshal(obj)
@@ -328,5 +355,129 @@ func TestAllOfWithOneOf(t *testing.T) {
 		assert.Equal(t, "only-base", m["base"])
 		assert.NotContains(t, m, "optionA")
 		assert.NotContains(t, m, "optionB")
+	})
+
+	t.Run("unmarshal with optionA", func(t *testing.T) {
+		input := `{"base": "test", "optionA": true}`
+		var obj AllOfWithOneOf
+		err := json.Unmarshal([]byte(input), &obj)
+		require.NoError(t, err)
+
+		require.NotNil(t, obj.Base)
+		assert.Equal(t, "test", *obj.Base)
+
+		require.NotNil(t, obj.AllOfWithOneOfAllOf1)
+		v0, err := obj.AllOfWithOneOfAllOf1.AsAllOfWithOneOfAllOf1OneOf0()
+		require.NoError(t, err)
+		require.NotNil(t, v0.OptionA)
+		assert.Equal(t, true, *v0.OptionA)
+	})
+
+	t.Run("unmarshal with optionB", func(t *testing.T) {
+		input := `{"base": "test", "optionB": 42}`
+		var obj AllOfWithOneOf
+		err := json.Unmarshal([]byte(input), &obj)
+		require.NoError(t, err)
+
+		require.NotNil(t, obj.Base)
+		assert.Equal(t, "test", *obj.Base)
+
+		require.NotNil(t, obj.AllOfWithOneOfAllOf1)
+		v1, err := obj.AllOfWithOneOfAllOf1.AsAllOfWithOneOfAllOf1OneOf1()
+		require.NoError(t, err)
+		require.NotNil(t, v1.OptionB)
+		assert.Equal(t, 42, *v1.OptionB)
+	})
+
+	t.Run("round trip with optionA", func(t *testing.T) {
+		var union AllOfWithOneOfAllOf1
+		err := union.FromAllOfWithOneOfAllOf1OneOf0(AllOfWithOneOfAllOf1OneOf0{
+			OptionA: ptr(false),
+		})
+		require.NoError(t, err)
+
+		original := AllOfWithOneOf{
+			Base:                 ptr("round"),
+			AllOfWithOneOfAllOf1: &union,
+		}
+
+		data, err := json.Marshal(original)
+		require.NoError(t, err)
+
+		var decoded AllOfWithOneOf
+		err = json.Unmarshal(data, &decoded)
+		require.NoError(t, err)
+
+		require.NotNil(t, decoded.Base)
+		assert.Equal(t, "round", *decoded.Base)
+
+		require.NotNil(t, decoded.AllOfWithOneOfAllOf1)
+		v0, err := decoded.AllOfWithOneOfAllOf1.AsAllOfWithOneOfAllOf1OneOf0()
+		require.NoError(t, err)
+		require.NotNil(t, v0.OptionA)
+		assert.Equal(t, false, *v0.OptionA)
+	})
+}
+
+// TestApplyDefaults verifies that ApplyDefaults is callable on all types without panicking.
+func TestApplyDefaults(t *testing.T) {
+	t.Run("ArrayOfAnyOfItem", func(t *testing.T) {
+		var item ArrayOfAnyOfItem
+		item.ApplyDefaults() // should not panic
+	})
+
+	t.Run("ArrayOfAnyOfAnyOf1", func(t *testing.T) {
+		s := ArrayOfAnyOfAnyOf1{}
+		s.ApplyDefaults()
+	})
+
+	t.Run("ObjectWithAnyOfProperty", func(t *testing.T) {
+		s := ObjectWithAnyOfProperty{}
+		s.ApplyDefaults()
+	})
+
+	t.Run("ObjectWithAnyOfPropertyValue", func(t *testing.T) {
+		var v ObjectWithAnyOfPropertyValue
+		v.ApplyDefaults()
+	})
+
+	t.Run("ObjectWithOneOfProperty", func(t *testing.T) {
+		s := ObjectWithOneOfProperty{}
+		s.ApplyDefaults()
+	})
+
+	t.Run("ObjectWithOneOfPropertyVariant", func(t *testing.T) {
+		var v ObjectWithOneOfPropertyVariant
+		v.ApplyDefaults()
+	})
+
+	t.Run("ObjectWithOneOfPropertyVariantOneOf0", func(t *testing.T) {
+		s := ObjectWithOneOfPropertyVariantOneOf0{}
+		s.ApplyDefaults()
+	})
+
+	t.Run("ObjectWithOneOfPropertyVariantOneOf1", func(t *testing.T) {
+		s := ObjectWithOneOfPropertyVariantOneOf1{}
+		s.ApplyDefaults()
+	})
+
+	t.Run("AllOfWithOneOf", func(t *testing.T) {
+		s := AllOfWithOneOf{}
+		s.ApplyDefaults()
+	})
+
+	t.Run("AllOfWithOneOfAllOf1", func(t *testing.T) {
+		var v AllOfWithOneOfAllOf1
+		v.ApplyDefaults()
+	})
+
+	t.Run("AllOfWithOneOfAllOf1OneOf0", func(t *testing.T) {
+		s := AllOfWithOneOfAllOf1OneOf0{}
+		s.ApplyDefaults()
+	})
+
+	t.Run("AllOfWithOneOfAllOf1OneOf1", func(t *testing.T) {
+		s := AllOfWithOneOfAllOf1OneOf1{}
+		s.ApplyDefaults()
 	})
 }
