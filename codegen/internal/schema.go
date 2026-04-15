@@ -84,6 +84,12 @@ type SchemaDescriptor struct {
 	AnyOf           []*SchemaDescriptor
 	OneOf           []*SchemaDescriptor
 	AdditionalProps *SchemaDescriptor
+
+	// ConstOneOfItems holds the extracted items when this schema matches the
+	// OpenAPI 3.1 enum-via-oneOf idiom (type: string|integer + oneOf of
+	// const+title branches). Populated during gather; nil when the idiom does
+	// not apply or detection is disabled. Presence signals KindEnum.
+	ConstOneOfItems []constOneOfItem
 }
 
 // DiscriminatorInfo holds discriminator metadata extracted from the OpenAPI spec.

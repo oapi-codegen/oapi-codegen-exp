@@ -1,0 +1,43 @@
+# Enum-via-oneOf (OpenAPI 3.1): a schema with a scalar `type` plus `oneOf`
+# branches that each carry `const` + `title` should be generated as a Go
+# enum with named constants and per-value doc comments.
+openapi: 3.1.0
+info:
+  title: Enum via oneOf test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    Severity:
+      description: How urgent a problem is.
+      type: integer
+      oneOf:
+        - title: HIGH
+          const: 2
+          description: An urgent problem
+        - title: MEDIUM
+          const: 1
+        - title: LOW
+          const: 0
+          description: Can wait forever
+
+    Color:
+      type: string
+      oneOf:
+        - title: Red
+          const: r
+          description: Warm, high-energy
+        - title: Green
+          const: g
+        - title: Blue
+          const: b
+          description: Cool, calm
+
+    # Negative path: one branch lacks `title`, so the idiom must not match —
+    # this schema falls through to the regular oneOf union generator.
+    MixedOneOf:
+      type: string
+      oneOf:
+        - title: Alpha
+          const: a
+        - const: b

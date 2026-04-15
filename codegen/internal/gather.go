@@ -13,6 +13,20 @@ import (
 // When outputOpts contains operation filters (include/exclude tags or operation IDs),
 // schemas from excluded operations are not gathered.
 func GatherSchemas(doc *v3.Document, contentTypeMatcher *ContentTypeMatcher, outputOpts OutputOptions) ([]*SchemaDescriptor, error) {
+	return GatherSchemasWithOptions(doc, contentTypeMatcher, outputOpts, GatherOptions{})
+}
+
+// GatherOptions carries non-output-filter toggles that gather needs to honour.
+type GatherOptions struct {
+	// SkipEnumViaOneOf disables detection of the 3.1 enum-via-oneOf idiom.
+	// When true, schemas that would otherwise be recognised as enums are
+	// gathered as ordinary oneOf unions.
+	SkipEnumViaOneOf bool
+}
+
+// GatherSchemasWithOptions is the same as GatherSchemas but accepts
+// non-output-filter toggles such as SkipEnumViaOneOf.
+func GatherSchemasWithOptions(doc *v3.Document, contentTypeMatcher *ContentTypeMatcher, outputOpts OutputOptions, gatherOpts GatherOptions) ([]*SchemaDescriptor, error) {
 	if doc == nil {
 		return nil, fmt.Errorf("nil v3 document")
 	}
@@ -21,6 +35,7 @@ func GatherSchemas(doc *v3.Document, contentTypeMatcher *ContentTypeMatcher, out
 		schemas:            make([]*SchemaDescriptor, 0),
 		contentTypeMatcher: contentTypeMatcher,
 		outputOpts:         outputOpts,
+		gatherOpts:         gatherOpts,
 	}
 
 	g.gatherFromDocument(doc)
@@ -31,6 +46,7 @@ type gatherer struct {
 	schemas            []*SchemaDescriptor
 	contentTypeMatcher *ContentTypeMatcher
 	outputOpts         OutputOptions
+	gatherOpts         GatherOptions
 	// Context for the current operation being gathered (for nicer naming)
 	currentOperationID string
 	currentContentType string
@@ -611,12 +627,24 @@ func (g *gatherer) gatherFromSchema(schema *base.Schema, basePath SchemaPath, pa
 		}
 	}
 
-	// OneOf
-	for i, proxy := range schema.OneOf {
-		oneOfPath := basePath.Append("oneOf", fmt.Sprintf("%d", i))
-		oneOfDesc := g.gatherFromSchemaProxy(proxy, oneOfPath, parent)
-		if parent != nil && oneOfDesc != nil {
-			parent.OneOf = append(parent.OneOf, oneOfDesc)
+	// OneOf — the 3.1 enum-via-const idiom shortcuts member recursion.
+	// For such a schema the members are pure const+title branches that
+	// don't warrant their own Go types, so we detect the idiom once, cache
+	// the extracted items on the parent, and skip the per-member recursion.
+	oneOfIsConstEnum := false
+	if !g.gatherOpts.SkipEnumViaOneOf && parent != nil {
+		if items, ok := isConstOneOfEnum(schema); ok {
+			parent.ConstOneOfItems = items
+			oneOfIsConstEnum = true
+		}
+	}
+	if !oneOfIsConstEnum {
+		for i, proxy := range schema.OneOf {
+			oneOfPath := basePath.Append("oneOf", fmt.Sprintf("%d", i))
+			oneOfDesc := g.gatherFromSchemaProxy(proxy, oneOfPath, parent)
+			if parent != nil && oneOfDesc != nil {
+				parent.OneOf = append(parent.OneOf, oneOfDesc)
+			}
 		}
 	}
 

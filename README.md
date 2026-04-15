@@ -62,6 +62,26 @@ about people coming and going. Any number of clients may subscribe to this event
 The [callback example](examples/callback), creates a little server that pretends to plant trees. Each tree planting request contains a callback to be notified
 when tree planting is complete. We invoke those in a random order via delays, and the client prints out callbacks as they happen. Please see [doc.go](examples/callback/doc.go) for usage.
 
+#### Enum via `oneOf` + `const`
+
+OpenAPI 3.1 lets you express a named enum with per-value documentation by putting each variant in a `oneOf` branch with `const` and `title`:
+
+```yaml
+Severity:
+  type: integer
+  oneOf:
+    - title: HIGH
+      const: 2
+      description: An urgent problem
+    - title: MEDIUM
+      const: 1
+    - title: LOW
+      const: 0
+      description: Can wait forever
+```
+
+V3 detects this idiom and emits a regular Go enum (`type Severity int` with `HIGH`, `MEDIUM`, `LOW` constants) — with the `description` rendered as a per-value doc comment — instead of a `oneOf` union. All branches must carry both `const` and `title`, and the outer schema must declare a scalar `type` (`string` or `integer`); otherwise the schema falls through to the standard union generator. Set `generation.skip-enum-via-oneof: true` to disable detection.
+
 ### Flexible Configuration
 
 oapi-codegen V3 tries to make no assumptions about which initialisms, struct tags, or name mangling that is correct for you. A very [flexible configuration file](Configuration.md) allows you to override anything.
