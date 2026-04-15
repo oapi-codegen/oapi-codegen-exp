@@ -95,10 +95,7 @@ func EliminateDeadCode(src string) (string, error) {
 	}
 
 	// Keep only reachable declarations.
-	var kept []ast.Decl
-	for _, d := range roots {
-		kept = append(kept, d)
-	}
+	kept := append([]ast.Decl{}, roots...)
 	for _, c := range candidates {
 		if isReachable(c.names, reachable) {
 			kept = append(kept, c.decl)

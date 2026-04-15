@@ -34,9 +34,9 @@ func TestSchemaInstantiation(t *testing.T) {
 
 // Verify callback request body type alias
 func TestCallbackRequestBodyAlias(t *testing.T) {
-	var body TreePlantedJSONRequestBody = TreePlantingResult{
+	var body = TreePlantedJSONRequestBody(TreePlantingResult{
 		Success: true,
-	}
+	})
 	assert.True(t, body.Success)
 }
 
