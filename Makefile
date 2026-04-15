@@ -1,35 +1,52 @@
-SHELL:=/bin/bash
+GOBASE=$(shell pwd)
+GOBIN=$(GOBASE)/bin
 
-YELLOW := \e[0;33m
-RESET := \e[0;0m
+help:
+	@echo "This is a helper makefile for oapi-codegen"
+	@echo "Targets:"
+	@echo "    generate:    regenerate all generated files"
+	@echo "    test:        run all tests"
+	@echo "    tidy         tidy go mod"
+	@echo "    lint         lint the project"
 
-GOVER := $(shell go env GOVERSION)
-GOMINOR := $(shell bash -c "cut -f1 -d' ' <<< \"$(GOVER)\" | cut -f2 -d.")
+$(GOBIN)/golangci-lint:
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOBIN) v2.10.1
 
-define execute-if-go-124
-@{ \
-if [[ 24 -le $(GOMINOR) ]]; then \
-	$1; \
-else \
-	echo -e "$(YELLOW)Skipping task as you're running Go v1.$(GOMINOR).x which is < Go 1.24, which this module requires$(RESET)"; \
-fi \
-}
-endef
+.PHONY: tools
+tools: $(GOBIN)/golangci-lint
 
-lint:
-	$(call execute-if-go-124,$(GOBIN)/golangci-lint run ./...)
+lint: tools
+	# run the root module explicitly, to prevent recursive calls by re-invoking `make ...` top-level
+	$(GOBIN)/golangci-lint run ./...
+	# then, for all child modules, use a module-managed `Makefile`
+	git ls-files '**/*go.mod' -z | xargs -0 -I{} bash -xc 'cd $$(dirname {}) && env GOBIN=$(GOBIN) make lint'
 
-lint-ci:
-	$(call execute-if-go-124,$(GOBIN)/golangci-lint run ./... --output.text.path=stdout --timeout=5m)
+lint-ci: tools
+	# for the root module, explicitly run the step, to prevent recursive calls
+	$(GOBIN)/golangci-lint run ./... --output.text.path=stdout --timeout=5m
+	# then, for all child modules, use a module-managed `Makefile`
+	git ls-files '**/*go.mod' -z | xargs -0 -I{} bash -xc 'cd $$(dirname {}) && env GOBIN=$(GOBIN) make lint-ci'
 
 generate:
-	$(call execute-if-go-124,go generate ./...)
+	# for the root module, explicitly run the step, to prevent recursive calls
+	go generate ./...
+	# then, for all child modules, use a module-managed `Makefile`
+	git ls-files '**/*go.mod' -z | xargs -0 -I{} bash -xc 'cd $$(dirname {}) && make generate'
 
 test:
-	@echo "Skipping tests in experimental module"
+	# for the root module, explicitly run the step, to prevent recursive calls
+	go test -cover ./...
+	# then, for all child modules, use a module-managed `Makefile`
+	git ls-files '**/*go.mod' -z | xargs -0 -I{} bash -xc 'cd $$(dirname {}) && make test'
 
 tidy:
-	$(call execute-if-go-124,go mod tidy)
+	# for the root module, explicitly run the step, to prevent recursive calls
+	go mod tidy
+	# then, for all child modules, use a module-managed `Makefile`
+	git ls-files '**/*go.mod' -z | xargs -0 -I{} bash -xc 'cd $$(dirname {}) && make tidy'
 
 tidy-ci:
-	$(call execute-if-go-124,tidied -verbose)
+	# for the root module, explicitly run the step, to prevent recursive calls
+	tidied -verbose
+	# then, for all child modules, use a module-managed `Makefile`
+	git ls-files '**/*go.mod' -z | xargs -0 -I{} bash -xc 'cd $$(dirname {}) && make tidy-ci'

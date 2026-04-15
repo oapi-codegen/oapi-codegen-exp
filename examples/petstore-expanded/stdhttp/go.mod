@@ -2,6 +2,4 @@ module github.com/oapi-codegen/oapi-codegen-exp/examples/petstore-expanded/stdht
 
 go 1.24.0
 
-require github.com/google/uuid v1.6.0
-
 replace github.com/oapi-codegen/oapi-codegen-exp => ../../../
