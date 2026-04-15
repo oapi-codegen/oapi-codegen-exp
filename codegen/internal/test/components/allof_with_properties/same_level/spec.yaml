@@ -1,0 +1,52 @@
+# Tests that properties defined at the same level as allOf are not ignored.
+# Covers: oapi-codegen/oapi-codegen#697, oapi-codegen/oapi-codegen#2102
+openapi: 3.0.0
+info:
+  title: allOf with same-level properties
+  version: 1.0.0
+paths:
+  /bar:
+    get:
+      summary: bar
+      responses:
+        "200":
+          description: bar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bar'
+components:
+  schemas:
+    # issue 697: allOf ref + properties at same level
+    YBase:
+      type: object
+      properties:
+        baseField:
+          type: string
+    X:
+      allOf:
+        - $ref: '#/components/schemas/YBase'
+      properties:
+        a:
+          type: string
+        b:
+          type: integer
+      type: object
+
+    # issue 2102: allOf ref + properties + required at same level
+    Foo:
+      type: object
+      required:
+        - foo
+      properties:
+        foo:
+          type: string
+    Bar:
+      type: object
+      properties:
+        bar:
+          type: string
+      allOf:
+        - $ref: '#/components/schemas/Foo'
+        - required:
+            - bar

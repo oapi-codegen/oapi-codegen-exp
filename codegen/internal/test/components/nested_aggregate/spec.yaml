@@ -1,11 +1,43 @@
-openapi: "3.1.0"
+# Nested aggregate schema tests — allOf/anyOf/oneOf combined in various ways.
+#
+# Scenarios:
+#   1. Array with anyOf items (string or object)
+#   2. Object with anyOf property (string or integer)
+#   3. Object with oneOf property (inline object variants)
+#   4. allOf containing oneOf variants
+#   5. oneOf with nested allOf and field preservation (prompt field)
+#   6. anyOf/allOf/oneOf with duplicate enum variants
+openapi: "3.0.1"
 info:
-  title: Nested Aggregate Test
+  title: Nested Aggregate Tests
   version: "1.0"
-paths: {}
+paths:
+  /ensure-everything-is-referenced:
+    get:
+      operationId: ensureEverythingIsReferenced
+      responses:
+        "200":
+          description: placeholder
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  arrayOfAnyOf:
+                    $ref: "#/components/schemas/ArrayOfAnyOf"
+                  objectWithAnyOfProperty:
+                    $ref: "#/components/schemas/ObjectWithAnyOfProperty"
+                  objectWithOneOfProperty:
+                    $ref: "#/components/schemas/ObjectWithOneOfProperty"
+                  allOfWithOneOf:
+                    $ref: "#/components/schemas/AllOfWithOneOf"
+                  prompt:
+                    $ref: "#/components/schemas/Prompt"
+                  compositionEnumTest:
+                    $ref: "#/components/schemas/CompositionEnumTest"
 components:
   schemas:
-    # Case 1: Array with anyOf items
+    # --- Scenario 1: Array with anyOf items ---
     ArrayOfAnyOf:
       type: array
       items:
@@ -16,7 +48,7 @@ components:
               id:
                 type: integer
 
-    # Case 2: Object with anyOf property
+    # --- Scenario 2: Object with anyOf property ---
     ObjectWithAnyOfProperty:
       type: object
       properties:
@@ -25,7 +57,7 @@ components:
             - type: string
             - type: integer
 
-    # Case 3: Object with oneOf property containing inline objects
+    # --- Scenario 3: Object with oneOf property (inline variants) ---
     ObjectWithOneOfProperty:
       type: object
       properties:
@@ -44,7 +76,7 @@ components:
                 count:
                   type: integer
 
-    # Case 4: allOf containing oneOf
+    # --- Scenario 4: allOf containing oneOf ---
     AllOfWithOneOf:
       allOf:
         - type: object
@@ -60,3 +92,95 @@ components:
               properties:
                 optionB:
                   type: integer
+
+    # --- Scenario 5: oneOf with nested allOf, field preservation ---
+    # The 'prompt' field must not be lost in composition.
+    BasePrompt:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: integer
+      required:
+        - name
+        - version
+    TextPrompt:
+      type: object
+      properties:
+        prompt:
+          type: string
+      required:
+        - prompt
+      allOf:
+        - $ref: '#/components/schemas/BasePrompt'
+    ChatMessage:
+      type: object
+      properties:
+        role:
+          type: string
+        content:
+          type: string
+      required:
+        - role
+        - content
+    ChatPrompt:
+      type: object
+      properties:
+        prompt:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+      required:
+        - prompt
+      allOf:
+        - $ref: '#/components/schemas/BasePrompt'
+    Prompt:
+      oneOf:
+        - type: object
+          allOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - chat
+            - $ref: '#/components/schemas/ChatPrompt'
+          required:
+            - type
+        - type: object
+          allOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - text
+            - $ref: '#/components/schemas/TextPrompt'
+          required:
+            - type
+
+    # --- Scenario 6: anyOf/allOf/oneOf with duplicate enum variants ---
+    CompositionEnumTest:
+      properties:
+        fieldA:
+          anyOf:
+            - type: string
+            - type: string
+              enum:
+                - foo
+                - bar
+        fieldB:
+          allOf:
+            - type: string
+            - type: string
+              enum:
+                - foo
+                - bar
+        fieldC:
+          oneOf:
+            - type: string
+            - type: string
+              enum:
+                - foo
+                - bar

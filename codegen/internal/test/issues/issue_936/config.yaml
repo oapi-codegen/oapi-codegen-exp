@@ -1,5 +1,0 @@
-package: output
-output: output/types.gen.go
-generation:
-  runtime-package:
-    path: github.com/oapi-codegen/oapi-codegen-exp/runtime

@@ -418,15 +418,382 @@ type AllOfWithOneOfAllOf1OneOf1 struct {
 func (s *AllOfWithOneOfAllOf1OneOf1) ApplyDefaults() {
 }
 
+// #/components/schemas/BasePrompt
+type BasePrompt struct {
+	Name    string `form:"name" json:"name"`
+	Version int    `form:"version" json:"version"`
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (s *BasePrompt) ApplyDefaults() {
+}
+
+// #/components/schemas/TextPrompt
+type TextPrompt struct {
+	Prompt  string `form:"prompt" json:"prompt"`
+	Name    string `form:"name" json:"name"`
+	Version int    `form:"version" json:"version"`
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (s *TextPrompt) ApplyDefaults() {
+}
+
+// #/components/schemas/ChatMessage
+type ChatMessage struct {
+	Role    string `form:"role" json:"role"`
+	Content string `form:"content" json:"content"`
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (s *ChatMessage) ApplyDefaults() {
+}
+
+// #/components/schemas/ChatPrompt
+type ChatPrompt struct {
+	Prompt  []ChatMessage `form:"prompt" json:"prompt"`
+	Name    string        `form:"name" json:"name"`
+	Version int           `form:"version" json:"version"`
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (s *ChatPrompt) ApplyDefaults() {
+}
+
+// #/components/schemas/ChatPrompt/properties/prompt
+type ChatPromptPrompt = []ChatMessage
+
+// #/components/schemas/Prompt
+
+type Prompt struct {
+	union json.RawMessage
+}
+
+// AsPromptOneOf0 returns the union data inside the Prompt as a PromptOneOf0.
+func (t Prompt) AsPromptOneOf0() (PromptOneOf0, error) {
+	var body PromptOneOf0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromPromptOneOf0 overwrites any union data inside the Prompt as the provided PromptOneOf0.
+func (t *Prompt) FromPromptOneOf0(v PromptOneOf0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergePromptOneOf0 performs a merge with any union data inside the Prompt, using the provided PromptOneOf0.
+func (t *Prompt) MergePromptOneOf0(v PromptOneOf0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	merged, err := oapiCodegenHelpersPkg.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsPromptOneOf1 returns the union data inside the Prompt as a PromptOneOf1.
+func (t Prompt) AsPromptOneOf1() (PromptOneOf1, error) {
+	var body PromptOneOf1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromPromptOneOf1 overwrites any union data inside the Prompt as the provided PromptOneOf1.
+func (t *Prompt) FromPromptOneOf1(v PromptOneOf1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergePromptOneOf1 performs a merge with any union data inside the Prompt, using the provided PromptOneOf1.
+func (t *Prompt) MergePromptOneOf1(v PromptOneOf1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	merged, err := oapiCodegenHelpersPkg.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t Prompt) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *Prompt) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (t *Prompt) ApplyDefaults() {
+}
+
+// #/components/schemas/Prompt/oneOf/0
+type PromptOneOf0 struct {
+	Type    *string       `form:"type,omitempty" json:"type,omitempty"`
+	Prompt  []ChatMessage `form:"prompt" json:"prompt"`
+	Name    string        `form:"name" json:"name"`
+	Version int           `form:"version" json:"version"`
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (s *PromptOneOf0) ApplyDefaults() {
+}
+
+// #/components/schemas/Prompt/oneOf/0/allOf/0/properties/type
+type PromptOneOf0AllOf0Type string
+
+const (
+	Chat PromptOneOf0AllOf0Type = "chat"
+)
+
+// #/components/schemas/Prompt/oneOf/1
+type PromptOneOf1 struct {
+	Type    *string `form:"type,omitempty" json:"type,omitempty"`
+	Prompt  string  `form:"prompt" json:"prompt"`
+	Name    string  `form:"name" json:"name"`
+	Version int     `form:"version" json:"version"`
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (s *PromptOneOf1) ApplyDefaults() {
+}
+
+// #/components/schemas/Prompt/oneOf/1/allOf/0/properties/type
+type PromptOneOf1AllOf0Type string
+
+const (
+	Text PromptOneOf1AllOf0Type = "text"
+)
+
+// #/components/schemas/CompositionEnumTest
+type CompositionEnumTest struct {
+	FieldA *CompositionEnumTestFieldA `form:"fieldA,omitempty" json:"fieldA,omitempty"`
+	FieldB *CompositionEnumTestFieldB `form:"fieldB,omitempty" json:"fieldB,omitempty"`
+	FieldC *CompositionEnumTestFieldC `form:"fieldC,omitempty" json:"fieldC,omitempty"`
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (s *CompositionEnumTest) ApplyDefaults() {
+}
+
+// #/components/schemas/CompositionEnumTest/properties/fieldA
+
+type CompositionEnumTestFieldA struct {
+	union json.RawMessage
+}
+
+// AsString0 returns the union data inside the CompositionEnumTestFieldA as a string.
+func (t CompositionEnumTestFieldA) AsString0() (string, error) {
+	var body string
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromString0 overwrites any union data inside the CompositionEnumTestFieldA as the provided string.
+func (t *CompositionEnumTestFieldA) FromString0(v string) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeString0 performs a merge with any union data inside the CompositionEnumTestFieldA, using the provided string.
+func (t *CompositionEnumTestFieldA) MergeString0(v string) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	merged, err := oapiCodegenHelpersPkg.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsCompositionEnumTestFieldAAnyOf1 returns the union data inside the CompositionEnumTestFieldA as a CompositionEnumTestFieldAAnyOf1.
+func (t CompositionEnumTestFieldA) AsCompositionEnumTestFieldAAnyOf1() (CompositionEnumTestFieldAAnyOf1, error) {
+	var body CompositionEnumTestFieldAAnyOf1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromCompositionEnumTestFieldAAnyOf1 overwrites any union data inside the CompositionEnumTestFieldA as the provided CompositionEnumTestFieldAAnyOf1.
+func (t *CompositionEnumTestFieldA) FromCompositionEnumTestFieldAAnyOf1(v CompositionEnumTestFieldAAnyOf1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeCompositionEnumTestFieldAAnyOf1 performs a merge with any union data inside the CompositionEnumTestFieldA, using the provided CompositionEnumTestFieldAAnyOf1.
+func (t *CompositionEnumTestFieldA) MergeCompositionEnumTestFieldAAnyOf1(v CompositionEnumTestFieldAAnyOf1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	merged, err := oapiCodegenHelpersPkg.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t CompositionEnumTestFieldA) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CompositionEnumTestFieldA) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (t *CompositionEnumTestFieldA) ApplyDefaults() {
+}
+
+// #/components/schemas/CompositionEnumTest/properties/fieldA/anyOf/1
+type CompositionEnumTestFieldAAnyOf1 string
+
+const (
+	CompositionEnumTestFieldAAnyOf1Foo CompositionEnumTestFieldAAnyOf1 = "foo"
+	CompositionEnumTestFieldAAnyOf1Bar CompositionEnumTestFieldAAnyOf1 = "bar"
+)
+
+// #/components/schemas/CompositionEnumTest/properties/fieldB
+type CompositionEnumTestFieldB struct {
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (s *CompositionEnumTestFieldB) ApplyDefaults() {
+}
+
+// #/components/schemas/CompositionEnumTest/properties/fieldC
+
+type CompositionEnumTestFieldC struct {
+	union json.RawMessage
+}
+
+// AsString0 returns the union data inside the CompositionEnumTestFieldC as a string.
+func (t CompositionEnumTestFieldC) AsString0() (string, error) {
+	var body string
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromString0 overwrites any union data inside the CompositionEnumTestFieldC as the provided string.
+func (t *CompositionEnumTestFieldC) FromString0(v string) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeString0 performs a merge with any union data inside the CompositionEnumTestFieldC, using the provided string.
+func (t *CompositionEnumTestFieldC) MergeString0(v string) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	merged, err := oapiCodegenHelpersPkg.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsCompositionEnumTestFieldCOneOf1 returns the union data inside the CompositionEnumTestFieldC as a CompositionEnumTestFieldCOneOf1.
+func (t CompositionEnumTestFieldC) AsCompositionEnumTestFieldCOneOf1() (CompositionEnumTestFieldCOneOf1, error) {
+	var body CompositionEnumTestFieldCOneOf1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromCompositionEnumTestFieldCOneOf1 overwrites any union data inside the CompositionEnumTestFieldC as the provided CompositionEnumTestFieldCOneOf1.
+func (t *CompositionEnumTestFieldC) FromCompositionEnumTestFieldCOneOf1(v CompositionEnumTestFieldCOneOf1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeCompositionEnumTestFieldCOneOf1 performs a merge with any union data inside the CompositionEnumTestFieldC, using the provided CompositionEnumTestFieldCOneOf1.
+func (t *CompositionEnumTestFieldC) MergeCompositionEnumTestFieldCOneOf1(v CompositionEnumTestFieldCOneOf1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	merged, err := oapiCodegenHelpersPkg.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t CompositionEnumTestFieldC) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *CompositionEnumTestFieldC) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (t *CompositionEnumTestFieldC) ApplyDefaults() {
+}
+
+// #/components/schemas/CompositionEnumTest/properties/fieldC/oneOf/1
+type CompositionEnumTestFieldCOneOf1 string
+
+const (
+	CompositionEnumTestFieldCOneOf1Foo CompositionEnumTestFieldCOneOf1 = "foo"
+	CompositionEnumTestFieldCOneOf1Bar CompositionEnumTestFieldCOneOf1 = "bar"
+)
+
+// #/paths//ensure-everything-is-referenced/get/responses/200/content/application/json/schema
+type EnsureEverythingIsReferencedJSONResponse struct {
+	ArrayOfAnyOf            *ArrayOfAnyOf            `form:"arrayOfAnyOf,omitempty" json:"arrayOfAnyOf,omitempty"`
+	ObjectWithAnyOfProperty *ObjectWithAnyOfProperty `form:"objectWithAnyOfProperty,omitempty" json:"objectWithAnyOfProperty,omitempty"`
+	ObjectWithOneOfProperty *ObjectWithOneOfProperty `form:"objectWithOneOfProperty,omitempty" json:"objectWithOneOfProperty,omitempty"`
+	AllOfWithOneOf          *AllOfWithOneOf          `form:"allOfWithOneOf,omitempty" json:"allOfWithOneOf,omitempty"`
+	Prompt                  *Prompt                  `form:"prompt,omitempty" json:"prompt,omitempty"`
+	CompositionEnumTest     *CompositionEnumTest     `form:"compositionEnumTest,omitempty" json:"compositionEnumTest,omitempty"`
+}
+
+// ApplyDefaults sets default values for fields that are nil.
+func (s *EnsureEverythingIsReferencedJSONResponse) ApplyDefaults() {
+	if s.ObjectWithAnyOfProperty != nil {
+		s.ObjectWithAnyOfProperty.ApplyDefaults()
+	}
+	if s.ObjectWithOneOfProperty != nil {
+		s.ObjectWithOneOfProperty.ApplyDefaults()
+	}
+	if s.AllOfWithOneOf != nil {
+		s.AllOfWithOneOf.ApplyDefaults()
+	}
+	if s.Prompt != nil {
+		s.Prompt.ApplyDefaults()
+	}
+	if s.CompositionEnumTest != nil {
+		s.CompositionEnumTest.ApplyDefaults()
+	}
+}
+
 // Base64-encoded, gzip-compressed OpenAPI spec.
 var openAPISpecJSON = []string{
-	"H4sIAAAAAAAC/7yTQY/TMBCF7/kVT+W8K5bl5FvgTjggcXbTSTKQjC17WlQh/juKk9KkTVqBKnpq5nnG",
-	"75uXOE9iPRtsXp9fnt9uMpbKmQxQ1pYMPlFU2iGv60C1VcIXipoBBwqRnRhsUpe32kSDn7+y0nXeCYnG",
-	"fkosG+ps+gu8wUcbCS8GeQj2iB+sDawciwqs1MV0KElFlffloQ3QoycD2ytjJZ0/yRiGnB+Bp7EnamCp",
-	"FwS3/UalTgTAB+cpKFM0szrAu8vKyROLUk0hm/K9MyjS9CngOHzwP8hfWZuE+XnU5rgzh0veDrbd09TY",
-	"1RZu7OEsLSG8zhGc0AQBpRO1LCw1WFoWGr3GC7iib/tnuMBWdEqTXCzjLaR5K0/gO8tCpljfVv8T29Ff",
-	"Nf1fe6Xbzxd2/1V9b2DbtqimkaY1D59iL/0J8jQ5NZyvWWVc49vaeLXFRa6nhybuvLKTfH0/W+dasvLI",
-	"2z7cT+N3AAAA//8nzKKtgAUAAA==",
+	"H4sIAAAAAAAC/9RXzY7bNhC+6ykGcgGnQCXvT5KDbs4ihxxaL9oFeqalkcVUGqok5cS3PkSfsE9SkJQl",
+	"2qYce7NdoHtakfzm55tfz+AXVBoLYJuNxA3TCCqvsGGgUWkF//z1N7C6XpULRrtVuRCEqxJy0aw5YQGc",
+	"YMskF52CL2yn0mgWzeC3HMkcqiyaAcBtCksp2Q6+cF2BFQNcY6PgjdKS0waEBLH+jLn+0QLuUljZTx/R",
+	"StGi1DsfxEnjBqVD3R+inKEjilPNCXs91mhGWjno29T5CLkgzThZ8Ra/f2efvUv7U6uAet4skFEBJce6",
+	"gFaiQrllmguCN60UTavdldP1PnUOLRyrnsCia2uemwggdc2oWrRIrOUZxPfpTXobR5xKkUUAmusas30A",
+	"l0MAn0zkIoAtSsUFZRDfpjdx1DJdKYNbIKlOYoJblDtdcdokXCUSS5RIORbmDcAGtfsHwHBoHfpUZODA",
+	"HwfsJ/XrgOzfS1StIIVqLwAgvru5icdPgAJVLnmrrYFtzXKsRF2g9J6YaCBpHwXAWscSF7T4rAQd3kKf",
+	"vcenAHrXYtaH/+SyTxPuW+ypNNm7KpcmbKF7gB8klhnEs0UumlYQklYLZ4haLD10HEA7k37nurJPHvuM",
+	"vV7RKizovM6Vyb+X0HkgKKTT5vvw8hk8HuBDGlyxXS/50eJCEu1jxU2yfaSuMYV1vfiHUyFxNL4zAvun",
+	"TvYMkiQZmijcZlPtM0kSC1gG8tOlu83c/sRiRuvZcTYnPca118BFoHam64YXUyXYN+0o5Otddq7z7/1d",
+	"na+YgLUhO7es7tA3kp3W9yQn49U5d+6zS0bSMIsCDgbL82IHrVzfI3Faesm5zniuL/7BqQgVwyRj5o9Y",
+	"g1eBXte8XHSkp1HnYv02m9ohhjINNkALGlVO+jvl65qpE0aDPiYvGn1hJ/dymqu1EDUyekltH54XmXfZ",
+	"1Nr2U2hn24drBk8VwtwNlXn/sumUBhIa1gi1UNoswN6QSC3yA1P4eDCLLqzY4+oIxnG/1UVTHOx3sD87",
+	"LrHwU8vI9z57SfbkCb/qZ9l8OnQDVoeMccCpKnADdR4cqCO/c4t4qJj+GZViG7zSeCnqbxMeWEMvdNGI",
+	"9z57QYPNL8q3P+oD435cUsKcehzOXyVoh84ftabJRnGk8ruaioVdOyHA/jgLL4EJ5BXTR8Z9i3Sfkyne",
+	"Rzf/9wxp/HoNQ2Nbupih0Ah4n135o3uYAg/TvwBCzNkpsfz+rTLIbZjXBEohAqdrJg/NOhifZ9Lklc16",
+	"uHBB/e/N+jcAAP//n8hEYgwTAAA=",
 }
 
 // decodeOpenAPISpec decodes and decompresses the embedded spec.
