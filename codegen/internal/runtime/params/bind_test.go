@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -252,22 +253,60 @@ func TestBindQueryParameter_Form_Roundtrip(t *testing.T) {
 }
 
 func TestBindQueryParameter_OptionalMissing(t *testing.T) {
-	vals := url.Values{}
+	t.Run("explode_primitive", func(t *testing.T) {
+		vals := url.Values{}
 
-	var result *string
-	err := BindQueryParameter("missing", vals, &result, ParameterOptions{Style: "form", Explode: true})
-	require.NoError(t, err)
-	assert.Nil(t, result)
+		var result *string
+		err := BindQueryParameter("missing", vals, &result, ParameterOptions{Style: "form", Explode: true})
+		require.NoError(t, err)
+		assert.Nil(t, result)
+	})
+	t.Run("explode_string_slice", func(t *testing.T) {
+		vals := url.Values{}
+
+		var result *[]string
+		err := BindQueryParameter("missing", vals, &result, ParameterOptions{Style: "form", Explode: true})
+		require.NoError(t, err)
+		assert.Nil(t, result)
+	})
+	t.Run("explode_struct", func(t *testing.T) {
+		vals := url.Values{}
+
+		var result *time.Time
+		err := BindQueryParameter("missing", vals, &result, ParameterOptions{Style: "form", Explode: true})
+		require.NoError(t, err)
+		assert.Nil(t, result)
+	})
 }
 
 func TestBindQueryParameter_RequiredMissing(t *testing.T) {
-	vals := url.Values{}
+	t.Run("explode_primitive", func(t *testing.T) {
+		vals := url.Values{}
 
-	var result string
-	err := BindQueryParameter("required", vals, &result, ParameterOptions{Style: "form", Explode: true, Required: true})
-	require.Error(t, err)
-	var reqErr *MissingRequiredParameterError
-	assert.True(t, errors.As(err, &reqErr))
+		var result string
+		err := BindQueryParameter("required", vals, &result, ParameterOptions{Style: "form", Explode: true, Required: true})
+		require.Error(t, err)
+		var reqErr *MissingRequiredParameterError
+		assert.True(t, errors.As(err, &reqErr))
+	})
+	t.Run("explode_string_slice", func(t *testing.T) {
+		vals := url.Values{}
+
+		var result []string
+		err := BindQueryParameter("required", vals, &result, ParameterOptions{Style: "form", Explode: true, Required: true})
+		require.Error(t, err)
+		var reqErr *MissingRequiredParameterError
+		assert.True(t, errors.As(err, &reqErr))
+	})
+	t.Run("explode_struct", func(t *testing.T) {
+		vals := url.Values{}
+
+		var result time.Time
+		err := BindQueryParameter("required", vals, &result, ParameterOptions{Style: "form", Explode: true, Required: true})
+		require.Error(t, err)
+		var reqErr *MissingRequiredParameterError
+		assert.True(t, errors.As(err, &reqErr))
+	})
 }
 
 func TestBindQueryParameter_DeepObject_Roundtrip(t *testing.T) {
@@ -323,5 +362,66 @@ func TestBindQueryParameter_DeepObject_Roundtrip(t *testing.T) {
 		err = BindQueryParameter("filter", vals, &result, ParameterOptions{Style: "deepObject", Explode: true})
 		require.NoError(t, err)
 		assert.Equal(t, original, result)
+	})
+}
+
+// ---------------------------------------------------------------------------
+// BindRawQueryParameter (query - string)
+// ---------------------------------------------------------------------------
+
+func TestBindRawQueryParameter_OptionalMissing(t *testing.T) {
+	t.Run("primitive", func(t *testing.T) {
+		vals := ""
+
+		var result *string
+		err := BindRawQueryParameter("missing", vals, &result, ParameterOptions{Style: "form", Explode: false})
+		require.NoError(t, err)
+		assert.Nil(t, result)
+	})
+	t.Run("string_slice", func(t *testing.T) {
+		vals := ""
+
+		var result *[]string
+		err := BindRawQueryParameter("missing", vals, &result, ParameterOptions{Style: "form", Explode: false})
+		require.NoError(t, err)
+		assert.Nil(t, result)
+	})
+	t.Run("struct", func(t *testing.T) {
+		vals := ""
+
+		var result *time.Time
+		err := BindRawQueryParameter("missing", vals, &result, ParameterOptions{Style: "form", Explode: false})
+		require.NoError(t, err)
+		assert.Nil(t, result)
+	})
+}
+
+func TestBindRawQueryParameter_RequiredMissing(t *testing.T) {
+	t.Run("primitive", func(t *testing.T) {
+		vals := ""
+
+		var result string
+		err := BindRawQueryParameter("required", vals, &result, ParameterOptions{Style: "form", Explode: false, Required: true})
+		require.Error(t, err)
+		var reqErr *MissingRequiredParameterError
+		assert.True(t, errors.As(err, &reqErr))
+	})
+	t.Run("string_slice", func(t *testing.T) {
+		vals := ""
+
+		var result []string
+		err := BindRawQueryParameter("required", vals, &result, ParameterOptions{Style: "form", Explode: false, Required: true})
+		require.Error(t, err)
+		var reqErr *MissingRequiredParameterError
+		assert.True(t, errors.As(err, &reqErr))
+	})
+	t.Run("struct", func(t *testing.T) {
+		vals := ""
+
+		var result time.Time
+		err := BindRawQueryParameter("required", vals, &result, ParameterOptions{Style: "form", Explode: false, Required: true})
+		require.Error(t, err)
+		var reqErr *MissingRequiredParameterError
+		assert.True(t, errors.As(err, &reqErr))
 	})
 }

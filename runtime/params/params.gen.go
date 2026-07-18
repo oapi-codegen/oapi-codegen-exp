@@ -174,6 +174,9 @@ func BindQueryParameter(paramName string, queryParams url.Values, dest any, opts
 				var fieldsPresent bool
 				fieldsPresent, err = bindParamsToExplodedObject(paramName, queryParams, output)
 				if !fieldsPresent {
+					if opts.Required {
+						return &MissingRequiredParameterError{ParamName: paramName}
+					}
 					return nil
 				}
 			default:
@@ -343,6 +346,9 @@ func BindRawQueryParameter(paramName string, rawQuery string, dest any, opts Par
 				var fieldsPresent bool
 				fieldsPresent, err = bindParamsToExplodedObject(paramName, queryParams, output)
 				if !fieldsPresent {
+					if opts.Required {
+						return &MissingRequiredParameterError{ParamName: paramName}
+					}
 					return nil
 				}
 			default:

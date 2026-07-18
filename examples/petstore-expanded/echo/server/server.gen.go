@@ -423,6 +423,9 @@ func BindQueryParameter(paramName string, queryParams url.Values, dest any, opts
 				var fieldsPresent bool
 				fieldsPresent, err = bindParamsToExplodedObject(paramName, queryParams, output)
 				if !fieldsPresent {
+					if opts.Required {
+						return &MissingRequiredParameterError{ParamName: paramName}
+					}
 					return nil
 				}
 			default:
